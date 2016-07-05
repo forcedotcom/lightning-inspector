@@ -105,7 +105,7 @@ function AuraInspectorComponentTree(devtoolsPanel) {
                 isDirty = false;
 
                 if(selectedNodeId) {
-                    devtoolsPanel.updateComponentView(id);
+                    devtoolsPanel.updateComponentView(selectedNodeId);
                     devtoolsPanel.showSidebar();
                 }
 

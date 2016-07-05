@@ -1,8 +1,14 @@
 <!--
-	Renders a component controller reference as such
+
+	# Renders a component controller reference as such
 	<auracomponent>
 		{!c.foo} 
+	
+	# To Use
 
+	Mode 1: 
+	<aurainspector-expression expression="{!c.foo}" component="[GlobalId]"/>
+	 - expression MUST contain the "{!}" characters. 
 	
 -->
 <link rel="import" href="../auracomponent/auracomponent.html"/>

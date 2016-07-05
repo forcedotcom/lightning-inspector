@@ -396,6 +396,7 @@ body.sidebar-visible .sidebar {
 }
 button.status-bar-item {
   left: 0;
+    padding: 12px;
 }
 .panel-status-bar { border-bottom: 1px solid #D8DDE6; padding:.5em 0; margin: 0; }
 

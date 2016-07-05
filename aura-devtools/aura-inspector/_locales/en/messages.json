@@ -235,6 +235,22 @@
 		"message": "Handled By",
 		"description": "Which components reacted to the firing of this event."
 	},
+	"eventcard_callStack": {
+		"message": "Call Stack",
+		"description": "The listing of events that proceeded this event instance is called a Call Stack"
+	},
+	"eventcard_event": {
+		"message": "Event",
+		"description": "An event that was fired."
+	},
+	"eventcard_actions": {
+		"message": "Actions",
+		"description": "Corresponding actions that were fired by the event."
+	},
+	"eventcard_none": {
+		"message": "None",
+		"description": "There are no elements contained in the call stack."
+	},
 	"eventcard_togglegrid": {
 		"message": "Toggle Grid",
 		"description": "Button label that opens up a grid that details the call graph of this event and it's ancestors / descendants."
