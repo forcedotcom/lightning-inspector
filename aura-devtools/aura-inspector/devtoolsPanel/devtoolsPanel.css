@@ -27,7 +27,7 @@ a:hover {
   color: #005fb2;
   text-decoration: underline;
 }
-section h1 {
+section > h1 {
   background: #f4f6f9;
   color: #54698d;
   letter-spacing: 0.0625em;
@@ -35,7 +35,7 @@ section h1 {
   padding: 0.75rem 1rem;
   text-transform: uppercase;
 }
-section.dark h1 {
+section.dark > h1 {
   background: #eef1f6;
   color: #54698d;
 }
