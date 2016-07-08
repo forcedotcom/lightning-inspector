@@ -146,7 +146,7 @@ function AuraInspectorEventLog(devtoolsPanel) {
         if(ol.childNodes.length >= MAX_EVENTS) {
             ol.lastChild.remove();
         }
-
+        card.addEventListener('navigateToEvent', AuraInspectorEventLog_OnEventClick);
         return card;
     }
 
@@ -267,6 +267,26 @@ function AuraInspectorEventLog(devtoolsPanel) {
                 }
             }
             _handled = new Map();
+        }
+    }
+
+    // Highlights the event card
+    function AuraInspectorEventLog_OnEventClick(eventInfo){
+        var card = document.getElementById(eventInfo.path[0].dataset.globalid);
+
+        if(!card){
+            return;
+
+        } else {
+            var button = card.previousElementSibling;
+            button.value = "ON";
+
+            card.setAttribute("collapsed", "false");
+            card.scrollIntoView({block: "end", behavior: "smooth"});
+
+            //var newEvent = new Event('highlightCard');
+            //card.dispatchEvent(newEvent);
+            card.highlight();
         }
     }
 

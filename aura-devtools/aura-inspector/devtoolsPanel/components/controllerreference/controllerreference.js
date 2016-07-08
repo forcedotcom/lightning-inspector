@@ -41,7 +41,8 @@
     function ControllerReference_OnClick(event) {
         var command;
         var reference = this.textContent;
-        if(reference) {
+        var expression = this.getAttribute("expression");
+        if(reference && !expression) {
             var info = parse(reference);
             if(!info) { return; }
 
@@ -52,7 +53,7 @@
                     }
                 })($A.componentService.getComponentClass("markup://${info.prefix}:${info.component}"))`;
             chrome.devtools.inspectedWindow.eval(command);
-        } else {
+        } else if(expression) {
             // expression, component combination
             var expression = this.getAttribute("expression");
             var componentid = this.getAttribute("component");

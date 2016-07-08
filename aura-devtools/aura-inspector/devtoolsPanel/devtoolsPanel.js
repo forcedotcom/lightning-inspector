@@ -220,6 +220,7 @@
 
             // Render the output. Panel is responsible for not redrawing if necessary.
             if(current) {
+                this.hideLoading();
                 current.render(options);
                 AuraInspectorOptions.set("activePanel", panelKey);
             }

@@ -1,4 +1,5 @@
 (function() {
+	var EVENT_INDEX = 0;
 	var ownerDocument = document.currentScript.ownerDocument;
 
 	var eventCard = Object.create(HTMLElement.prototype);
@@ -36,6 +37,7 @@
     	this.shadowRoot.querySelector("#eventDuration").textContent = model.eventDuration+"ms";
     	this.shadowRoot.querySelector(".parameters").textContent 	= model.parameters;
 
+		// hide when clicked (does not detect click)
 		var collapsed = this.getAttribute("collapsed");
 		if(collapsed === "true" || collapsed === "collapsed") {
 			var section = this.shadowRoot.querySelector("section");
@@ -66,6 +68,12 @@
 
     	var toggleButton = shadowRoot.querySelector("#gridToggle");
     	toggleButton.addEventListener("click", ToggleButton_OnClick.bind(this));
+
+		var section = this.shadowRoot.querySelector("section");
+    	section.addEventListener("transitionend", function(event) {
+			var element = event.target;
+			element.classList.remove("highlight");
+		});
 	};
 
 	eventCard.attributeChangedCallback = function(attr, oldValue, newValue) {
@@ -77,6 +85,9 @@
 			} else if(newValue !== "true" && newValue !== "collapsed" && isCollapsed) {
 				section.classList.remove("hidden");
 				renderHandledBy(this);
+				renderCallStack(this);
+				//this.addEventListener("highlightCard", highlightCard);
+				//this.highlight();
 				if(this.getAttribute("showGrid") === "true") {
 					renderHandledByTree(this);
 				}
@@ -95,9 +106,135 @@
 		return this.shadowRoot.querySelector("section").classList.contains("hidden");
 	};
 
+	eventCard.highlight = function(){
+		var section = this.shadowRoot.querySelector("section") ;
+		section.classList.add("highlight");
+	};
+
 	var eventCardConstructor = document.registerElement('aurainspector-eventCard', {
 		prototype: eventCard
 	});
+
+	function renderCallStack(element) {
+		var events;
+		var EVENT_INDEX = 0;
+		var data = getData(element.getAttribute("handledByTree")) || [];
+		var handledContainer = element.shadowRoot.querySelector("#callStack");
+		handledContainer.removeChildren();
+
+		if(!data || data.length === 0) {
+			handledContainer.appendChild(createEmptyMessageRow());
+			return;
+		}
+
+		events = getCallStackData(element, data);
+		
+		handledContainer.appendChild(createHeaderRow());
+
+		// Write to the table for every event
+		for(var c = events.length-1; c >= 0; c--){
+			var tr;
+			var scope;
+			var event = events[c];
+			//var eventInfo = event[EVENT_INDEX];
+
+			// Create the list of actions that were fired by each event
+			tr = document.createElement("tr");
+
+			tr.appendChild(createEventLabel(event));
+			tr.appendChild(createActionData(event));
+
+			handledContainer.appendChild(tr);
+		}
+
+		function createEventLabel(event){
+			//var eventIndex = 0;
+			var eventInfo = event[0]; // Not sure why only the first event
+			var eventLabel;
+			var td;
+			var scope;
+
+			if(eventInfo.data.sourceId) {
+				scope = document.createElement("aurainspector-auracomponent");
+				scope.setAttribute("summary", "true");
+				scope.setAttribute("globalId", eventInfo.data.sourceId);
+			} else {
+				scope = document.createTextNode("{" + eventInfo.data.sourceId + "}");
+			}
+			td = document.createElement("td");
+			
+			eventLabel = document.createElement("a");
+			eventLabel.textContent = (eventInfo.data.sourceId ? eventInfo.data.name : eventInfo.data.name);
+			eventLabel.href = "";
+			eventLabel.setAttribute("data-globalid", eventInfo.id);
+			eventLabel.setAttribute("data-controller-name", eventInfo.data.name);
+			eventLabel.addEventListener("click", EventCallStackEvent_OnClick);
+
+			td.appendChild(eventLabel);
+			td.appendChild(scope);
+
+			return td;
+		}
+
+		function createActionData(event){
+			var td = document.createElement("td");
+			var controller;
+			var scope;
+
+			for(var a = 1; a < event.length; a++) {
+				var handled = event[a];
+
+				scope = document.createElement("aurainspector-auracomponent");
+				scope.setAttribute("summary", "true");
+				scope.setAttribute("globalId", handled.data.scope);
+
+				controller = document.createElement("aurainspector-controllerreference");
+				controller.setAttribute("expression", "{!c." + handled.data.name + "}");
+				controller.setAttribute("component", handled.data.scope);
+				controller.textContent = "c." + handled.data.name;
+
+				if (a > 1) {
+					td.appendChild(document.createElement("br"));
+				}
+
+				td.appendChild(controller);
+				td.appendChild(scope);
+
+			}
+			return td;
+		}
+
+		function createHeaderRow(){
+			var tr;
+			var th;
+
+			tr = document.createElement("tr");
+
+			th = document.createElement("th");
+			th.appendChild(document.createTextNode(chrome.i18n.getMessage("eventcard_event")));
+			tr.appendChild(th);
+
+			th = document.createElement("th");
+			th.appendChild(document.createTextNode(chrome.i18n.getMessage("eventcard_actions")));
+			tr.appendChild(th);
+
+			return tr;
+		}
+
+		function createEmptyMessageRow(){
+			var td;
+			var tr;
+
+			td = document.createElement("td");
+			td.appendChild(document.createTextNode(chrome.i18n.getMessage("eventcard_none")));
+
+			tr = document.createElement("tr");
+			tr.appendChild(td);
+
+			return tr;
+		}
+
+	}
 
 	function renderHandledBy(element) {
 		var data = getData(element.getAttribute("handledBy"));
@@ -115,7 +252,7 @@
 		var dt;
 		var auracomponent;
 		var dd;
-		var link;
+		var controller;
 		var handlers;
 		for(var c=0;c<data.length;c++) {
 			handlers = "handledBy" in data[c] ? data[c].handledBy : [data[c]];
@@ -126,15 +263,13 @@
 				dt = document.createElement("dt");
 				dt.appendChild(auracomponent);
 
-				link = document.createElement("a");
-				link.textContent = "c." + handlers[d].name;
-				link.href="";
-				link.setAttribute("data-globalid", handlers[d].scope);
-				link.setAttribute("data-controller-name", handlers[d].name);
-				link.addEventListener("click", ControllerLink_OnClick);
+				controller = document.createElement("aurainspector-controllerreference");
+				controller.setAttribute("expression", "{!c." + handlers[d].name + "}");
+				controller.setAttribute("component", handlers[c].scope);
+				controller.textContent = "c." + handlers[d].name;
 
 				dd = document.createElement("dd");
-				dd.appendChild(link);
+				dd.appendChild(controller);
 
 				dl.appendChild(dt);
 				dl.appendChild(dd);
@@ -223,10 +358,59 @@
 		return data;
 	}
 
-	function ToggleButton_OnClick(event) {
-		var showGrid = this.getAttribute("showGrid");
-		this.setAttribute("showGrid", (!showGrid || showGrid !== "true") ? "true" : "false");
+
+	function getCallStackData(element, data){
+
+		// id of the current element we are examining in call stack
+		var currentId = element.id;
+		var events = [];
+		var actions = [];
+
+		// Get list of all events in chronological order in call stack
+		while(currentId != null){ // If null, that means there is no parent of previous
+			//search every element in data to find
+			for(var c = 0; c < data.length; c++){
+				var handled = data[c];
+
+				if(handled.id === currentId){
+					if(handled.type === "event"){
+						events.push([handled]);
+					} else {
+						actions.push(handled)
+					}
+
+					if(handled.parent){
+						currentId = handled.parent;
+					} else {
+						currentId = null;
+					}
+				}
+			}
+		}
+
+		// Get action children for current event
+		for(var c = 0; c < data.length; c++){
+			if(data[c].parent && data[c].parent === element.id && data[c].type === "action"){
+				actions.push(data[c])
+			}
+		}
+
+		// For each action append to return events array so it looks like:
+		// [ (event), (action), (action), (action) ]
+		for(var count = 0; count < actions.length; count++){
+			var handled = actions[count];
+
+			for(var c = 0; c < events.length; c++){
+				var event = events[c][EVENT_INDEX];
+				if(handled.parent === event.id){
+					events[c].push(handled)
+				}
+			}
+		}
+
+		return events;
 	}
+
 
 	function ControllerLink_OnClick(event) {
 		var globalId = this.getAttribute("data-globalid");
@@ -238,5 +422,16 @@
 
 		event.preventDefault();
 		event.stopPropagation();
+	}
+
+	function EventCallStackEvent_OnClick(e){
+		this.dispatchEvent(new Event('navigateToEvent'));
+
+		e.preventDefault();
+	}
+
+	function ToggleButton_OnClick(event) {
+		var showGrid = this.getAttribute("showGrid");
+		this.setAttribute("showGrid", (!showGrid || showGrid !== "true") ? "true" : "false");
 	}
 })();

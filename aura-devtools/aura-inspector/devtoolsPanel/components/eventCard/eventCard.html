@@ -21,9 +21,18 @@
 			display: flex;
 			flex: 100%;
 		}
-		.parameters, .caller { 
-			display: flex; 
-			flex:100%;
+		table {
+			border-collapse: collapse;
+		}
+
+		td, th {
+			border: 1px solid #c1e3ff;
+			padding: 0.3rem;
+			text-align: left;
+			font-size: .7rem;
+			font-family: 'Lucida Grande', 'Consolas', 'sans-serif';
+			border-radus: 10px;
+
 		}
 
 		aurainspector-label {
@@ -38,6 +47,16 @@
 			line-height: 1.5;
 		}
 
+		.parameters, .caller { 
+			display: flex; 
+			flex:100%;
+		}
+
+		.highlight{
+			background-color: #ffffc4;
+			transition: background-color 1s;
+		}
+
 		.eventHandledBy dl, .eventSource{
 		  font-family: Menlo, monospace;
 		  font-size: 11px;
@@ -49,6 +68,37 @@
 			height: 400px;
 			background: #f4f6f9;
 			margin-top: .5rem;
+		}
+
+		#callStack aurainspector-controllerreference {
+			cursor: pointer;
+			color: #0070D2;
+			text-decoration: none;
+		}
+
+		#callStack aurainspector-controllerreference:active {
+			color: #00396b;
+		}
+
+		#callStack aurainspector-controllerreference:focus {
+			outline: #0070D2;
+			text-decoration: underline;
+		}
+
+		#callStack aurainspector-controllerreference:hover {
+			color: #005fb2;
+			text-decoration: underline;
+		}
+
+		#callStack aurainspector-auracomponent {
+			display: block;
+			padding-left: 1em;
+			opacity: .6;
+			cursor: pointer;
+		}
+
+		#callStack aurainspector-auracomponent:hover {
+			opacity: 1;
 		}
 
 		.hidden { display: none; }
@@ -171,7 +221,12 @@
 	    <p>
 	    	<aurainspector-label key="eventcard_handledby"></aurainspector-label><span id="eventHandledBy" class="eventHandledBy"></span>
 	    </p>
-	    <button id="gridToggle" class="hidden slds-button slds-button--neutral slds-button--x-small slds-m-top--x-small"><aurainspector-label key="eventcard_togglegrid"></aurainspector-label></button>
+		<p>
+			<aurainspector-label key="eventcard_callStack"></aurainspector-label>
+			<table id="callStack" class="callStack"></table>
+		</p>
+
+		<button id="gridToggle" class="hidden slds-button slds-button--neutral slds-button--x-small slds-m-top--x-small"><aurainspector-label key="eventcard_togglegrid"></aurainspector-label></button>
 	    <div id="eventHandledByGrid" class="hidden">
 	    </div>
     </section>
