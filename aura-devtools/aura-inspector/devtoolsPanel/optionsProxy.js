@@ -3,7 +3,8 @@
  * Don't feel like implementing the google.settings stuff yet, so just faking it out. 
  */
 (function(global){
-	var _persistedOptions = localStorage.getItem("AuraInspectorOptions") || "{}";
+
+	var _persistedOptions = getStorage("AuraInspectorOptions") || "{}";
 	var _map = JSON.parse(_persistedOptions);
 	var _clonedMap = cloneObject(_map);
 
@@ -34,7 +35,7 @@
 			if(_map[key] !== value) {
 				_map[key] = value;
 
-				localStorage.setItem("AuraInspectorOptions", JSON.stringify(_map));
+				setStorage("AuraInspectorOptions", _map);
 				_clonedMap = cloneObject(_map);
 			}
 			if(typeof callback == "function") {
@@ -42,5 +43,23 @@
 			}
 		}
 	};
+
+	function getStorage(key) {
+		// Local storage could be prohibited from being used because of security settings.
+		var map;
+		try {
+			map = localStorage.getItem(key);
+		} catch(e) {}
+		return map;
+	}
+
+	function setStorage(key, value) {
+		try {
+			localStorage.setItem(key, JSON.stringify(value))
+		} catch(e) {
+			return false;
+		}
+		return true;
+	}
 
 })(this);

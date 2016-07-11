@@ -1,4 +1,7 @@
 var Sfdc = {
+    // If localstorage is not available, use this object as a data store.
+    _storage: {},
+
     resolve: function(classPath) {
         if(typeof classPath === "string" && classPath.length > 1) {
             var current = window;
@@ -9,6 +12,52 @@ var Sfdc = {
             return current;
         }
         return null;
+    },
+
+    getStorage: function(key) {
+        // Local storage could be prohibited from being used because of security settings.
+        var map;
+        try {
+            map = this.getStorageSource().getItem(key);
+        } catch(e) {}
+        return map;
+    },
+
+    setStorage: function(key, value) {
+        try {
+            this.getStorageSource().setItem(key, JSON.stringify(value))
+        } catch(e) {
+            return false;
+        }
+        return true;
+    },
+
+    getStorageSource: function() {
+        try {
+            return window.localStorage;
+        } catch(e) {}
+        return {
+            getItem: function(key) {
+                return Sfdc._storage[key];
+            }, 
+
+            setItem: function(key, value) {
+                Sfdc._storage[key] = value;
+            },
+
+            clear: function() {
+                Sfdc._storage = {};
+            }
+
+        };
+    },
+
+    hasLocalStorage: function() {
+        // Local storage could be prohibited from being used because of security settings.
+        try {
+            return "localStorage" in window  && !!window.localStorage;
+        } catch(e) {}
+        return false;
     }
 };
 
@@ -6011,17 +6060,17 @@ WebInspector.Settings = function () {
 WebInspector.Settings.prototype = {
     createSetting: function (key, defaultValue) {
         if (!this._registry[key])
-            this._registry[key] = new WebInspector.Setting(key, defaultValue, this._eventSupport, window.localStorage);
+            this._registry[key] = new WebInspector.Setting(key, defaultValue, this._eventSupport, Sfdc.getStorageSource());
         return this._registry[key];
     },
     createRegExpSetting: function (key, defaultValue, regexFlags) {
         if (!this._registry[key])
-            this._registry[key] = new WebInspector.RegExpSetting(key, defaultValue, this._eventSupport, window.localStorage, regexFlags);
+            this._registry[key] = new WebInspector.RegExpSetting(key, defaultValue, this._eventSupport, Sfdc.getStorageSource(), regexFlags);
         return this._registry[key];
     },
     createBackendSetting: function (key, defaultValue, setterCallback) {
         if (!this._registry[key])
-            this._registry[key] = new WebInspector.BackendSetting(key, defaultValue, this._eventSupport, window.localStorage, setterCallback);
+            this._registry[key] = new WebInspector.BackendSetting(key, defaultValue, this._eventSupport, Sfdc.getStorageSource(), setterCallback);
         return this._registry[key];
     },
     initializeBackendSettings: function () {
@@ -6221,7 +6270,7 @@ WebInspector.VersionController.prototype = {
     _updateVersionFrom2To3: function () {
         var fileSystemMappingSetting = WebInspector.settings.createSetting("fileSystemMapping", {});
         fileSystemMappingSetting.set({});
-        if (window.localStorage)
+        if (Sfdc.hasLocalStorage())
             delete window.localStorage["fileMappingEntries"];
     },
     _updateVersionFrom3To4: function () {
@@ -6229,7 +6278,7 @@ WebInspector.VersionController.prototype = {
         WebInspector.settings.showAdvancedHeapSnapshotProperties.set(advancedMode);
     },
     _updateVersionFrom4To5: function () {
-        if (!window.localStorage)
+        if (!Sfdc.hasLocalStorage())
             return;
         var settingNames = {
             "FileSystemViewSidebarWidth": "fileSystemViewSplitViewState",
@@ -6278,7 +6327,7 @@ WebInspector.VersionController.prototype = {
         }
     },
     _updateVersionFrom5To6: function () {
-        if (!window.localStorage)
+        if (!Sfdc.hasLocalStorage())
             return;
         var settingNames = {
             "debuggerSidebarHidden": "sourcesPanelSplitViewState",
@@ -6302,7 +6351,7 @@ WebInspector.VersionController.prototype = {
         }
     },
     _updateVersionFrom6To7: function () {
-        if (!window.localStorage)
+        if (!Sfdc.hasLocalStorage())
             return;
         var settingNames = {
             "sourcesPanelNavigatorSplitViewState": "sourcesPanelNavigatorSplitViewState",
@@ -12842,7 +12891,7 @@ WebInspector.UISourceCode.prototype = {
         this._commitContent(content, true);
     },
     _restoreRevisionHistory: function () {
-        if (!window.localStorage)
+        if (!Sfdc.hasLocalStorage())
             return;
         var registry = WebInspector.Revision._revisionHistoryRegistry();
         var historyItems = registry[this.url];
@@ -12868,7 +12917,7 @@ WebInspector.UISourceCode.prototype = {
         this._contentLoaded = true;
     },
     _clearRevisionHistory: function () {
-        if (!window.localStorage)
+        if (!Sfdc.hasLocalStorage())
             return;
         var registry = WebInspector.Revision._revisionHistoryRegistry();
         var historyItems = registry[this.url];
@@ -13066,7 +13115,7 @@ WebInspector.Revision = function (uiSourceCode, content, timestamp) {
 }
 WebInspector.Revision._revisionHistoryRegistry = function () {
     if (!WebInspector.Revision._revisionHistoryRegistryObject) {
-        if (window.localStorage) {
+        if (Sfdc.hasLocalStorage()) {
             var revisionHistory = window.localStorage["revision-history"];
             try {
                 WebInspector.Revision._revisionHistoryRegistryObject = revisionHistory ? JSON.parse(revisionHistory) : {};
@@ -13079,7 +13128,7 @@ WebInspector.Revision._revisionHistoryRegistry = function () {
     return WebInspector.Revision._revisionHistoryRegistryObject;
 }
 WebInspector.Revision.filterOutStaleRevisions = function () {
-    if (!window.localStorage)
+    if (!Sfdc.hasLocalStorage())
         return;
     var registry = WebInspector.Revision._revisionHistoryRegistry();
     var filteredRegistry = {};
@@ -13131,7 +13180,7 @@ WebInspector.Revision.prototype = {
     _persist: function () {
         if (this._uiSourceCode.project().type() === WebInspector.projectTypes.FileSystem)
             return;
-        if (!window.localStorage)
+        if (!Sfdc.hasLocalStorage())
             return;
         var url = this.contentURL();
         if (!url || url.startsWith("inspector://"))
@@ -31078,7 +31127,7 @@ WebInspector.GenericSettingsTab = function () {
     restoreDefaults.addEventListener("click", restoreAndReload);
 
     function restoreAndReload() {
-        if (window.localStorage)
+        if (Sfdc.hasLocalStorage())
             window.localStorage.clear();
         WebInspector.reload();
     }

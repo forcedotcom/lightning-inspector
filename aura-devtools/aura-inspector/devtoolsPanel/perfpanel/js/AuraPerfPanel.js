@@ -2,7 +2,7 @@ var AuraPerfPanel = function (initialData, containerId, options) {
     this.initialData = initialData;
     this.containerId = containerId;
     this.opts = options;
-     this.init();
+    this.init();
 };
 
 AuraPerfPanel.prototype = {
