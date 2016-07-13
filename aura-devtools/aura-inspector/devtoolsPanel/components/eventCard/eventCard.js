@@ -156,7 +156,7 @@
 
 			if(eventInfo.data.sourceId) {
 				scope = document.createElement("aurainspector-auracomponent");
-				scope.setAttribute("summary", "true");
+				scope.setAttribute("summarize", true);
 				scope.setAttribute("globalId", eventInfo.data.sourceId);
 			} else {
 				scope = document.createTextNode("{" + eventInfo.data.sourceId + "}");
@@ -185,7 +185,7 @@
 				var handled = event[a];
 
 				scope = document.createElement("aurainspector-auracomponent");
-				scope.setAttribute("summary", "true");
+				scope.setAttribute("summarize", true);
 				scope.setAttribute("globalId", handled.data.scope);
 
 				controller = document.createElement("aurainspector-controllerreference");
@@ -259,6 +259,7 @@
 			for(var d=0;d<handlers.length;d++) {
 				auracomponent = document.createElement("aurainspector-auracomponent");
 				auracomponent.setAttribute("globalId", handlers[d].scope);
+				auracomponent.setAttribute("summarize", true);
 				
 				dt = document.createElement("dt");
 				dt.appendChild(auracomponent);
