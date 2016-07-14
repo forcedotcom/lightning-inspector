@@ -240,12 +240,12 @@
 		"description": "The listing of events that proceeded this event instance is called a Call Stack"
 	},
 	"eventcard_event": {
-		"message": "Event",
-		"description": "An event that was fired."
+		"message": "Event Fired",
+		"description": "This column shows the events that were fired by the framework and components."
 	},
 	"eventcard_actions": {
-		"message": "Actions",
-		"description": "Corresponding actions that were fired by the event."
+		"message": "Handled By",
+		"description": "This column shows the functions that were called as the result of the action being fired."
 	},
 	"eventcard_none": {
 		"message": "None",

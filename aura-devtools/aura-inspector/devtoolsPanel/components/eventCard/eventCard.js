@@ -84,10 +84,12 @@
 				section.classList.add("hidden");
 			} else if(newValue !== "true" && newValue !== "collapsed" && isCollapsed) {
 				section.classList.remove("hidden");
-				renderHandledBy(this);
+
+				// Now included as part of the callstack, so eliminating the double display
+				//renderHandledBy(this);
+
 				renderCallStack(this);
-				//this.addEventListener("highlightCard", highlightCard);
-				//this.highlight();
+
 				if(this.getAttribute("showGrid") === "true") {
 					renderHandledByTree(this);
 				}
@@ -266,7 +268,7 @@
 
 				controller = document.createElement("aurainspector-controllerreference");
 				controller.setAttribute("expression", "{!c." + handlers[d].name + "}");
-				controller.setAttribute("component", handlers[c].scope);
+				controller.setAttribute("component", handlers[d].scope);
 				controller.textContent = "c." + handlers[d].name;
 
 				dd = document.createElement("dd");
