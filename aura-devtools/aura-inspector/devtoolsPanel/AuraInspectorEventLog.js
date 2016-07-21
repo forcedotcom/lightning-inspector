@@ -272,7 +272,12 @@ function AuraInspectorEventLog(devtoolsPanel) {
 
     // Highlights the event card
     function AuraInspectorEventLog_OnEventClick(eventInfo){
-        var card = document.getElementById(eventInfo.path[0].dataset.globalid);
+        // No id specified
+        if(!eventInfo.detail) { 
+            return; 
+        }
+        
+        var card = document.getElementById(event.detail.eventId);
 
         if(!card){
             return;

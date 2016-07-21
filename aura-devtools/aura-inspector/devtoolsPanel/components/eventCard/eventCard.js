@@ -53,6 +53,11 @@
 			source.classList.add("hidden");
 		}
 
+		// Special additions to the title of the event card. 
+		if(model.eventName === "aura:valueChange") {
+			this.shadowRoot.querySelector("h2").textContent = "{! " + JSON.parse(model.parameters).expression + " }";
+		}
+
 	};
 
 	/*
@@ -266,7 +271,7 @@
 
 				controller = document.createElement("aurainspector-controllerreference");
 				controller.setAttribute("expression", "{!c." + handlers[d].name + "}");
-				controller.setAttribute("component", handlers[c].scope);
+				controller.setAttribute("component", handlers[d].scope);
 				controller.textContent = "c." + handlers[d].name;
 
 				dd = document.createElement("dd");
@@ -304,17 +309,20 @@
 
 		for(var c = 0; c < handledByTree.length;c++) {
 			var handled = handledByTree[c];
+			var data;
 			if(handled.type === "action") {
-			  	rawNodes.push({ "id": handled.id, "label": `{${handled.data.scope}} c.${handled.data.name}`, "color": "maroon" });
+				data = { "id": handled.id, "label": `{${handled.data.scope}} c.${handled.data.name}`, "color": "maroon" };
 			} else {
 				var label = handled.data.sourceId ? `{${handled.data.sourceId}} ${handled.data.name}` : handled.data.name;
-			  	var data = { "id": handled.id, "label": label, "color": "steelblue" };
+			  	data = { "id": handled.id, "label": label, "color": "steelblue" };
+			  	// Handle the selected node
 			  	if(handled.id === eventId) {
 			  		data.size = 60;
 			  		data.color = "#333";
 			  	}
-			  	rawNodes.push(data);
 			}
+			rawNodes.push(data);
+
 			if(handled.parent) {
 			  	rawEdges.push( { "from": handled.id, "to": handled.parent, arrows: "from" } );
 			}
@@ -348,6 +356,14 @@
 		  };
 
 		  var network = new vis.Network(gridContainer, { "nodes": nodes, "edges": edges }, options);
+		  network.on("doubleClick", function(params){
+		  	if(params.nodes.length) {
+		  		var id = params.nodes[0];
+		  		if(id.startsWith("event_")) {
+		  			element.dispatchEvent(new CustomEvent('navigateToEvent', { "detail": {"eventId": id}}));
+		  		}
+		  	}
+		  }.bind(this));
 	}
 
 	function getData(data) {
@@ -412,21 +428,8 @@
 		return events;
 	}
 
-
-	function ControllerLink_OnClick(event) {
-		var globalId = this.getAttribute("data-globalid");
-		var name = this.getAttribute("data-controller-name");
-
-		var inspectMethod = `$A.getComponent('${globalId}') && inspect($A.getComponent('${globalId}').controller['${name}'])`;
-
-		chrome.devtools.inspectedWindow.eval(inspectMethod);
-
-		event.preventDefault();
-		event.stopPropagation();
-	}
-
 	function EventCallStackEvent_OnClick(e){
-		this.dispatchEvent(new Event('navigateToEvent'));
+		this.dispatchEvent(new CustomEvent('navigateToEvent', { "detail": {"eventId": e.path[0].dataset.globalid}} ));
 
 		e.preventDefault();
 	}
