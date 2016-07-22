@@ -212,7 +212,7 @@
 		"description": "Start time label that describes what the column data means."
 	},
 	"transactions_duration_info": {
-		"message": "(milliseconds)",
+		"message": " (ms)",
 		"description": "Duration information that describes that the column is in milliseconds."
 	},
 	"eventcard_parameters": {

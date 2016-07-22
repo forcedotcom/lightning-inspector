@@ -681,9 +681,17 @@ button.toggle:focus {
   text-transform: uppercase;
   vertical-align: bottom;
 }
+
+.trans-panel .transactions tbody tr:nth-child(even) {
+    background: #ececec;
+}
+.trans-panel .transactions tbody tr:nth-child(odd) {
+    background: #FFF;
+}
+
 .trans-panel td {
   box-shadow: 0 -1px 0 0 #d8dde6 inset;
-  padding: .5rem;
+  padding: .43rem;
   max-width: 350px;
   white-space: normal;
   vertical-align: top;
@@ -692,7 +700,7 @@ button.toggle:focus {
   overflow-wrap: break-word;
 }
 .trans-panel tr:hover td {
-  background-color: #f4f6f9;
+  background-color: #f0fcff;
 }
 .th-description {
   font-size: .625rem;

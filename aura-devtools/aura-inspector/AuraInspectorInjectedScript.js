@@ -6,7 +6,7 @@
     //let's keep a map between actionID to action here, just like what AuraClientService is doing
     //when user wants to watch a action, let's add an entry here
     var actionsWatched = {};
-    //a map between acitonName to action, if action.nextResponse exist, we override next response, if no, just drop the action
+    //a map between actionName to action, if action.nextResponse exist, we override next response, if no, just drop the action
     var actionsToWatch = {};
 
     var $Symbol = Symbol.for("AuraDevTools");
@@ -230,6 +230,12 @@
                     bootstrapEventInstrumentation();
                 } catch(e){}
 
+                // Aaron
+                try {
+                    console.log("transactionReporting called in try");
+                    transactionReporting();
+                } catch(e){}
+
 
                 // Need a way to conditionally do this based on a user setting.
                 $A.PerfDevTools.init();
@@ -240,6 +246,7 @@
                 console.warn('Could not attach AuraDevTools Extension.');
             }
         }
+
     };//end of $Aura.actions
 
     /****************************************************************
@@ -2623,6 +2630,41 @@
         };
     };
 
+    // Aaron
+    function transactionReporting(){
+        //console.log($A.metricsService.getCurrentMarks());
+        $A.metricsService.registerBeacon(beacon);
+    }
+
+    function publishTransaction(transaction){
+        console.log("publish");
+        console.log(transaction);
+        $Aura.Inspector.publish("Transactions:OnTransactionEnd", transaction);
+    }
+
+    beacon = {};
+    beacon.initializeBeacon = function (config) {
+        beacon.hostCmp = config.hostCmp;
+        beacon.queue = [];
+        beacon.counter = 0;
+        beacon.pageViewHasEPT = false;
+
+        $A.installOverride("ClientService.receive", $A.getCallback(beacon.onXHRReceived), beacon);
+    };
+
+    beacon.onXHRReceived = function () {
+        // AOP to call the original
+        var config = Array.prototype.shift.apply(arguments);
+        var ret = config["fn"].apply(config["scope"], arguments);
+
+        // Check and update pageView state
+        this.pageViewHasFinishedLoading();
+    };
+
+    beacon.sendData = function(data1, data2){
+        console.log(data1);
+        console.log(data2);
+    };
 
 
 
