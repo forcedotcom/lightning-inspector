@@ -32,7 +32,7 @@
 			font-size: .7rem;
 			font-family: 'Lucida Grande', 'Consolas', 'sans-serif';
 			border-radus: 10px;
-
+			vertical-align: top;
 		}
 
 		aurainspector-label {
@@ -99,6 +99,10 @@
 
 		#callStack aurainspector-auracomponent:hover {
 			opacity: 1;
+		}
+
+		#callstack tr:last-child {
+			background-color: #ffffe4;
 		}
 
 		.hidden { display: none; }
@@ -218,9 +222,9 @@
 	    <p>
 	    	<aurainspector-label key="eventcard_duration"></aurainspector-label><span id="eventDuration" class="eventDuration"></span>
 	    </p>
-	    <p>
+<!-- 	    <p>
 	    	<aurainspector-label key="eventcard_handledby"></aurainspector-label><span id="eventHandledBy" class="eventHandledBy"></span>
-	    </p>
+	    </p> -->
 		<p>
 			<aurainspector-label key="eventcard_callStack"></aurainspector-label>
 			<table id="callStack" class="callStack"></table>
