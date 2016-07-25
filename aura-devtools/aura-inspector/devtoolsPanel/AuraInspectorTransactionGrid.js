@@ -1,8 +1,10 @@
-function AuraInspectorTransactionGrid(devtoolsPanel) {
+function AuraInspectorTransactionGrid() {
     var tableBody;
     var tab;  // HTML for the area we are working with (parents of tableBody)
     var labels;
     var graphData = {}; // Current data we are working with
+    var startTime;
+    var latestEndTime = 0;
 
     this.init = function (tabBody, initLabels) {
         var markup;
@@ -12,11 +14,12 @@ function AuraInspectorTransactionGrid(devtoolsPanel) {
         markup = `
                 <table>
                     <thead>
-                        <th>${labels.context}</th>
-                        <th>${labels.id}</th>
-                        <th>${labels.duration}</th>
-                        <th>${labels.starttime}</th>
-                        <th>Timeline</th>
+                        <th width="33%">${labels.context}</th>
+                        <th width="5%">${labels.id}</th>
+                        <th width="8%">${labels.duration}</th>
+                        <th width="9%">${labels.starttime}</th>
+                        Don't forget to make label for timeline
+                        <th width="45%">Timeline</th>
                      </thead>
                     
                     <tbody id="table-body"></tbody> 
@@ -33,18 +36,27 @@ function AuraInspectorTransactionGrid(devtoolsPanel) {
         tab = tabBody;
     };
 
+    this.setLoadTime = function(time){
+        startTime = time;
+    };
+
     this.clear = function(){
         tableBody.innerHTML = '';
         graphData = {};
+        latestEndTime = 0;
     };
 
-    this.updateTable = function (data) {
+    this.updateTable = function (data){
+        //console.log(startTime);
+        this.clear();
         this.getUniqueIDs(data);
         this.updateTimes(data);
-        var sortedIndexes = this.sortGraphData();
 
-        for(var x = 0; x < sortedIndexes.length; x++) {
-            this.addActionToTable(sortedIndexes[x]);
+        var sortedData = this.sortGraphData();
+        this.setLatestEndTime(sortedData);
+
+        for(var x = 0; x < sortedData.length; x++) {
+            this.addActionToTable(sortedData[x]);
         }
     };
 
@@ -110,10 +122,20 @@ function AuraInspectorTransactionGrid(devtoolsPanel) {
         }
     };
 
+    this.setLatestEndTime = function(sortedGraphData){
+      for(var x = 0; x < sortedGraphData.length; x++){
+          if(sortedGraphData[x].end && sortedGraphData[x].end > latestEndTime){
+              latestEndTime = sortedGraphData[x].end;
+              console.log(latestEndTime);
+          }
+      }
+    };
+
     this.addActionToTable = function(rowData){
         var markup;
         var duration;
         var stamp;
+        var timelineMarkup;
         var row = document.createElement('tr');
 
         if(rowData.stamp == null) {
@@ -122,20 +144,78 @@ function AuraInspectorTransactionGrid(devtoolsPanel) {
         } else {
             stamp = rowData.stamp.toLocaleString() + " ms";
             if(rowData.end) {
-                duration = Math.round(rowData.end - rowData.start).toLocaleString();
+                duration = Math.round(rowData.end - rowData.stamp).toLocaleString();
                 duration = duration + " ms";
             } else {
                 duration = "N/a"
             }
         }
 
+        timelineMarkup = this.createIndividualTimeline(rowData.stamp, rowData.start, rowData.end);
+        console.log(rowData);
+
         markup = `<td>${rowData.context}</td>
                   <td>${rowData.id}</td>
                   <td>${duration}</td>
-                  <td>${stamp}</td>`;
+                  <td>${stamp}</td>
+                  <td>${timelineMarkup}</td>`;
+
 
         row.innerHTML = markup;
         tableBody.appendChild(row);
+    };
+
+    this.createIndividualTimeline = function(stamp, start, end){
+        console.log(latestEndTime);
+        var markup;
+        var stampToStart = start - stamp;
+        var startToEnd = end - start;
+        var minPercent = .23;
+
+        var stampLeft = (stamp/latestEndTime)*100;
+        var stampRight = (1 - start/latestEndTime)*100-minPercent;
+
+        var startLeft = 100-stampRight;
+        var startRight = (1 - end/latestEndTime)*100-minPercent;
+        console.log(stampLeft);
+        console.log(stampRight);
+
+        if(stamp && start && end) {
+            markup = `
+                <div class="trans-graph-side">
+                    <div class="trans-graph-bar-area">
+                        <div class="trans-graph-bar request-timing total" style="left: 0%; right: 0%;"></div>
+                        
+                        <div class="trans-graph-bar request-timing stamp-start" style="left: ${stampLeft}%; right: ${stampRight}%">
+                            <span class="trans-graph-bar-info">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th class="trans-graph-bar-info-left-column">Timestamp:</th>
+                                            <th class="trans-graph-bar-info-right-column">Duration</th>
+                                        </tr>
+                                     </thead>
+                                    <tr>
+                                        <td class="trans-graph-bar-info-left-column">STAMP:</td>
+                                        <td class="trans-graph-bar-info-right-column">${stampToStart.toLocaleString()} ms</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="trans-graph-bar-info-left-column">START:</td>
+                                        <td class="trans-graph-bar-info-right-column">${startToEnd.toLocaleString()} ms</td>
+                                    </tr>
+                                </table>
+                            </span>
+                        </div>
+                        
+                        <div class="trans-graph-bar request-timing start-end" style="left:${startLeft}%; right: ${startRight}%;"></div>
+                    </div>
+                </div>
+                `;
+        } else {
+            markup = '';
+        }
+
+        return markup;
     };
 
     this.render = function (e) {

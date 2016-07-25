@@ -1378,6 +1378,8 @@
             "data": {"key":"AuraInspector:bootstrap", "data":{}}
         }, window.location.href);
 
+        // Aaron
+        $Aura.Inspector.publish("AuraInspector:RelayPageLoadTime", Date.now());
     });
 
     // $Aura.Inspector.subscribe("AuraInspector:OnPanelAlreadyConnected", function AuraInspector_OnPanelLoad() {
@@ -1415,6 +1417,8 @@
         var increment = 0;
         var lastItemInspected;
         var countMap = new Map();
+        var loadTimeStamp = Date.now();
+        //Aaron
 
         this.init = function() {
             // Add Rightclick handler. Just track what we rightclicked on.
@@ -2367,7 +2371,6 @@
     }
 
 
-
     function bootstrapPerfDevTools() {
         $A.PerfDevToolsEnabled = true;
 
@@ -2630,18 +2633,6 @@
         };
     };
 
-    // Aaron
-    function transactionReporting(){
-        //console.log($A.metricsService.getCurrentMarks());
-        $A.metricsService.registerBeacon(beacon);
-    }
-
-    function publishTransaction(transaction){
-        console.log("publish");
-        console.log(transaction);
-        $Aura.Inspector.publish("Transactions:OnTransactionEnd", transaction);
-    }
-
     beacon = {};
     beacon.initializeBeacon = function (config) {
         beacon.hostCmp = config.hostCmp;
@@ -2660,12 +2651,5 @@
         // Check and update pageView state
         this.pageViewHasFinishedLoading();
     };
-
-    beacon.sendData = function(data1, data2){
-        console.log(data1);
-        console.log(data2);
-    };
-
-
 
 })(this);

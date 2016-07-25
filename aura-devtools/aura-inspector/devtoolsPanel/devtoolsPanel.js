@@ -36,6 +36,9 @@
      * AuraInspector:OnContinueChaosRun             We might need to refresh during a replay, this will continue the ongoing replay.
      * AuraInspector:OnStopAllChaosRun              User has click the panic button, let's stop all chaos run, and clear up everything
      * AuraInspector:OnSomeActionGetDropped         We just drop some action during a replay
+     *
+     * Aaron:
+     * AuraInspector:RelayPageLoadTime              Channel where we send the timestamp of when the page loaded.
      */
 
     var panel = new AuraInspectorDevtoolsPanel();
@@ -135,6 +138,8 @@
 
                 this.subscribe("AuraInspector:AddPanel", AuraInspector_OnAddPanel.bind(this));
                 this.subscribe("AuraInspector:ShowComponentInTree", AuraInspector_OnShowComponentInTree.bind(this));
+                // Aaron
+                this.subscribe("AuraInspector:RelayPageLoadTime", AuraInspector_OnRelayPageLoadTime.bind(this));
 
                 // AuraInspector:publish and AuraInspector:publishbash are essentially the only things we listen for anymore.
                 // We broadcast one publish message everywhere, and then we have subscribers.
@@ -526,6 +531,13 @@
         function AuraInspector_OnAuraInitialized() {
             // The initialize script ran.
             this.publish("AuraInspector:OnPanelConnect", {});
+        }
+
+        // Aaron
+        function AuraInspector_OnRelayPageLoadTime(time){
+            console.log(panels);
+            var transaction = panels.get("transaction");
+            transaction.setLoadTime(time);
         }
 
         /**  BEGIN HELP BUTTON */

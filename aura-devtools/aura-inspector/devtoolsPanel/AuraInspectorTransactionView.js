@@ -90,15 +90,19 @@ function AuraInspectorTransactionView(devtoolsPanel) {
 		tabBody.innerHTML = markup;
 		tabBody.classList.add("trans-panel");
 
-		devtoolsPanel.subscribe("Transactions:OnTransactionEnd", function(transactions){
-			console.log("transaction!");
-			console.log(transactions);
-		}.bind(this));
-
 		// Aaron
 		transactionGrid = new AuraInspectorTransactionGrid(devtoolsPanel);
 		transactionGrid.init(tabBody, labels);
 	};
+
+	this.setLoadTime = function(time){
+		transactionGrid.setLoadTime(time);
+	};
+
+	this.requestLoadTime = function(){
+
+	};
+
 /*
 	this.summarizeActions = function (t) {
 		var serverActions = t.marks && Array.isArray(t.marks.serverActions) ? t.marks.serverActions : [];
@@ -146,15 +150,6 @@ function AuraInspectorTransactionView(devtoolsPanel) {
 		// Aaron
 		refreshButton.addEventListener('click', RefreshTransactions_OnClick.bind(this), false);
 		devtoolsPanel.hideSidebar();
-	};
-
-	this.addTransactions = function (rowData) {/*
-		if (!outputList) {
-			queuedData.push(rowData);
-			return;
-		}*/
-
-		//this.addTableRow(rowData);
 	};
 
 	this.getActions = function (callback) {
