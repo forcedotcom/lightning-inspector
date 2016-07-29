@@ -70,46 +70,53 @@ function AuraInspectorStorageView(devtoolsPanel) {
     this.updateStores = function(stores, allDoneCallback) {
         var command;
         var count = stores && stores.length || 0;
-        var processed = 0;
 
         if(!count) {
             allDoneCallback();
             return;
         }
 
+        var commands = [];
         for (var c=0;c<count;c++) {
             var store = stores[c];
-            var command = `
-                var o_${store} = new Object();
-                var i_${store} = $A.storageService.getStorage('${store}');
+            commands.push(`
+                    var output = "o_${store}";
+                    if(!data["o_${store}"]) {data["o_${store}"] = {}};
+                    data["i_${store}"] = $A.storageService.getStorage('${store}');
 
-                // sync
-                o_${store}.name = i_${store}.getName();
-                o_${store}.maxSize = i_${store}.getMaxSize();
-                o_${store}.version = i_${store}.getVersion();
+                    // sync
+                    data["o_${store}"].name = data["i_${store}"].getName();
+                    data["o_${store}"].maxSize = data["i_${store}"].getMaxSize();
+                    data["o_${store}"].version = data["i_${store}"].getVersion();
 
-                // async
-                i_${store}.getSize()
-                    .then(function(size) { o_${store}.size = size; }, function(err) { o_${store}.size = JSON.stringify(err); })
-                    .then(function() { return i_${store}.getAll(); })
-                    .then(function(all) { o_${store}.all = all; }, function(err) { o_${store}.all = JSON.stringify(err); })
-                    // last then() is to post the results to aura inspector
-                    .then(function() { window.postMessage({action:'AuraInspector:publish', key: 'AuraInspector:StorageData', data:{ id:'${store}', data: JSON.stringify(o_${store})} }, window.location.href); });
+                    // async
+                    data["i_${store}"].getSize()
+                        .then(function(size) { if(!data["o_${store}"]) {data["o_${store}"] = {}} data["o_${store}"].size = size; }, function(err) { if(!data["o_${store}"]) {data["o_${store}"] = {}} data["o_${store}"].size = JSON.stringify(err); })
+                        .then(function() { return data["i_${store}"].getAll(); })
+                        .then(function(all) { if(!data["o_${store}"]) {data["o_${store}"] = {}} data["o_${store}"].all = all; }, function(err) { data["o_${store}"].all = JSON.stringify(err); })
+                        // last then() is to post the results to aura inspector
+                        .then(function() { window.postMessage({action:'AuraInspector:publish', key: 'AuraInspector:StorageData', data:{ id:'${store}', data: JSON.stringify(data["o_${store}"])} }, window.location.href); });
 
-                // sync return whatever properties we have
-                o_${store};
-            `;
-
-            chrome.devtools.inspectedWindow.eval(command, function(storeKey, response, exceptionInfo) {
-                if(exceptionInfo) { console.error(exceptionInfo); }
-                if(!response) { ++processed; return; }
-                this.setData(storeKey, response);
-
-                if(++processed === count) {
-                    allDoneCallback();
-                }
-            }.bind(this, store));
+            `);
         }
+
+        var builtCommands = commands.join('\n');
+        var command = `
+            {
+                var data = {};
+                ${builtCommands};
+                data;
+            }
+        `;
+    
+        chrome.devtools.inspectedWindow.eval(command, function(storeKey, response, exceptionInfo) {
+            if(exceptionInfo) { console.error(exceptionInfo); }
+            //this.setData(storeKey, response);
+
+            //if(++processed === count) {
+                allDoneCallback();
+            //}
+        }.bind(this, store));
     };
 
     this.getStoresList = function(callback) {
@@ -156,19 +163,21 @@ function AuraInspectorStorageView(devtoolsPanel) {
 
             f.Version = d.version;
 
-            f.Items = {};
-            if (d.all !== undefined && d.all.length > 0) {
-                var item = {};
-                for (var index in d.all){
-                    item = {
-                        key : d.all[index].key,
-                        value : d.all[index].value,
-                        CreatedTime : (d.all[index].value.storage) ? toDate(d.all[index].value.storage.created) : '',
-                        sizeEstimate : estimateSize(d.all[index].value)
-                    };
-                    f.Items[d.all[index].key] = item;
-                }
-            }
+            // We were formatting this earlier, but it looks like that information is no longer in the storage, so just output the JSON for now.
+            f.Items = d.all || {};
+
+            // if (d.all !== undefined && (d.all.length > 0 || Object.keys(d.all).length > 0)) {
+            //     var item = {};
+            //     for (var index in d.all){
+            //         item = {
+            //             key : d.all[index].key,
+            //             value : d.all[index].value,
+            //             CreatedTime : (d.all[index].value.storage) ? toDate(d.all[index].value.storage.created) : '',
+            //             sizeEstimate : estimateSize(d.all[index].value)
+            //         };
+            //         f.Items[d.all[index].key] = item;
+            //     }
+            // }
 
             formatted[i] = f;
         }

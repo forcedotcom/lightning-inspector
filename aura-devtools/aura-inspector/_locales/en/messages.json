@@ -450,6 +450,10 @@
 	"chaosview_chaos_run_result": {
 		"message": " Chaos Run Result",
 		"description": "area for chaos run status update"
+	},
+	"sidebar_ghosttext" : {
+		"message": "Select a tag in the elements panel and it's Lightning Information will show here",
+		"description": "Sidebar depends on you selecting an element so we can show information about it, when you haven't selected anything, you get this helpfull message."
 	}
 	/*,
 	"": {

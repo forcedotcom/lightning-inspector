@@ -1481,6 +1481,11 @@
                         "__proto__": null // no inherited properties
                     });
                 } else {
+                    // This api is added by us in an override. If it's not there when we try to serialize a component we'll have issues.
+                    // So if its not there, just run the bootstrap code.
+                    if(!("_$getSelfGlobalId$" in component)){
+                        $Aura.actions["AuraDevToolService.Bootstrap"]();
+                    } 
                     var output = {
                         "descriptor": component.getDef().getDescriptor().toString(),
                         "globalId": component._$getSelfGlobalId$(),

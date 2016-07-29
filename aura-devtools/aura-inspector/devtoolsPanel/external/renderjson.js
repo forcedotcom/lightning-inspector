@@ -74,7 +74,10 @@ var module;
     }
     var isempty = function(obj) { for (var k in obj) if (obj.hasOwnProperty(k)) return false;
                                   return true; }
-    var text = function(txt) { return document.createTextNode(txt) };
+    var text = function(txt) { 
+        if(typeof(txt) === "object" && "nodeName" in txt) { return txt; }
+        return document.createTextNode(txt) 
+    };
     var div = function() { return document.createElement("div") };
     var span = function(classname) { var s = document.createElement("span");
                                      if (classname) s.className = classname;
@@ -116,13 +119,22 @@ var module;
         if (json === null) return themetext(null, my_indent, "keyword", "null");
         if (json === void 0) return themetext(null, my_indent, "keyword", "undefined");
 
-        if (typeof(json) == "string" && json.length > max_string)
+        if (typeof(json) == "string" && json.length > max_string) {
             return disclosure('"', json.substr(0,max_string)+" ...", '"', "string", function () {
                 return append(span("string"), themetext(null, my_indent, "string", JSON.stringify(json)));
             });
+        }
 
-        if (typeof(json) != "object") // Strings, numbers and bools
+        // Strings, numbers and bools
+        if (typeof(json) != "object") {
+            if(typeof(json) === "string" && DevToolsEncodedId.isComponentId(json)) {
+                var element = document.createElement("aurainspector-auracomponent");
+                element.setAttribute("globalId", DevToolsEncodedId.getCleanId(json));
+                //element.setAttribute("summarize", true);
+                return themetext(null, my_indent, typeof(json), element);    
+            }
             return themetext(null, my_indent, typeof(json), JSON.stringify(json));
+        }
 
         if (json.constructor == Array) {
             if (json.length == 0) return themetext(null, my_indent, "array syntax", "[]");
@@ -185,9 +197,17 @@ var module;
     // Backwards compatiblity. Use set_show_to_level() for new code.
     renderjson.set_show_by_default = function(show) { renderjson.show_to_level = show ? Number.MAX_VALUE : 0;
                                                       return renderjson; };
+
+    renderjson.set_resolve_component_ids = function(resolve) {
+        renderjson.resolve_component_ids = !!resolve;
+        return renderjson;
+    };
+
     renderjson.set_icons('⊕', '⊖');
     renderjson.set_show_by_default(false);
     renderjson.set_sort_objects(false);
     renderjson.set_max_string_length("none");
+    renderjson.set_resolve_component_ids(true);
+
     return renderjson;
 })();

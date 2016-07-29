@@ -87,14 +87,15 @@ function AuraInspectorComponentView(devtoolsPanel) {
             var attributeValueProvider = TreeNode.create(chrome.i18n.getMessage("componentview_avpfvp"), "attributeValueProvider", "property");
             treeComponent.addChild(attributeValueProvider);
 
-            componentId = devtoolsPanel.cleanId(typeof current.attributeValueProvider == "string" ? current.attributeValueProvider : current.attributeValueProvider.globalId);
+            componentId = DevToolsEncodedId.getCleanId(typeof current.attributeValueProvider == "string" ? current.attributeValueProvider : current.attributeValueProvider.globalId);
             
             attributeValueProvider.addChild(TreeNode.create(componentId, "attributeValueProvider_" + current.globalId, "globalId"));
         } else {
             var attributeValueProvider = TreeNode.create(chrome.i18n.getMessage("componentview_avp"), "attributeValueProvider", "property");
             treeComponent.addChild(attributeValueProvider);
 
-            componentId = devtoolsPanel.cleanId(typeof current.attributeValueProvider == "string" ? current.attributeValueProvider : current.attributeValueProvider.globalId);
+            componentId = DevToolsEncodedId.getCleanId(typeof current.attributeValueProvider == "string" ? current.attributeValueProvider : current.attributeValueProvider.globalId);
+            
             attributeValueProvider.addChild(TreeNode.create(componentId, "attributeValueProvider_" + current.globalId, "globalId", "property"));
 
             // Show passthroughs keys and values
@@ -105,7 +106,7 @@ function AuraInspectorComponentView(devtoolsPanel) {
             var facetValueProvider = TreeNode.create(chrome.i18n.getMessage("componentview_fvp"), "facetValueProvider", "property");
             treeComponent.addChild(facetValueProvider);
 
-            componentId = devtoolsPanel.cleanId(typeof current.facetValueProvider == "string" ? current.facetValueProvider : current.facetValueProvider.globalId);
+            componentId = DevToolsEncodedId.getCleanId(typeof current.facetValueProvider == "string" ? current.facetValueProvider : current.facetValueProvider.globalId);
             facetValueProvider.addChild(TreeNode.create(componentId, "facetValueProvider_" + current.globalId, "globalId", "property"));
 
             // Show passthroughs keys and values
@@ -152,7 +153,7 @@ function AuraInspectorComponentView(devtoolsPanel) {
                 for(var c=0;c<current.length;c++) {
                     controllerRef = {
                         "expression": current[c].expression,
-                        "component": devtoolsPanel.cleanId(current[c].valueProvider)
+                        "component": DevToolsEncodedId.getCleanId(current[c].valueProvider)
                     };
                     handlerNode.addChild(TreeNode.create(controllerRef, "", "controllerref"));
                 }
@@ -190,16 +191,18 @@ function AuraInspectorComponentView(devtoolsPanel) {
         var value;
         var attributes = component.attributes;
         var expressions = component.expressions;
+        var encodedId;
         for(var prop in attributes) {
             value = attributes[prop];
+            encodedId = new DevToolsEncodedId(value);
             if(expressions.hasOwnProperty(prop)) {
                 node = TreeNode.create({key: prop, value: expressions[prop]}, "", "keyvalue");
                 if(typeof value === "object") {
                     generateNodes(attributes[prop], node);
-                } else if(devtoolsPanel.isComponentId(value)) {
-                    node.addChild(TreeNode.create(devtoolsPanel.cleanId(value), parentNode.getId() + "_" + prop, "globalId"));
-                } else if(devtoolsPanel.isActionId(value)) {
-                    node.addChild(TreeNode.create(devtoolsPanel.cleanId(value), parentNode.getId() + "_" + prop, "controllerref"));                    
+                } else if(encodedId.isComponentId()) {
+                    node.addChild(TreeNode.create(encodedId.getCleanId(), parentNode.getId() + "_" + prop, "globalId"));
+                } else if(encodedId.isActionId()) {
+                    node.addChild(TreeNode.create(encodedId.getCleanId(), parentNode.getId() + "_" + prop, "controllerref"));                    
                 } else if(typeof value === "string" && value.trim().length === 0) {
                     node.addChild(TreeNode.create('""', parentNode.getId() + "_" + prop));
                 } else {
@@ -221,8 +224,8 @@ function AuraInspectorComponentView(devtoolsPanel) {
                         node = TreeNode.create({ key:prop, value: value }, parentNode.getId() + "_" + prop, "keyvalue");
                         generateNodes(value, node);
                     }
-                } else if(devtoolsPanel.isComponentId(value)) {
-                    node = TreeNode.create(devtoolsPanel.cleanId(value), parentNode.getId() + "_" + prop, "globalId");
+                } else if(encodedId.isComponentId()) {
+                    node = TreeNode.create(encodedId.getCleanId(), parentNode.getId() + "_" + prop, "globalId");
                 } else {
                     node = TreeNode.create({key: prop, value: value}, parentNode.getId() + "_" + prop, "keyvalue");
                 }
@@ -251,8 +254,8 @@ function AuraInspectorComponentView(devtoolsPanel) {
                         node = TreeNode.create({ key:prop, value: value }, parentNode.getId() + "_" + prop, "keyvalue");
                         generateNodes(value, node);
                     }
-                } else if(devtoolsPanel.isComponentId(value)) {
-                        node = TreeNode.create(devtoolsPanel.cleanId(value), parentNode.getId() + "_" + prop, "globalId");
+                } else if(DevToolsEncodedId.isComponentId(value)) {
+                        node = TreeNode.create(DevToolsEncodedId.getCleanId(value), parentNode.getId() + "_" + prop, "globalId");
                 } else {
                     node = TreeNode.create({key: prop, value: value}, parentNode.getId() + "_" + prop, "keyvalue");
                 }
