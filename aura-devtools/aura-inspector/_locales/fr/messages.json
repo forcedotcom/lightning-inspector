@@ -1,0 +1,434 @@
+{
+    "actioncard_parameters": {
+        "message": "Paramètres",
+        "description": "Data sent to the server as part of this action call."
+    },
+    "eventcard_togglegrid": {
+        "message": "Basculer la grille",
+        "description": "Button label that opens up a grid that details the call graph of this event and it's ancestors / descendants."
+    },
+    "eventcard_caller": {
+        "message": "Appelant",
+        "description": "Label showing which function fired this event."
+    },
+    "chaosview_drop_action_by_percentage": {
+        "message": "Abandonner les actions par pourcentage",
+        "description": "drop action randomly, by some percentage"
+    },
+    "actions_menu_aborted": {
+        "message": "Abandonnées",
+        "description": "Button that filters actions on whether the Action was prevented from being sent to the client."
+    },
+    "actioncard_save": {
+        "message": "Enregistrer",
+        "description": "Commit this override to happen."
+    },
+    "actioncard_removeaction": {
+        "message": "Retirer l'action",
+        "description": "Assistive text for the remove button on actions when in the pending or processed overrides sections."
+    },
+    "actioncard_errormessage": {
+        "message": "Message d'erreur",
+        "description": "When specifying the action should throw an error, this is the error message it should throw."
+    },
+    "chaosview_old_chaos_run": {
+        "message": "Relire l'exécution aléatoire",
+        "description": "area for buttons on replaying existing chaos run"
+    },
+    "chaosview_samplingInterval_in_second": {
+        "message": "Intervalle d'échantillonnage en secondes",
+        "description": "how many seconds between two clicking"
+    },
+    "actioncard_storablecachehit": {
+        "message": "Cache stockable atteint",
+        "description": "Did this retrieve the result from the Storage or did from the server?"
+    },
+    "actions_menu_incomplete": {
+        "message": "Non terminées",
+        "description": "Button that filters actions on whether they were sent to the server but no response was received."
+    },
+    "actioncard_state": {
+        "message": "État",
+        "description": "The current status of the action. Values include SUCCESS, ERROR, ABORT, INCOMPLETE."
+    },
+    "actions_menu_record_tooltip": {
+        "message": "Basculer l'enregistrement",
+        "description": "Tooltip for the actions recording button. We only track actions while this is enabled."
+    },
+    "componentview_super": {
+        "message": "Super",
+        "description": "The component that the current component has extended."
+    },
+    "transactions_starttime": {
+        "message": "Heure de début",
+        "description": "The amount of time in seconds since the page loaded when the transaction started."
+    },
+    "componenttree_menu_showids": {
+        "message": "Afficher les ID globaux",
+        "description": "Button that toggles the display of the unique id in the panel for every component in the tree that has one."
+    },
+    "actioncard_result": {
+        "message": "Résultat",
+        "description": "Return value from the server."
+    },
+    "actioncard_error": {
+        "message": "Erreur",
+        "description": "If an error was returned, shows the value here."
+    },
+    "actions_menu_error": {
+        "message": "Erronées",
+        "description": "Button that filters actions on whether an Error occured sending the action."
+    },
+    "menu_filter": {
+        "message": "Filtrer",
+        "description": "Label for the box that limits what is displayed in the tab"
+    },
+    "componentview_handlers": {
+        "message": "Gestionnaires",
+        "description": "Shows the events on the component that are being listened to and what function would be executed when the handler is hit."
+    },
+    "ms": {
+        "message": "ms",
+        "description": "Abbreviation for milliseconds."
+    },
+    "actioncard_cancel": {
+        "message": "Annuler",
+        "description": "Abandon override changes."
+    },
+    "actioncard_overrideresult": {
+        "message": "Remplacer le résultat",
+        "description": "Option which would allow you to specify a different return value from the server."
+    },
+    "actioncard_id": {
+        "message": "ID",
+        "description": "Unique Identifier of the action."
+    },
+    "actions_menu_background_tooltip": {
+        "message": "Afficher les actions exécutées en arrière-plan",
+        "description": "Tooltip for the background actions filter."
+    },
+    "menu_refresh": {
+        "message": "Actualiser",
+        "description": "Button that refreshes the information for the current tab."
+    },
+    "actions_menu_background": {
+        "message": "Exécutées en arrière-plan",
+        "description": "Button that filters all the actions on whether they were executed in the background."
+    },
+    "actioncard_newvalue": {
+        "message": "Nouvelle valeur",
+        "description": "When specifying the override, this is the body of that result."
+    },
+    "actions_menu_incomplete_tooltip": {
+        "message": "Afficher les actions non terminées",
+        "description": "Tooltip for the incomplete actions filter."
+    },
+    "eventlog_menu_cmpevents": {
+        "message": "Événements Composant",
+        "description": "A filter label which toggles visibility of events that have a type of COMPONENT."
+    },
+    "componentview_globalid": {
+        "message": "ID global",
+        "description": "Unique Global ID of the component you are inspecting"
+    },
+    "kb": {
+        "message": "Ko",
+        "description": "Abbreviation for Kilobytes."
+    },
+    "eventcard_handledby": {
+        "message": "Traités par",
+        "description": "Which components reacted to the firing of this event."
+    },
+    "actions_menu_aborted_tooltip": {
+        "message": "Afficher les actions abandonnées",
+        "description": "Tooltip for the aborted actions filter."
+    },
+    "actions_menu_storable": {
+        "message": "Stockables",
+        "description": "Button that filters all the actions collected on whether they are storable (can be saved locally and not retrieved each time.)"
+    },
+    "actions_section_pending": {
+        "message": "En attente",
+        "description": "Header for the section which lists the actions that are waiting to be sent to the server."
+    },
+    "componentview_attributes": {
+        "message": "Attributs",
+        "description": "Attributes are your components properties."
+    },
+    "chaosview_button_save": {
+        "message": "Enregistrer l'exécution",
+        "description": "push this to save the new chaos run"
+    },
+    "actioncard_key": {
+        "message": "Clé",
+        "description": "When specifying the override, this is the key of that result."
+    },
+    "menu_clear": {
+        "message": "Effacer",
+        "description": "Remove all currently recorded information."
+    },
+    "eventcard_source": {
+        "message": "Source",
+        "description": "Which component was responsible for firing the event."
+    },
+    "transactions_actions": {
+        "message": "Actions",
+        "description": "Count of the actions that occurred during the transaction."
+    },
+    "transactions_context": {
+        "message": "Contexte",
+        "description": "Contextual information for the transaction passed by the transaction author."
+    },
+    "chaosview_chaos_run_result": {
+        "message": "Résultat de l'exécution aléatoire",
+        "description": "area for chaos run status update"
+    },
+    "componentview_avpfvp": {
+        "message": "Fournisseur de valeur d'attribut et de facette",
+        "description": "Where references get their values from. Facets and Attributes can resolve their references against different components sometimes. This label is used when attributes and facets get their references from the same component."
+    },
+    "eventcard_duration": {
+        "message": "Durée",
+        "description": "How long it took for this event to execute."
+    },
+    "tabs_transactions": {
+        "message": "Transactions",
+        "description": "Tab inside the inspector that shows data on communication with the server. We've called these transactions since it is grouping of measures for a feature."
+    },
+    "componentview_descriptor": {
+        "message": "Descripteur",
+        "description": "The type of component in the form markup://namespace:componentname"
+    },
+    "transactions_xhrs": {
+        "message": "Appels XHR",
+        "description": "Count of the XmlHttpRequest calls (server connections) that occured during the length of this transaction."
+    },
+    "actioncard_storablesize": {
+        "message": "Taille stockable estimée",
+        "description": "What is the size of the stored action."
+    },
+    "tabs_componenttree": {
+        "message": "Arborescence des composants",
+        "description": "Tab inside the inspector that shows the tree of components that make up the application."
+    },
+    "componentview_elements": {
+        "message": "Éléments HTML",
+        "description": "How many html elements this component and all its children have generated."
+    },
+    "performance_menu_showcollected": {
+        "message": "Afficher la collecte actuelle",
+        "description": "While recording, we don't show what we have collected. The button associated with this label will show what we recorded without stopping recording."
+    },
+    "actioncard_errorstack": {
+        "message": "Pile d'erreur",
+        "description": "When specifying the action should throw an error, this is the stack trace for the error it should throw."
+    },
+    "transactions_id": {
+        "message": "ID",
+        "description": "Unique identifier for a transaction (grouping of instrumentation data)"
+    },
+    "eventlog_menu_appevents_tooltip": {
+        "message": "Afficher les événements Application",
+        "description": "The tooltip of the application events filter button."
+    },
+    "chaosview_button_start": {
+        "message": "Démarrer l'exécution aléatoire",
+        "description": "push this to start a new chaos run"
+    },
+    "transactions_duration_info": {
+        "message": "(millisecondes)",
+        "description": "Duration information that describes that the column is in milliseconds."
+    },
+    "actioncard_created": {
+        "message": "Composants créés",
+        "description": "How many components were created as a result of this action."
+    },
+    "componentview_isvalid": {
+        "message": "Est valide",
+        "description": "Has the component been destroyed?"
+    },
+    "tabs_eventlog": {
+        "message": "Journal des événements",
+        "description": "Tab inside the inspector that shows all the events that are being fired and handled."
+    },
+    "actions_menu_cached": {
+        "message": "Mises en cache",
+        "description": "Button that filters all the actions collected on whether the action was cached."
+    },
+    "tabs_storage": {
+        "message": "Stockage",
+        "description": "Tab inside the inspector that shows what we're storing and caching on the different client side data stores."
+    },
+    "menu_record": {
+        "message": "Basculer l'enregistrement",
+        "description": "Button that toggles whether we care about the current operations happening on the page."
+    },
+    "actions_section_completed": {
+        "message": "Terminées",
+        "description": "Header for the section which lists all the actions that have completed and had their callback functions called."
+    },
+    "tabs_performance": {
+        "message": "Performance",
+        "description": "Tab inside the inspector that shows the panel which measures the time taken to create components."
+    },
+    "actioncard_background": {
+        "message": "En arrière-plan",
+        "description": "Was this action executed in the background."
+    },
+    "componenttree_menu_expandall": {
+        "message": "Développer tout",
+        "description": "A button that shows all the available information by showing the hidden children."
+    },
+    "chaosview_new_chaos_run": {
+        "message": "Nouvelle exécution aléatoire",
+        "description": "area for buttons on start/stop/save a new chaos run"
+    },
+    "manifest_description": {
+        "message": "Inspection des applications Aura",
+        "description": "Description that shows up in the list of extensions the user has installed."
+    },
+    "actions_menu_cached_tooltip": {
+        "message": "Afficher les actions stockables servies par la mémoire cache",
+        "description": "Tooltip for the actions cache filter."
+    },
+    "chaosview_button_cancel": {
+        "message": "Annuler",
+        "description": "push this to clear up the loaded chaos run"
+    },
+    "eventlog_menu_cmpevents_tooltip": {
+        "message": "Afficher les événements Composant",
+        "description": "The tooltip of the component events filter button."
+    },
+    "componentview_isrendered": {
+        "message": "Est restitué",
+        "description": "Is this component rendered and added to the HTML page."
+    },
+    "chaosview_buton_stop_all_runs": {
+        "message": "Bouton de panique : arrêter l'exécution aléatoire",
+        "description": "push this to force all chaos run to stop"
+    },
+    "transactions_duration": {
+        "message": "Durée",
+        "description": "How long in milliseconds the transaction was in process."
+    },
+    "actions_section_running": {
+        "message": "En cours d'exécution",
+        "description": "Header for the section which lists the actions that have been sent to the server but have not yet completed."
+    },
+    "actions_section_pendingoverrides_description": {
+        "message": "Faites glisser des actions ici. La prochaine fois que nous verrons une action portant le même nom, nous l'abandonnerons, nous enverrons une réponse modifiée ou nous enverrons une réponse d'erreur.",
+        "description": "Helper text which describes to the user how to use the pending overrides section."
+    },
+    "devtools_tabname": {
+        "message": "Aura",
+        "description": "The tab that shows up in the chrome devtools"
+    },
+    "actions_section_processedoverrides": {
+        "message": "Remplacements traités",
+        "description": "Header for the section which contains the actions that were overridden. "
+    },
+    "componentview_rerendered": {
+        "message": "Nombre de restitutions",
+        "description": "How many times this element has rerendered."
+    },
+    "componentview_model": {
+        "message": "Modèle",
+        "description": "A model is another collection of properties on your component, most likely coming from the server."
+    },
+    "actioncard_dropaction": {
+        "message": "Abandonner l'action",
+        "description": "Option which would prevent the action from being sent to the server."
+    },
+    "tabs_help": {
+        "message": "Aide",
+        "description": "Tooltip for the dropdown that shows links to different portions of documentation."
+    },
+    "componentview_fvp": {
+        "message": "Fournisseur de valeur de facette",
+        "description": "Where you resolve your references in facets against. Facets are collections of other components passed to your component."
+    },
+    "actions_menu_storable_tooltip": {
+        "message": "Afficher les actions stockables",
+        "description": "Tooltip for the actions storable filter."
+    },
+    "chaosview_button_stop": {
+        "message": "Arrêter l'exécution",
+        "description": "push this to stop the new chaos run"
+    },
+    "transactions_starttime_info": {
+        "message": "(secondes depuis le chargement de la page)",
+        "description": "Start time label that describes what the column data means."
+    },
+    "tabs_actions": {
+        "message": "Actions",
+        "description": "Tab inside the inspector that shows all the actions. Actions are calls to functionality on the server."
+    },
+    "chaosview_button_replay": {
+        "message": "Relire l'exécution aléatoire",
+        "description": "push this to replay the saved chaos run"
+    },
+    "actions_menu_error_tooltip": {
+        "message": "Afficher les actions erronées",
+        "description": "Tooltip for the errored actions filter."
+    },
+    "actions_menu_success_tooltip": {
+        "message": "Afficher les actions réussies",
+        "description": "Tooltip for the successfull actions filter."
+    },
+    "actioncard_edit": {
+        "message": "Modifier",
+        "description": "Edit override changes."
+    },
+    "eventlog_menu_appevents": {
+        "message": "Événements Application",
+        "description": "A filter label which toggles visibility of events that have a type of APPLICATION."
+    },
+    "componentview_avp": {
+        "message": "Fournisseur de valeur d'attribut",
+        "description": "Where you resolve your attribute references against."
+    },
+    "eventcard_parameters": {
+        "message": "Paramètres",
+        "description": "Label showing the information sent along with an event. "
+    },
+    "eventlog_menu_unhandled_tooltip": {
+        "message": "Afficher les événements Non traités",
+        "description": "The tooltip of the Unhandled filter button."
+    },
+    "actions_menu_success": {
+        "message": "Réussies",
+        "description": "Button that filters the actions on whether they were successfully sent and executed on the server."
+    },
+    "eventlog_menu_unhandled": {
+        "message": "Non traités",
+        "description": "A filter which toggles events that were fired, but were not handled and had no effect."
+    },
+    "actioncard_storablerefresh": {
+        "message": "Actualiser l'entrée stockable",
+        "description": "Did this refresh the storage entry?"
+    },
+    "actioncard_storablekey": {
+        "message": "Clé de stockage",
+        "description": "Unique key for this action entry in storage."
+    },
+    "actioncard_errorresponse": {
+        "message": "Réponse d'erreur la prochaine fois",
+        "description": "Option which allows you to specify that the action should result in an error of a type you can specify."
+    },
+    "actioncard_storable": {
+        "message": "Stockable",
+        "description": "Was this action storable"
+    },
+    "actions_section_pendingoverrides": {
+        "message": "Remplacements en attente",
+        "description": "Heading for the section which contains the actions that are being overridden by the inspector."
+    },
+    "manifest_name": {
+        "message": "Aura Inspector",
+        "description": "Public title that shows up in the list of extensions the user has installed."
+    },
+    "actioncard_abortable": {
+        "message": "Peut être abandonnée",
+        "description": "Was this action abortable. "
+    }
+}
