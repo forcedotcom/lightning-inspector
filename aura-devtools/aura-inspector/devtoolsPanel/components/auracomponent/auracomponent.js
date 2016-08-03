@@ -39,8 +39,12 @@
 	};
 
 	function render(element, data) {
-		var descriptor = data.descriptor;
-		descriptor = descriptor.split("://")[1] || descriptor;
+        var descriptor;
+        if(data.valid === false) {
+            descriptor = "INVALID";
+        } else {
+            descriptor = data.descriptor.split("://")[1] || data.descriptor;
+        }
 
         var pattern = [
             `&lt;<span class="component-tagname">${descriptor}</span>

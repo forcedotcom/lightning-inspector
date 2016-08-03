@@ -13,8 +13,18 @@
 	    	line-height: 1.25;
 		  	padding: 0 0 3px 0;
 			margin: 0;
+			display: inline-block;
 		}
-		h6 { color: #bbb; display: inline; font-size: .75em; margin: 0; padding: 0; }
+		h2 {
+			padding: 0 0 0 1em;
+			margin: 0;
+			color: #0070D2;
+			display: inline-block;
+			font-size: 1em;
+			font-weight: normal;
+			font-family: 'Menlo', 'monospace';
+		}
+		h6 { color: #bbb; display: block; font-size: .75em; margin: 0; padding: 0; }
 		dl, dt, dd { margin: 0; padding: 0; display: inline-block; }
 		dd { padding: 0 10px; display: block; }
 		section > p {
@@ -70,22 +80,22 @@
 			margin-top: .5rem;
 		}
 
-		#callStack aurainspector-controllerreference {
+		aurainspector-controllerreference {
 			cursor: pointer;
 			color: #0070D2;
 			text-decoration: none;
 		}
 
-		#callStack aurainspector-controllerreference:active {
+		aurainspector-controllerreference:active {
 			color: #00396b;
 		}
 
-		#callStack aurainspector-controllerreference:focus {
+		aurainspector-controllerreference:focus {
 			outline: #0070D2;
 			text-decoration: underline;
 		}
 
-		#callStack aurainspector-controllerreference:hover {
+		aurainspector-controllerreference:hover {
 			color: #005fb2;
 			text-decoration: underline;
 		}
@@ -207,6 +217,7 @@
 	</style>
 	<header>
     	<h1><!-- Event Name --></h1>
+    	<h2><!-- Additional Event Info such as the expression that changed. --></h2>
 		<h6><!-- Event Type --></h6>
     </header>
     <section>

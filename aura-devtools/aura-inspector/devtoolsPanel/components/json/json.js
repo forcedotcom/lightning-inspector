@@ -57,7 +57,7 @@
 		}
 		if(json) {
 			shadowRoot.appendChild(formatJSON(json, { expandTo: this.getAttribute("expandTo") }));
-		} else if(text !== undefined && text === "undefined") {
+		} else if(text !== undefined && text !== "undefined") {
 			var textNode = document.createElement("span");
 			textNode.className="returnValue";
 			textNode.appendChild(document.createTextNode(text));
