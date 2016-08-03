@@ -54,8 +54,6 @@
         });
     });
 
-
-
     function AuraInspectorDevtoolsPanel() {
         //var EXTENSIONID = "mhfgenmncdnmcoonglmkepfdnjjjcpla";
         var PUBLISH_KEY = "AuraInspector:publish";
@@ -72,9 +70,6 @@
         var _isReady = false;
         var _initialized = false;
         var _subscribers = new Map();
-        var COMPONENT_CONTROL_CHAR = "\u263A"; // This value is a component Global Id
-        var ACTION_CONTROL_CHAR = "\u2744"; // ❄ - This is an action
-        var ESCAPE_CHAR = "\u2353"; // This value was escaped, unescape before using.
         var tabId;
         var currentPanel;
 
@@ -324,7 +319,7 @@
 
         this.getComponent = function(globalId, callback, configuration) {
             if(typeof callback !== "function") { throw new Error("callback is required for - getComponent(globalId, callback)"); }
-            if(globalId.startsWith(COMPONENT_CONTROL_CHAR)) { globalId = globalId.substr(1);}
+            if(DevToolsEncodedId.isComponentId(globalId)) { globalId = DevToolsEncodedId.getCleanId(globalId); }
             var command;
 
             if(configuration && typeof configuration === "object") {
@@ -376,22 +371,6 @@
 
                 callback(component);
             });
-        };
-
-        /*
-         * Not a fan of these ID methods. Need to figure these out better. 
-         */
-
-        this.isComponentId = function(id) {
-            return typeof id === "string" && id.startsWith(COMPONENT_CONTROL_CHAR);
-        };
-
-        this.isActionId = function(id) {
-            return typeof id === "string" && id.startsWith(ACTION_CONTROL_CHAR);
-        }
-
-        this.cleanId = function(id) {
-            return typeof id === "string" && (id.startsWith(COMPONENT_CONTROL_CHAR) || id.startsWith(ACTION_CONTROL_CHAR)) ? id.substr(1) : id;
         };
 
         /**

@@ -8,8 +8,6 @@ function AuraInspectorComponentTree(devtoolsPanel) {
     var isDirty = false;
     var initial = true;
     var selectedNodeId = null;
-    var COMPONENT_CONTROL_CHAR = "\u263A"; // This value is a component Global Id
-    var ESCAPE_CHAR = "\u2353"; // This value was escaped, unescape before using.
 
     var labels = {
         refresh: chrome.i18n.getMessage("menu_refresh"),
@@ -296,10 +294,10 @@ function AuraInspectorComponentTree(devtoolsPanel) {
 
         function isFacets(value) {
             if(!Array.isArray(value)) { 
-                return devtoolsPanel.isComponentId(value);
+                return DevToolsEncodedId.isComponentId(value);
             }
             for(var c=0;c<value.length;c++) {
-                if(!devtoolsPanel.isComponentId(value[c])) { return false; }
+                if(!DevToolsEncodedId.isComponentId(value[c])) { return false; }
             }
             return true;
         }

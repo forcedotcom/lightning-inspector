@@ -906,7 +906,7 @@ button.toggle:focus {
 
 
 /* Storage Panel */
-#storage-viewer { padding: 10px; }
+#storage-viewer { padding: 10px; overflow:auto; height:100%; }
 
 /* Loading Indicator */
 #loading { display: none; position: absolute; height: 100%; width: 100%; }
