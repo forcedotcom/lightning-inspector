@@ -535,7 +535,6 @@
 
         // Aaron
         function AuraInspector_OnRelayPageLoadTime(time){
-            console.log(panels);
             var transaction = panels.get("transaction");
             transaction.setLoadTime(time);
         }

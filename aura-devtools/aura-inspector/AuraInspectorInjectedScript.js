@@ -230,9 +230,7 @@
                     bootstrapEventInstrumentation();
                 } catch(e){}
 
-                // Aaron
                 try {
-                    console.log("transactionReporting called in try");
                     transactionReporting();
                 } catch(e){}
 
@@ -1378,8 +1376,6 @@
             "data": {"key":"AuraInspector:bootstrap", "data":{}}
         }, window.location.href);
 
-        // Aaron
-        $Aura.Inspector.publish("AuraInspector:RelayPageLoadTime", Date.now());
     });
 
     // $Aura.Inspector.subscribe("AuraInspector:OnPanelAlreadyConnected", function AuraInspector_OnPanelLoad() {
@@ -1387,6 +1383,7 @@
     //     $Aura.Inspector.unsubscribe("AuraInspector:OnPanelAlreadyConnected", AuraInspector_OnPanelLoad);
     // });
 
+    $Aura.Inspector.subscribe("AuraInspector:GetLoadTimeStamp", $Aura.Inspector.relayPageLoadTime.bind($Aura.Inspector));
     $Aura.Inspector.subscribe("AuraInspector:OnHighlightComponent", $Aura.actions["AuraDevToolService.HighlightElement"]);
     $Aura.Inspector.subscribe("AuraInspector:OnHighlightComponentEnd", $Aura.actions["AuraDevToolService.RemoveHighlightElement"]);
 
@@ -1418,7 +1415,7 @@
         var lastItemInspected;
         var countMap = new Map();
         var loadTimeStamp = Date.now();
-        //Aaron
+
 
         this.init = function() {
             // Add Rightclick handler. Just track what we rightclicked on.
@@ -1781,7 +1778,11 @@
             if(countMap.has(key)) {
                 countMap.delete(key);
             }
-        }
+        };
+
+        this.relayPageLoadTime = function(){
+            $Aura.Inspector.publish("AuraInspector:RelayPageLoadTime", loadTimeStamp);
+        };
 
         // Start listening for messages
         window.addEventListener("message", Handle_OnPostMessage);

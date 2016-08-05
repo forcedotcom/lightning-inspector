@@ -3,12 +3,32 @@ function AuraInspectorTransactionGrid() {
     var tab;  // HTML for the area we are working with (parents of tableBody)
     var labels;
     var graphData = {}; // Current data we are working with
-    var startTime;
+    var startTime;     // Timestamp of when Aura was created
     var latestEndTime = 0;
 
+    /* -- API --
+        * this.init:            Should be called when transaction grid is invoked.
+        * 
+        * this.setLoadTime:     Sets the start time to be used to calculate times for live recording
+        * 
+        * this.liveUpdateTable: Data that is constantly updated should be passed into this method
+        *                       for live redrawing of the visualization and ignores previously
+        *                       recorded data
+        * 
+        * this.updateTable:     Should be used for static data that isn't updating live
+        *
+        * this.clear:           resets everything by clearing the data structures and visualization
+        *
+     */
+    
+    /* @parameters: tabBody -   The html element of which we will visualize transactions
+                    initLabel - Of type Object where we set our front facing labels as its attributes
+                                (labels.starttime, labels.id, etc)
+     */
     this.init = function (tabBody, initLabels) {
         var markup;
         var tableMarkup;
+        var timeline;
         labels = initLabels;
 
         markup = `
@@ -19,7 +39,31 @@ function AuraInspectorTransactionGrid() {
                         <th width="8%">${labels.duration}</th>
                         <th width="9%">${labels.starttime}</th>
                         Don't forget to make label for timeline
-                        <th width="45%">Timeline</th>
+                        <th width="45%">Timeline
+<div class ="trans-graph-time-marker-container" id = "timeline-marker-container">
+   <div class="trans-graph-time-marker-timeline"></div>
+   
+   <div class="trans-graph-time-marker1">
+      <div class="trans-graph-time-number-mark"><span class="timeline-number-text" id="marker-number-1">0s</span></div>
+      <div class="trans-graph-time-marker-line"></div>
+   </div>
+   
+   <div class="trans-graph-time-marker2">
+      <div class="trans-graph-time-number-mark"><span class="timeline-number-text" id="marker-number-2">0s</span></div>
+      <div class="trans-graph-time-marker-line"></div>
+   </div>
+   
+   <div class="trans-graph-time-marker3">
+      <div class="trans-graph-time-number-mark"><span class="timeline-number-text" id="marker-number-3">0s</span></div>
+      <div class="trans-graph-time-marker-line"></div>
+   </div>
+   
+   <div class="trans-graph-time-marker4">
+      <div class="trans-graph-time-number-mark"><span class="timeline-number-text" id="marker-number-4">0s</span></div>
+      <div class="trans-graph-time-marker-line"></div>
+   </div>
+</div>
+                        <br><br></th>
                      </thead>
                     
                     <tbody id="table-body"></tbody> 
@@ -31,56 +75,71 @@ function AuraInspectorTransactionGrid() {
         tableMarkup.id = "trs";
         tableMarkup.innerHTML = markup;
 
+
         tabBody.appendChild(tableMarkup);
         tableBody = tabBody.querySelector("#table-body");
         tab = tabBody;
     };
 
+    // Sets timestamp of when Aura was loaded
     this.setLoadTime = function(time){
         startTime = time;
+    };
+
+    // Only update the table with new (LIVE) data not already displayed (used in recording)
+    this.liveUpdateTable = function(data, recordTimeStamp){
+        var marks = {};
+        this.clear();
+
+        getUniqueIDs(data, marks);
+        updateTimes(data, marks);
+        marks = sortGraphData(marks);
+        setLatestEndTime(marks);
+
+        latestEndTime = Date.now() - recordTimeStamp;
+        updateTimeMarkers(Date.now() - recordTimeStamp);
+
+        transposeTimesForLiveView(marks, recordTimeStamp);
+
+        for(var x = 0; x < marks.length; x++){
+            if(isLiveData(marks[x].stamp) && !graphData[marks[x]]) {
+                graphData[marks[x]] = graphData[marks[x]];
+                addActionToTable(marks[x]);
+            }
+        }
+        
+    };
+
+    // Update table with all data regardless if its old or new
+    this.updateTable = function (data){
+
+        this.clear();
+        getUniqueIDs(data, graphData);
+        updateTimes(data, graphData);
+
+        var sortedData = sortGraphData(graphData);
+        setLatestEndTime(sortedData);
+
+        updateTimeMarkers(latestEndTime);
+
+        for(var x = 0; x < sortedData.length; x++) {
+            addActionToTable(sortedData[x]);
+        }
     };
 
     this.clear = function(){
         tableBody.innerHTML = '';
         graphData = {};
         latestEndTime = 0;
+
+        var timeline = document.getElementById("timeline-marker-container");
+        timeline.style.visibility = "hidden";
     };
 
-    this.updateTable = function (data){
-        //console.log(startTime);
-        this.clear();
-        this.getUniqueIDs(data);
-        this.updateTimes(data);
-
-        var sortedData = this.sortGraphData();
-        this.setLatestEndTime(sortedData);
-
-        for(var x = 0; x < sortedData.length; x++) {
-            this.addActionToTable(sortedData[x]);
-        }
-    };
-
-    // Sorts the graphData by its "start" timestamp attribute
-    this.sortGraphData = function(){
-        array = [];
-
-        for(var dataPoint in graphData){
-            array.push(graphData[dataPoint]);
-        }
-
-        array.sort(function(dataPointA, dataPointB){
-            if(dataPointA.stamp > dataPointB.stamp){
-                return 1;
-            } else {
-                return -1;
-            }
-        });
-
-        return array;
-    };
+    /* ---------------- START OF DATA PROCESSING METHODS ------------------------------ */
 
     // Returns an array of the unique IDs given data;
-    this.getUniqueIDs = function (data) {
+    function getUniqueIDs(data, map){
         var currAction;
         var examinedID;
 
@@ -88,50 +147,102 @@ function AuraInspectorTransactionGrid() {
             currAction = data.actions[x];
             examinedID = currAction.context.id;
 
-            if (graphData[examinedID]){
-                if(!graphData[examinedID].context && currAction.context.def)
-                    graphData[examinedID].context = currAction.context.def;
+            if (map[examinedID]){
+                if(!map[examinedID].context && currAction.context.def)
+                    map[examinedID].context = currAction.context.def;
                 else
                     continue;
 
             } else {
-                this.insertNewActionData(currAction);
+                insertNewActionData(currAction, map);
             }
         }
-    };
+    }
 
-    this.insertNewActionData = function(actionData){
-        var insert = {};
-
-        insert.id = actionData.context.id;
-        if(actionData.context.def){
-            insert.context = actionData.context.def;
-        }
-        graphData[insert.id] = insert;
-    };
-
-    // updates the stamp, start, and end times of the graphData
-    this.updateTimes = function(data){
+    // updates the stamp, start, and end times of the corresponding elements in map
+    function updateTimes(data, map){
 
         for (var x = 0; x < data.actions.length; x++) {
             var currAction = data.actions[x];
 
-            if(graphData[currAction.context.id]) {
-                graphData[currAction.context.id][currAction.phase] = currAction.ts;
+            if(map[currAction.context.id]) {
+                map[currAction.context.id][currAction.phase] = currAction.ts;
             }
         }
-    };
+    }
 
-    this.setLatestEndTime = function(sortedGraphData){
-      for(var x = 0; x < sortedGraphData.length; x++){
-          if(sortedGraphData[x].end && sortedGraphData[x].end > latestEndTime){
-              latestEndTime = sortedGraphData[x].end;
-              console.log(latestEndTime);
-          }
-      }
-    };
+    // Creates a new data entry in the map with specified context of the actionData
+    function insertNewActionData(actionData, map){
+        var insert = {};
+        insert.id = actionData.context.id;
 
-    this.addActionToTable = function(rowData){
+        if(actionData.context.def){
+            insert.context = actionData.context.def;
+        }
+
+        map[insert.id] = insert;
+    }
+
+    // Sorts the graphData by its "start" timestamp attribute
+    function sortGraphData(map){
+        var array = [];
+
+        for(var dataPoint in map){
+            array.push(map[dataPoint]);
+        }
+
+        array.sort(function(dataPointA, dataPointB){
+            if(dataPointA.stamp > dataPointB.stamp){
+                return 1;
+            } else if (dataPointA.stamp == dataPointB.stamp) {
+                return 0;
+            } else {
+                return -1;
+            }
+        });
+        return array;
+    }
+
+    // Sets timestamp of the latest time to be used proportionally with drawn timelines
+    function setLatestEndTime(sortedGraphData){
+
+        for(var x = 0; x < sortedGraphData.length; x++){
+            if(sortedGraphData[x].end && sortedGraphData[x].stamp && sortedGraphData[x].start
+                && sortedGraphData[x].end > latestEndTime){
+
+                latestEndTime = sortedGraphData[x].end;
+            }
+        }
+    }
+
+    // Checks if this time is a point that is within the "live data" range
+    function isLiveData(timestamp){
+        return timestamp > 0;
+    }
+
+    // Finds and sets the latest end time of all transactions for graphing
+    function transposeTimesForLiveView(dataArray, recordStartTime){
+        var transposeTime = recordStartTime - startTime;
+
+
+        for(var x = 0; x < dataArray.length; x++){
+            currMark = dataArray[x];
+            if(currMark.stamp)
+                currMark.stamp = currMark.stamp - transposeTime;
+
+            if(currMark.start)
+                currMark.start = currMark.start - transposeTime;
+
+            if(currMark.end)
+                currMark.end = currMark.end - transposeTime;
+
+        }
+    }
+
+    /* ---------------- START OF VISUALIZATION METHODS ------------------------------ */
+
+    // Graphically adds to the table
+    function addActionToTable(rowData){
         var markup;
         var duration;
         var stamp;
@@ -151,8 +262,7 @@ function AuraInspectorTransactionGrid() {
             }
         }
 
-        timelineMarkup = this.createIndividualTimeline(rowData.stamp, rowData.start, rowData.end);
-        console.log(rowData);
+        timelineMarkup = createIndividualTimeline(rowData.stamp, rowData.start, rowData.end);
 
         markup = `<td>${rowData.context}</td>
                   <td>${rowData.id}</td>
@@ -163,22 +273,21 @@ function AuraInspectorTransactionGrid() {
 
         row.innerHTML = markup;
         tableBody.appendChild(row);
-    };
+    }
 
-    this.createIndividualTimeline = function(stamp, start, end){
-        console.log(latestEndTime);
+    // Create a small timeline for each "complete" transaction
+    function createIndividualTimeline(stamp, start, end){
         var markup;
         var stampToStart = start - stamp;
         var startToEnd = end - start;
-        var minPercent = .23;
+        var minPercent = .23; // So you can actualy see a the small part on the timeline even when really short duration
 
         var stampLeft = (stamp/latestEndTime)*100;
         var stampRight = (1 - start/latestEndTime)*100-minPercent;
 
         var startLeft = 100-stampRight;
         var startRight = (1 - end/latestEndTime)*100-minPercent;
-        console.log(stampLeft);
-        console.log(stampRight);
+
 
         if(stamp && start && end) {
             markup = `
@@ -187,7 +296,7 @@ function AuraInspectorTransactionGrid() {
                         <div class="trans-graph-bar request-timing total" style="left: 0%; right: 0%;"></div>
                         
                         <div class="trans-graph-bar request-timing stamp-start" style="left: ${stampLeft}%; right: ${stampRight}%">
-                            <span class="trans-graph-bar-info">
+                            <div class="trans-graph-bar-info">
                                 <table>
                                     <thead>
                                         <tr>
@@ -204,7 +313,7 @@ function AuraInspectorTransactionGrid() {
                                         <td class="trans-graph-bar-info-right-column">${startToEnd.toLocaleString()} ms</td>
                                     </tr>
                                 </table>
-                            </span>
+                            </div>
                         </div>
                         
                         <div class="trans-graph-bar request-timing start-end" style="left:${startLeft}%; right: ${startRight}%;"></div>
@@ -216,41 +325,20 @@ function AuraInspectorTransactionGrid() {
         }
 
         return markup;
-    };
+    }
 
-    this.render = function (e) {
-        return 1;
-    };
+    // Updates the number markers on the timeline ruler
+    function updateTimeMarkers(endTime){
+        var marker2 = document.getElementById("marker-number-2");
+        var marker3 = document.getElementById("marker-number-3");
+        var marker4 = document.getElementById("marker-number-4");
+        var interval = (endTime/10000)/4;
 
-    this.addMasterRow = function(rowData){
+        marker2.innerHTML = Math.round(interval*100)/10 + "s";
+        marker3.innerHTML = Math.round(interval*100*2)/10 + "s";
+        marker4.innerHTML = Math.round(interval*100*3)/10 + "s";
 
-    };
-/*
-    this.subscribeToMarks = function(){
-        var _this2 = this;
-
-        // assuming is 2.0.0 or higher at this point (mid-202, 204, ...)
-        this.metricsServiceHandler = this._onTransactionEndCallback_2_0_0; // assign handler
-
-        if (!$A.metricsService.getCurrentPageTransaction()) {
-            // starting EPT tracker because no PageView (and therefore not free EPT)
-            this.model.initEPTTracker();
-        }
-
-        if (start === true) {
-            this._marksInterval = setInterval(function () {
-                return _this2.addEntries(_this2.page.addMarks($A.metricsService.getCurrentMarks()));
-            }, MARKS_POLLING_MS);
-
-            $A.metricsService.onTransactionEnd(this.metricsServiceHandler);
-
-        } else {
-            $A.metricsService.detachOnTransactionEnd(this.metricsServiceHandler);
-
-            if (this._marksInterval) {
-                clearInterval(this._marksInterval);
-            }
-        }
-    }*/
-
+        var timeline = document.getElementById("timeline-marker-container");
+        timeline.style.visibility = "visible";
+    }
 }

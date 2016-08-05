@@ -1,10 +1,8 @@
 function AuraInspectorTransactionView(devtoolsPanel) {
-	var outputList;
 	var clearButton;
-	var queuedData = [];
 	var transactions = {};
 	var transactionGrid;
-
+	var recording = false;
 
 	var labels = {
 		"clear" : chrome.i18n.getMessage("menu_clear"),
@@ -15,67 +13,27 @@ function AuraInspectorTransactionView(devtoolsPanel) {
 		"duration_info" : chrome.i18n.getMessage("transactions_duration_info"),
 		"context" : chrome.i18n.getMessage("transactions_context"),
 		"actions" : chrome.i18n.getMessage("transactions_actions"),
-		"XHRs" : chrome.i18n.getMessage("transactions_xhrs")
+		"record": chrome.i18n.getMessage("menu_record")
 	};
 
 	var markup = `
 		<div class="aura-panel panel-status-bar">
+            <button id="record-button" class="record-button">
+            	<aurainspector-onOffButton class="circle on" title="${labels.record_tooltip}">
+            		<span>${labels.record}</span>
+            	</aurainspector-onOffButton>
+            </button>
+            
+            <button class="refresh-transactions-bar-item status-bar-item" title="${labels.clear}">
+				<div class="glyph"></div><div class="glyph shadow"></div>
+			</button>
+			
 			<button class="clear-status-bar-item status-bar-item" title="${labels.clear}">
 				<div class="glyph"></div><div class="glyph shadow"></div>
 			</button>			
-			<button class="refresh-transactions-bar-item status-bar-item" title="${labels.clear}">
-				<div class="glyph"></div><div class="glyph shadow"></div>
-			</button>
 		</div>
 	`;
 
-/*
-	function OutputListTable_OnClick(event) {
-		var id = event.target.dataset.id;
-		if(id!==undefined) {
-			var command = "console.log(" + JSON.stringify(transactions[id]) + ")";
-	        chrome.devtools.inspectedWindow.eval(command, function (payload, exception) {
-	            if (exception) {
-	            	console.log('ERROR, CMD:', command, exception);
-	            }
-	        });
-	    }
-	}
-*/
-	function ClearTable_OnClick(event) {
-		transactionGrid.clear();
-	}
-
-	// Aaron
-	function RefreshTransactions_OnClick(event){
-		transactionGrid.clear();
-		this.getActions(function(data){
-			transactionGrid.updateTable(data);
-		});
-		this.subscribeToMarks();
-	}
-
-/*
-	this.addTableRow = function (t) {
-		var container = outputList;
-		var tbody = container.querySelector('tbody');
-		var tr = document.createElement('tr');
-		var tid = t.id + ':' + Math.floor(t.ts);
-
-		transactions[tid] = t;
-
-		tr.innerHTML = [
-			'<td class="id"><a href="javascript:void(0)" data-id="'+ tid +'">' + t.id + '</a></td>',
-			'<td class="ts">' + this.contextualizeTime(t) +'</td>',
-			'<td class="dur">' + Math.floor(t.duration * 1000) / 1000 +'</td>',
-			'<td class="ctx"><aurainspector-json>' + JSON.stringify(t.context, null, '\t') + '</aurainspector-json></td>',
-			'<td class="actions">' + this.summarizeActions(t) + '</td>',
-			'<td class="xhr">' + this.summarizeXHR(t) + '</td>',
-		].join('');
-
-		tbody.appendChild(tr);
-	};
-*/
 	this.init = function(tabBody) {
 		var labels = {
 			"id": chrome.i18n.getMessage("transactions_id"),
@@ -90,9 +48,11 @@ function AuraInspectorTransactionView(devtoolsPanel) {
 		tabBody.innerHTML = markup;
 		tabBody.classList.add("trans-panel");
 
-		// Aaron
+
 		transactionGrid = new AuraInspectorTransactionGrid(devtoolsPanel);
 		transactionGrid.init(tabBody, labels);
+		
+		this.requestLoadTime();
 	};
 
 	this.setLoadTime = function(time){
@@ -100,56 +60,27 @@ function AuraInspectorTransactionView(devtoolsPanel) {
 	};
 
 	this.requestLoadTime = function(){
-
+		devtoolsPanel.publish("AuraInspector:GetLoadTimeStamp", {});
 	};
 
-/*
-	this.summarizeActions = function (t) {
-		var serverActions = t.marks && Array.isArray(t.marks.serverActions) ? t.marks.serverActions : [];
-		// Should be this, but it has issues too such as m.context.ids being null.
-		//var serverActions = t.marks.serverActions || t.marks.queuedActions || t.marks.actions || [];
-		return (serverActions.filter(function (m) {
-			return m.phase === 'stamp';
-		})).reduce(function (r, m) {
-			return m.context.ids.length + r;
-		}, 0);
-	};
-	this.summarizeXHR = function (t) {
-		var transportMarks = t.marks.transport || [];
-		var counter = 0;
-        var queue = {};
-        for (var i = 0; i < transportMarks.length; i++) {
-            var id = transportMarks[i].context["auraXHRId"];
-            var phase = transportMarks[i].phase;
-            if (phase === 'processed') {
-                ++counter;
-            } else if (phase === 'start') {
-                queue[id] = transportMarks[i];
-            } else if (phase === 'end' && queue[id]){
-                ++counter;
-                delete queue[id];
-            }
-        }
-        return counter;
-	};
-
-	this.contextualizeTime = function (t) {
-		return Math.floor(t.ts / 10) / 100;
-	};
-*/
 	this.render = function() {
-		// Already rendered
-		if (outputList) {
-			return;
-		}
-
 		clearButton = document.querySelector('#tab-body-transaction .clear-status-bar-item');
-		refreshButton = document.querySelector('#tab-body-transaction .refresh-transactions-bar-item');
+		clearButton.addEventListener('click', ClearTable_OnClick.bind(this), false);
 
-        clearButton.addEventListener('click', ClearTable_OnClick.bind(this), false);
-		// Aaron
+		refreshButton = document.querySelector('#tab-body-transaction .refresh-transactions-bar-item');
 		refreshButton.addEventListener('click', RefreshTransactions_OnClick.bind(this), false);
+
+		recordButton = document.querySelector('#tab-body-transaction #record-button');
+		recordButton.addEventListener('click', RecordButton_OnClick.bind(this), false);
+
 		devtoolsPanel.hideSidebar();
+
+
+		var recordTimeStamp = Date.now();
+		recording = true;
+		subscribeToMarks(function(data){
+			transactionGrid.liveUpdateTable(data, recordTimeStamp);
+		});
 	};
 
 	this.getActions = function (callback) {
@@ -160,17 +91,52 @@ function AuraInspectorTransactionView(devtoolsPanel) {
 		});
 	};
 
-	this.subscribeToMarks = function(){
-		//var command = `$A.metricsService.onTransactionEnd(function(e){console.log(e);})`;
-		var string = '$A.metricService';
+	function ClearTable_OnClick(event) {
+		transactionGrid.clear();
+	}
 
-		chrome.devtools.inspectedWindow.eval(string, function(Aura) {
-			//console.log(Aura);
+	function RefreshTransactions_OnClick(event){
+		transactionGrid.clear();
+		this.getActions(function(data){
+			transactionGrid.updateTable(data);
 		});
-		//$A.metricsService.onTransactionEnd(this.metricsServiceHandler);
-	};
+	}
 
-	function MetricsServiceHandler(data){
-		console.log(data);
+	// Automatic updates of transaction marks
+	function RecordButton_OnClick(event){
+		var recordTimeStamp = Date.now();
+
+		// Only works if user presses on the actual circle
+		if(event.target.classList.contains("circle")){
+			if(event.target.classList.contains("on")){
+
+				recording = true;
+				subscribeToMarks(function(data){
+					transactionGrid.liveUpdateTable(data, recordTimeStamp);
+				});
+
+			} else {
+				recording = false;
+			}
+		}
+	}
+
+	
+	function subscribeToMarks(callback_function){
+		transactionGrid.clear();
+		var command = "$A.metricsService.getCurrentMarks()";
+
+		var refreshingTimer = setInterval(
+
+			function() {
+				chrome.devtools.inspectedWindow.eval(command, function (data) {
+					callback_function(data);
+				});
+
+				if(recording == false){
+					clearInterval(refreshingTimer);
+				}
+
+			}.bind(this), 1000);
 	}
 }

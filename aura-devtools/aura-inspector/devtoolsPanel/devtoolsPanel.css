@@ -659,6 +659,59 @@ button.toggle:focus {
 #flamechart { position: relative; width: 100%; height: 90%;}
 
 /* Transactions Panel */
+
+button.record-button {
+    padding: 5px 0;
+    text-align: center;
+    width: 32px;
+    background-color: white;
+    border: none;
+}
+button.circle {
+    border: 0px none;
+    border-radius: 10px;
+}
+button aurainspector-onOffButton.circle {
+    border-radius: 50%;
+    background: rgb(103, 103, 103);
+    height: 12px;
+    margin-left: -1px;
+    width: 12px;
+}
+button aurainspector-onOffButton.circle:hover {
+    background: rgb(64, 64, 64);
+}
+button aurainspector-onOffButton.circle.on {
+    background: rgb(223, 51, 51);
+    box-shadow: 0 0 2px 2px rgb(246, 194, 194);
+}
+button aurainspector-onOffButton.circle.on:hover {
+    background: rgb(216, 0, 0);
+}
+button aurainspector-onOffButton.circle span {
+    display: none;
+}
+button aurainspector-onOffButton {
+    display: inline-block;
+    cursor: pointer;
+    padding: 4px 6px 3px 6px;
+    margin: auto 2px;
+    border-radius: 8px;
+}
+button aurainspector-onOffButton:hover {
+    background: rgba(0, 0, 0, .2);
+    color: white;
+}
+button aurainspector-onOffButton:active {
+    background: rgba(0, 0, 0, .5);
+    color: white;
+}
+button aurainspector-onOffButton.on {
+    background: rgba(0, 0, 0, .3);
+    color: white;
+    text-shadow: rgba(0, 0, 0, .4) 0 1px 0;
+}
+
 .trans-panel .transactions {
   height: calc(100% - 60px);
   overflow: scroll;
@@ -777,6 +830,69 @@ button.toggle:focus {
 .trans-graph-bar.request-timing.start-end, -theme-preserve {
     min-width: 3px;
     background-color: #00C853;
+    z-index: 1;
+}
+
+.trans-graph-time-marker-container{
+    position: fixed;
+    pointer-events: none;
+    height: 91%;
+    width: inherit;
+    padding-left: .43rem;
+    padding-right: .43rem;
+    display: table-cell;
+    z-index: 1;
+}
+
+.trans-graph-time-marker-timeline{
+    position: absolute;
+    width: 100%;
+    top: 18px;
+    height: 1px;
+    border-top: 1px solid black;
+}
+
+.timeline-number-text{
+    font-size: 11px;
+    text-transform: none;
+    padding: 3px;
+    bottom: 2px;
+}
+
+.trans-graph-time-marker1{
+    position: absolute;
+    top: 6px;
+    height: 100%;
+    left: 10px;
+    width: 1px;
+    border-left: 1px dotted;
+}
+
+.trans-graph-time-marker2{
+    position: absolute;
+    top: 6px;
+    height: 100%;
+    left: calc(25%);
+    width: 1px;
+    border-left: 1px dotted;
+}
+
+.trans-graph-time-marker3{
+    position: absolute;
+    top: 6px;
+    height: 100%;
+    left: calc(50% - 9px);
+    width: 1px;
+    border-left: 1px dotted;
+}
+
+.trans-graph-time-marker4{
+    position: absolute;
+    top: 6px;
+    height: 100%;
+    left: calc(75% - 18.5px);
+    width: 1px;
+    border-left: 1px dotted;
 }
 
 .trans-graph-bar-info{
@@ -790,9 +906,9 @@ button.toggle:focus {
 
     /* Position the tooltip */
     position: absolute;
-    bottom: 205%;
-    left: 50%;
-    z-index: 999;
+    right: 110%;
+    bottom: -500%;
+    z-index: 99 !important;
 
     background-color: white;
     box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.3), 0 2px 2px 0 rgba(0, 0, 0, 0.2), 0 1px 4px 0 rgba(0, 0, 0, 0.37);
