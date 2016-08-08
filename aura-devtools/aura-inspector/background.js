@@ -82,10 +82,21 @@
         }
 
         function BackgroundPage_OnContextClick(event, tab) {
+            var tabInfo = getTabInfo(tab.id);
+            var devToolsIsOpen = !!tabInfo.port;
+
             passMessageToDevTools({
                 action  : "AuraInspector:publish",
                 key: "AuraInspector:OnContextMenu"
             }, tab.id);
+
+            // Pass message to Aura Injected Script
+            chrome.tabs.query(
+                {currentWindow: true, active: true},
+                function(tabArray){
+                    chrome.tabs.sendMessage(tabArray[0].id, {action: "rightClick", devToolsOpen: devToolsIsOpen});
+                }
+            );
         }
 
         function BackgroundPage_OnMessage(message, event) {

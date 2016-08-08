@@ -1406,6 +1406,7 @@
         var PUBLISH_KEY = "AuraInspector:publish";
         var PUBLISH_BATCH_KEY = "AuraInspector:publishbatch";
         var BOOTSTRAP_KEY = "AuraInspector:bootstrap";
+        var CONTEXT_MENU_CLICK = "rightClick";
         var postMessagesQueue = [];
         var batchPostId = null;
         var COMPONENT_CONTROL_CHAR = "\u263A"; // ☺ - This value is a component Global Id
@@ -1426,6 +1427,7 @@
                     this.publish("AuraInspector:ShowComponentInTree", lastItemInspected.getAttribute("data-aura-rendered-by"));
                 }
             }.bind(this));
+
         };
 
         this.publish = function(key, data) {
@@ -1796,6 +1798,9 @@
                     for(var c=0,length=data.length;c<length;c++) {
                         callSubscribers(data[c].key, data[c].data);
                     }
+                    // Aaron
+                } else if (event.data.action === CONTEXT_MENU_CLICK){
+                    informToOpenDevTools(event.data);
                 }
             }
         }
@@ -1892,6 +1897,14 @@
             });
         }
 
+    }
+
+    function informToOpenDevTools(eventData){
+        var CONTEXT_MENU_ALERT = "Please open the developer console and select the \"Lightning\" tab to access the Lightning inspector.";
+
+        if( !eventData.devToolsOpen){
+            alert(CONTEXT_MENU_ALERT);
+        }
     }
 
     function wrapFunction(target, methodName, newFunction) {
