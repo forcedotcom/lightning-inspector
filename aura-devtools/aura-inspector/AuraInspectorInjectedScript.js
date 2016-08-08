@@ -1798,7 +1798,6 @@
                     for(var c=0,length=data.length;c<length;c++) {
                         callSubscribers(data[c].key, data[c].data);
                     }
-                    // Aaron
                 } else if (event.data.action === CONTEXT_MENU_CLICK){
                     informToOpenDevTools(event.data);
                 }
