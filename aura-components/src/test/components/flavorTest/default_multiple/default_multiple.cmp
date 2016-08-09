@@ -1,3 +1,0 @@
-<aura:component defaultFlavor="first, second">
-    <div aura:flavorable="true">Multiple Defaults</div>
-</aura:component>

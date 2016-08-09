@@ -1,4 +1,0 @@
-<aura:library>
-   <aura:include name="label"/>
-   <aura:include name="badlabel"/>
-</aura:library>

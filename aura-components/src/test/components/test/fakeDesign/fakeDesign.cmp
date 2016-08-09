@@ -1,5 +1,0 @@
-<aura:component>
-	<aura:attribute name="something" type="String" />
-	<aura:attribute name="else" type="String" />
-	<aura:attribute name="entities" type="String" />
-</aura:component>

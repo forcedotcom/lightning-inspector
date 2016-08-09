@@ -1,5 +1,0 @@
-<aura:component>
-    <aura:import library="auraStorageTest:storageTestLib" property="lib" />
-    
-    <div aura:id="content" />
-</aura:component>

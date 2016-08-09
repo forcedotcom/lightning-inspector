@@ -1,3 +1,0 @@
-<aura:component extensible="true">
-    <div aura:flavorable="true">{!v.body}</div>
-</aura:component>

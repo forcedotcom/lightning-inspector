@@ -1,7 +1,0 @@
-<aura:component implements="aura:requireLocker">
-    <aura:attribute name="value1" type="String" />
-    <aura:attribute name="value2" type="String" />
-    <aura:attribute name="obj" type="object"/>
-
-    <aura:method name="setValues" action="{!c.setValues}"/>
-</aura:component>

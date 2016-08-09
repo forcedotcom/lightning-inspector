@@ -1,6 +1,0 @@
-<aura:component>
-	<aura:registerevent name="popupTargetToggle" type="ui:popupTargetToggle" />
-	
-	<ui:label class="customTriggerLabel" label="Custom trigger" /> <ui:button class="customTriggerButton" press="{!c.hideTarget}" label="Close Target" /><br />
-	<ui:inputText class="customTriggerInput" focus="{!c.showTarget}" />
-</aura:component>

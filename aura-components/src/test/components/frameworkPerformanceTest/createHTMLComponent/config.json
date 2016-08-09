@@ -1,6 +1,0 @@
-{
-  "browsers":[ "chrome" ],
-  "numberOfRuns" : 1,
-  "variability": [],
-  "options" : {"skipDiff":true}
-}

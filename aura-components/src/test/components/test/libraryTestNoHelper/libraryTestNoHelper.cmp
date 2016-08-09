@@ -1,3 +1,0 @@
-<aura:component render="client">
-    <aura:import library="test:libraryTestLib" property="libraryTestLib"/>
-</aura:component>

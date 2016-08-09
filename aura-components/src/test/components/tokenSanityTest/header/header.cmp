@@ -1,3 +1,0 @@
-<aura:component>
-  <div> {!v.body} </div>
-</aura:component>

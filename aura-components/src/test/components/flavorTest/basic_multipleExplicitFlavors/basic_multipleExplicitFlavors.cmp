@@ -1,3 +1,0 @@
-<aura:component>
-    <flavorTest:x_sample aura:id="target" aura:flavor="flavorA, flavorB"/>
-</aura:component>

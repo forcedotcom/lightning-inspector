@@ -1,9 +1,0 @@
-<aura:component extends="setAttributesTest:attributesParent" render="client">
-    <aura:set attribute="city" value="Seattle (default child)"/>
-    <aura:set attribute="state" value="Washington (default child)"/>
-
-    <aura:set attribute="address">
-        <div>{!v.city}</div>
-        <div>{!v.state}</div>
-    </aura:set>
-</aura:component>

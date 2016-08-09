@@ -1,3 +1,0 @@
-<aura:component extends="performance:perfTest" description="Simple HTML creation perf test">
-    <div aura:id="container" class="container"></div>
-</aura:component>

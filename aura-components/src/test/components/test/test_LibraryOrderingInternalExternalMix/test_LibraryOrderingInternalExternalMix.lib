@@ -1,5 +1,0 @@
-<aura:library>
-    <aura:include name="a" imports="test:test_Library:basicFirst, b, c"/>
-    <aura:include name="b" imports="c"/>
-    <aura:include name="c" imports="test:test_Library:basicFirst"/>
-</aura:library>

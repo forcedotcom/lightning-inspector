@@ -1,5 +1,0 @@
-<aura:component>
-    <aura:attribute type="String" name="version" default="default"/>
-    <aura:method name="updateVersion" action="{!c.updateVersion}"/>
-</aura:component>
-

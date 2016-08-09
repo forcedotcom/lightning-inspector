@@ -1,5 +1,0 @@
-({
-    method: function () {
-        
-    }
-})

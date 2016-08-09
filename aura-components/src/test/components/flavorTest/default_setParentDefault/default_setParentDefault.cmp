@@ -1,3 +1,0 @@
-<aura:component extends="flavorTest:default_x_extensibleNoDefault" defaultFlavor="flavorB">
-    Set parent default
-</aura:component>

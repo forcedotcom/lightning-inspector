@@ -1,3 +1,0 @@
-<aura:component >
-    <aura:attribute name="parent" type="Aura.Component[]"/>
-</aura:component>

@@ -1,3 +1,0 @@
-<aura:component>
-    <div aura:flavorable="true">Overrides - flavor A only</div>
-</aura:component>

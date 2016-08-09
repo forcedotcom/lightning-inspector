@@ -284,7 +284,7 @@
         "description": "area for buttons on start/stop/save a new chaos run"
     },
     "manifest_description": {
-        "message": "Aura アプリケーションの検査用",
+        "message": "Lightning アプリケーションの検査用",
         "description": "Description that shows up in the list of extensions the user has installed."
     },
     "actions_menu_cached_tooltip": {
@@ -320,7 +320,7 @@
         "description": "Helper text which describes to the user how to use the pending overrides section."
     },
     "devtools_tabname": {
-        "message": "Aura",
+        "message": "Lightning",
         "description": "The tab that shows up in the chrome devtools"
     },
     "actions_section_processedoverrides": {
@@ -424,7 +424,7 @@
         "description": "Heading for the section which contains the actions that are being overridden by the inspector."
     },
     "manifest_name": {
-        "message": "Aura Inspector",
+        "message": "Lightning Inspector",
         "description": "Public title that shows up in the list of extensions the user has installed."
     },
     "actioncard_abortable": {

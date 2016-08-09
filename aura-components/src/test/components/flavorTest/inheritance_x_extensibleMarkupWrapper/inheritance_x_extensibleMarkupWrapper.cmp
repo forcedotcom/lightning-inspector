@@ -1,3 +1,0 @@
-<aura:component extensible="true" description="inheritance test helper component: a parent cmp that wraps a bare div around v.body">
-    <div class="wrapper">{!v.body}</div>
-</aura:component>

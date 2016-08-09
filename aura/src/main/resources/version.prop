@@ -1,3 +1,0 @@
-aura.build.version=${project.parent.version}
-aura.build.timestamp=${timestamp}
-aura.build.timestamp.format=${maven.build.timestamp.format}

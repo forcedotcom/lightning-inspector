@@ -1,3 +1,0 @@
-<aura:component>
-    <aura:import library="test:test_Library" property="testModule" />
-</aura:component>

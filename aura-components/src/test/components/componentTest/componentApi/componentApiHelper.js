@@ -1,3 +1,0 @@
-({
-    helperFunction: function(){}
-})

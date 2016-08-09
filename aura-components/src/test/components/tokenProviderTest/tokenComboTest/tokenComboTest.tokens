@@ -1,3 +1,0 @@
-<aura:tokens>
-    <aura:token name="color" value="yellow" />
-</aura:tokens>

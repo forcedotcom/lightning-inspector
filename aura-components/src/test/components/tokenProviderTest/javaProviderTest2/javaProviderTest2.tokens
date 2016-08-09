@@ -1,2 +1,0 @@
-<aura:tokens provider="java://org.auraframework.integration.test.css.JavaTokenProviderDefTest$P2">
-</aura:tokens>
