@@ -42,7 +42,8 @@ function AuraInspectorTransactionView(devtoolsPanel) {
 			"duration": chrome.i18n.getMessage("transactions_duration"),
 			"duration_info": chrome.i18n.getMessage("transactions_duration_info"),
 			"context": chrome.i18n.getMessage("transactions_context"),
-			"actions": chrome.i18n.getMessage("transactions_actions")
+			"actions": chrome.i18n.getMessage("transactions_actions"),
+			"timeline": chrome.i18n.getMessage("transactions_timeline")
 		};
 		
 		tabBody.innerHTML = markup;
@@ -92,14 +93,41 @@ function AuraInspectorTransactionView(devtoolsPanel) {
 	};
 
 	function ClearTable_OnClick(event) {
-		transactionGrid.clear();
+		if(recording) {
+			recording = false;
+			recordButton.classList.remove("on");
+			recordButton.children[0].classList.remove("on");
+
+			setTimeout(function () {
+				transactionGrid.clear();
+			}, 500);
+
+		} else {
+			transactionGrid.clear();
+		}
 	}
 
-	function RefreshTransactions_OnClick(event){
-		transactionGrid.clear();
-		this.getActions(function(data){
-			transactionGrid.updateTable(data);
-		});
+	function RefreshTransactions_OnClick(event) {
+		if (recording) {
+			recording = false;
+			recordButton.classList.remove("on");
+			recordButton.children[0].classList.remove("on");
+
+			setTimeout(function () {
+				transactionGrid.clear();
+				this.getActions(function (data) {
+					transactionGrid.updateTable(data);
+					console.log(data);
+				});
+			}.bind(this), 500);
+
+		} else {
+			transactionGrid.clear();
+			this.getActions(function (data) {
+				transactionGrid.updateTable(data);
+				console.log(data);
+			});
+		}
 	}
 
 	// Automatic updates of transaction marks
@@ -137,6 +165,6 @@ function AuraInspectorTransactionView(devtoolsPanel) {
 					clearInterval(refreshingTimer);
 				}
 
-			}.bind(this), 1000);
+			}.bind(this), 500);
 	}
 }

@@ -215,6 +215,10 @@
 		"message": " (ms)",
 		"description": "Duration information that describes that the column is in milliseconds."
 	},
+	"transactions_timeline": {
+		"message": "Timeline",
+		"description": "Timeline of lightning transaction marks."
+	},
 	"eventcard_parameters": {
 		"message": "Parameters",
 		"description": "Label showing the information sent along with an event. "

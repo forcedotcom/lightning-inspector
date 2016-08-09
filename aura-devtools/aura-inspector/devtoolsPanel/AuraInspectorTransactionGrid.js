@@ -38,8 +38,7 @@ function AuraInspectorTransactionGrid() {
                         <th width="5%">${labels.id}</th>
                         <th width="8%">${labels.duration}</th>
                         <th width="9%">${labels.starttime}</th>
-                        Don't forget to make label for timeline
-                        <th width="45%">Timeline
+                        <th width="45%">${labels.timeline}
 <div class ="trans-graph-time-marker-container" id = "timeline-marker-container">
    <div class="trans-graph-time-marker-timeline"></div>
    
