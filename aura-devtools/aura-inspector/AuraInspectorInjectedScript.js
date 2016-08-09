@@ -2645,24 +2645,6 @@
             }
         };
     };
-
-    beacon = {};
-    beacon.initializeBeacon = function (config) {
-        beacon.hostCmp = config.hostCmp;
-        beacon.queue = [];
-        beacon.counter = 0;
-        beacon.pageViewHasEPT = false;
-
-        $A.installOverride("ClientService.receive", $A.getCallback(beacon.onXHRReceived), beacon);
-    };
-
-    beacon.onXHRReceived = function () {
-        // AOP to call the original
-        var config = Array.prototype.shift.apply(arguments);
-        var ret = config["fn"].apply(config["scope"], arguments);
-
-        // Check and update pageView state
-        this.pageViewHasFinishedLoading();
-    };
+    
 
 })(this);
