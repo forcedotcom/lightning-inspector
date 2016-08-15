@@ -714,7 +714,7 @@ button aurainspector-onOffButton.on {
 
 .trans-panel .transactions {
   height: calc(100% - 60px);
-  overflow: scroll;
+  overflow: hidden;
 }
 .trans-panel table {
   border-collapse: collapse;
@@ -723,7 +723,10 @@ button aurainspector-onOffButton.on {
   width: 100%;
 }
 .trans-panel thead {
-  text-align: left;
+    text-align: left;
+    display: table;
+    width: 100%;
+    table-layout: fixed;
 }
 .trans-panel .transactions thead th {
   box-shadow: 0 -1px 0 0 #d8dde6 inset;
@@ -733,6 +736,19 @@ button aurainspector-onOffButton.on {
   padding: .5rem;
   text-transform: uppercase;
   vertical-align: bottom;
+}
+
+.trans-panel .transactions tbody{
+    height: 100%;
+    overflow: scroll;
+    display: block;
+    padding-bottom: 75px;
+}
+
+.trans-panel .transactions tr{
+    display: table;
+    table-layout: fixed;
+    width: 100%;
 }
 
 .trans-panel .transactions tbody tr:nth-child(even) {

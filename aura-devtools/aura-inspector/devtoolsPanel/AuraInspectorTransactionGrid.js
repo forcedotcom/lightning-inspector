@@ -32,7 +32,7 @@ function AuraInspectorTransactionGrid() {
         labels = initLabels;
 
         markup = `
-                <table>
+                <table height="100%">
                     <thead>
                         <th width="33%">${labels.context}</th>
                         <th width="5%">${labels.id}</th>
@@ -263,11 +263,11 @@ function AuraInspectorTransactionGrid() {
 
         timelineMarkup = createIndividualTimeline(rowData.stamp, rowData.start, rowData.end);
 
-        markup = `<td>${rowData.context}</td>
-                  <td>${rowData.id}</td>
-                  <td>${duration}</td>
-                  <td>${stamp}</td>
-                  <td>${timelineMarkup}</td>`;
+        markup = `<td width="33%">${rowData.context}</td>
+                  <td width="5%">${rowData.id}</td>
+                  <td width="8%">${duration}</td>
+                  <td width="9%">${stamp}</td>
+                  <td width="45%">${timelineMarkup}</td>`;
 
 
         row.innerHTML = markup;
@@ -296,9 +296,9 @@ function AuraInspectorTransactionGrid() {
                         
                         <div class="trans-graph-bar request-timing stamp-start" style="left: ${stampLeft}%; right: ${stampRight}%">
                             <div class="trans-graph-bar-info">
-                                <table>
+                                <table class="trans-graph-bar-info-table">
                                     <thead>
-                                        <tr>
+                                        <tr class="info-header">
                                             <th class="trans-graph-bar-info-left-column">Timestamp:</th>
                                             <th class="trans-graph-bar-info-right-column">Duration</th>
                                         </tr>
