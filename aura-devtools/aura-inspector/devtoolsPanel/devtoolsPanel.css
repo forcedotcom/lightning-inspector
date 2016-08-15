@@ -860,6 +860,10 @@ button aurainspector-onOffButton.on {
     z-index: 1;
 }
 
+.trans-graph-time-marker-container.invisible_class{
+    visibility: hidden;
+}
+
 .trans-graph-time-marker-timeline{
     position: absolute;
     width: 100%;

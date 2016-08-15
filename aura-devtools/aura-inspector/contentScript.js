@@ -53,10 +53,7 @@
 
             // Catches all runtime commands and passes them to the injected script
             runtime.onMessage.addListener(Handler_OnRuntimeMessage);
-
-            chrome.runtime.onMessage.addListener(function(msg, sender, sendResponse){
-                window.postMessage(msg, window.location.href);
-            });
+            
         };
 
         this.injectBootstrap = function() {

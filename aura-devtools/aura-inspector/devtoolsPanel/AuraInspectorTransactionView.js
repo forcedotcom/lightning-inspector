@@ -13,8 +13,8 @@ function AuraInspectorTransactionView(devtoolsPanel) {
 		"duration_info" : chrome.i18n.getMessage("transactions_duration_info"),
 		"context" : chrome.i18n.getMessage("transactions_context"),
 		"actions" : chrome.i18n.getMessage("transactions_actions"),
-		"record": chrome.i18n.getMessage("menu_record")
-	};
+		"record": chrome.i18n.getMessage("menu_record"),
+};
 
 	var markup = `
 		<div class="aura-panel panel-status-bar">
@@ -43,7 +43,9 @@ function AuraInspectorTransactionView(devtoolsPanel) {
 			"duration_info": chrome.i18n.getMessage("transactions_duration_info"),
 			"context": chrome.i18n.getMessage("transactions_context"),
 			"actions": chrome.i18n.getMessage("transactions_actions"),
-			"timeline": chrome.i18n.getMessage("transactions_timeline")
+			"timeline": chrome.i18n.getMessage("transactions_timeline"),
+            "not_available": chrome.i18n.getMessage("not_available"),
+            "ms": chrome.i18n.getMessage("ms")
 		};
 		
 		tabBody.innerHTML = markup;
@@ -84,13 +86,13 @@ function AuraInspectorTransactionView(devtoolsPanel) {
 		});
 	};
 
-	this.getActions = function (callback) {
+	function getActions(callback) {
 		var command = "$A.metricsService.getCurrentMarks()";
 
 		chrome.devtools.inspectedWindow.eval(command, function (data) {
 			callback(data);
 		});
-	};
+	}
 
 	function ClearTable_OnClick(event) {
 		if(recording) {
@@ -115,7 +117,7 @@ function AuraInspectorTransactionView(devtoolsPanel) {
 
 			setTimeout(function () {
 				transactionGrid.clear();
-				this.getActions(function (data) {
+				getActions(function (data) {
 					transactionGrid.updateTable(data);
 					console.log(data);
 				});
@@ -123,7 +125,7 @@ function AuraInspectorTransactionView(devtoolsPanel) {
 
 		} else {
 			transactionGrid.clear();
-			this.getActions(function (data) {
+			getActions(function (data) {
 				transactionGrid.updateTable(data);
 				console.log(data);
 			});
@@ -150,16 +152,14 @@ function AuraInspectorTransactionView(devtoolsPanel) {
 	}
 
 	
-	function subscribeToMarks(callback_function){
+	function subscribeToMarks(callback){
 		transactionGrid.clear();
 		var command = "$A.metricsService.getCurrentMarks()";
 
 		var refreshingTimer = setInterval(
 
 			function() {
-				chrome.devtools.inspectedWindow.eval(command, function (data) {
-					callback_function(data);
-				});
+				chrome.devtools.inspectedWindow.eval(command, callback);
 
 				if(recording == false){
 					clearInterval(refreshingTimer);

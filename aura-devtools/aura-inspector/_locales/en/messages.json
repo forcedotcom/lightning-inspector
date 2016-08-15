@@ -458,6 +458,10 @@
 	"sidebar_ghosttext" : {
 		"message": "Select a tag in the elements panel and it's Lightning Information will show here",
 		"description": "Sidebar depends on you selecting an element so we can show information about it, when you haven't selected anything, you get this helpfull message."
+	},
+	"not_available": {
+		"message": "N/a",
+		"description": "The information is not available."
 	}
 	/*,
 	"": {

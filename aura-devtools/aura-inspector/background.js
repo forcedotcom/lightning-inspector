@@ -90,13 +90,9 @@
                 key: "AuraInspector:OnContextMenu"
             }, tab.id);
 
-            // Pass message to Aura Injected Script
-            chrome.tabs.query(
-                {currentWindow: true, active: true},
-                function(tabArray){
-                    chrome.tabs.sendMessage(tabArray[0].id, {action: "rightClick", devToolsOpen: devToolsIsOpen});
-                }
-            );
+            if(!devToolsIsOpen){
+                alert("Please open the developer console and select the \"Lightning\" tab to access the Lightning inspector.");
+            }
         }
 
         function BackgroundPage_OnMessage(message, event) {

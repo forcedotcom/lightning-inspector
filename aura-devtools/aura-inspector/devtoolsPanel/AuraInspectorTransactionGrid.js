@@ -30,6 +30,7 @@ function AuraInspectorTransactionGrid() {
         var tableMarkup;
         var timeline;
         labels = initLabels;
+        console.log(labels);
 
         markup = `
                 <table height="100%">
@@ -132,7 +133,7 @@ function AuraInspectorTransactionGrid() {
         latestEndTime = 0;
 
         var timeline = document.getElementById("timeline-marker-container");
-        timeline.style.visibility = "hidden";
+        timeline.classList.add("invisible_class");
     };
 
     /* ---------------- START OF DATA PROCESSING METHODS ------------------------------ */
@@ -226,14 +227,17 @@ function AuraInspectorTransactionGrid() {
 
         for(var x = 0; x < dataArray.length; x++){
             currMark = dataArray[x];
-            if(currMark.stamp)
+            if(currMark.stamp){
                 currMark.stamp = currMark.stamp - transposeTime;
+            }
 
-            if(currMark.start)
+            if(currMark.start){
                 currMark.start = currMark.start - transposeTime;
+            }
 
-            if(currMark.end)
+            if(currMark.end){
                 currMark.end = currMark.end - transposeTime;
+            }
 
         }
     }
@@ -249,15 +253,15 @@ function AuraInspectorTransactionGrid() {
         var row = document.createElement('tr');
 
         if(rowData.stamp == null) {
-            duration = "N/a";
-            stamp = "N/a";
+            duration = labels.not_available;
+            stamp = labels.not_available;
         } else {
-            stamp = rowData.stamp.toLocaleString() + " ms";
+            stamp = rowData.stamp.toLocaleString() + " " + labels.ms;
             if(rowData.end) {
                 duration = Math.round(rowData.end - rowData.stamp).toLocaleString();
-                duration = duration + " ms";
+                duration = duration + " " + labels.ms;
             } else {
-                duration = "N/a"
+                duration = labels.not_available;
             }
         }
 
@@ -338,6 +342,6 @@ function AuraInspectorTransactionGrid() {
         marker4.innerHTML = Math.round(interval*100*3)/10 + "s";
 
         var timeline = document.getElementById("timeline-marker-container");
-        timeline.style.visibility = "visible";
+        timeline.classList.remove("invisible_class");
     }
 }
