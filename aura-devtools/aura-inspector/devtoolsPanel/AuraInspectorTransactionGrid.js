@@ -298,18 +298,18 @@ function AuraInspectorTransactionGrid() {
                             <div class="trans-graph-bar-info">
                                 <table class="trans-graph-bar-info-table">
                                     <thead>
-                                        <tr class="info-header">
+                                        <tr class="info-row">
                                             <th class="trans-graph-bar-info-left-column">Timestamp:</th>
                                             <th class="trans-graph-bar-info-right-column">Duration</th>
                                         </tr>
                                      </thead>
-                                    <tr>
-                                        <td class="trans-graph-bar-info-left-column">STAMP:</td>
-                                        <td class="trans-graph-bar-info-right-column">${stampToStart.toLocaleString()} ms</td>
+                                    <tr class="info-row">
+                                        <td >STAMP:</td>
+                                        <td>${stampToStart.toLocaleString()} ms</td>
                                     </tr>
-                                    <tr>
-                                        <td class="trans-graph-bar-info-left-column">START:</td>
-                                        <td class="trans-graph-bar-info-right-column">${startToEnd.toLocaleString()} ms</td>
+                                    <tr class="info-row">
+                                        <td>START:</td>
+                                        <td>${startToEnd.toLocaleString()} ms</td>
                                     </tr>
                                 </table>
                             </div>

@@ -922,14 +922,33 @@ button aurainspector-onOffButton.on {
 
     /* Position the tooltip */
     position: absolute;
-    right: 110%;
-    bottom: -500%;
+    right: calc(100% + 20px);
+    bottom: -1200%;
     z-index: 99 !important;
 
     background-color: white;
     box-shadow: 0 6px 10px 0 rgba(0, 0, 0, 0.3), 0 2px 2px 0 rgba(0, 0, 0, 0.2), 0 1px 4px 0 rgba(0, 0, 0, 0.37);
     border-radius: 2px;
     word-break:normal;
+}
+
+table.trans-graph-bar-info-table{
+     width: 100%;
+}
+
+.trans-graph-bar-info .trans-graph-bar-info-table thead{
+     display: table-header-group;
+
+ }
+
+.trans-graph-bar-info .trans-graph-bar-info-table tbody{
+     height: 100%;
+     display: table-row-group;
+ }
+
+.trans-graph-bar-info .trans-graph-bar-info-table tr.info-row{
+    table-layout: auto;
+    display: table-row;
 }
 
 .trans-graph-bar.request-timing.stamp-start:hover .trans-graph-bar-info{
