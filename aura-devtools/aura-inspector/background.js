@@ -14,7 +14,7 @@
         var external = new Map();
 
         var MAX_QUEUE_LENGTH = 100000;
-        
+        var labels;
         // List of inspectors we want to pair with.
         var EXTERNAL_INSPECTOR_EXTENSION_IDS = {
             "hmoenmfdbkbjcpiibpfakppdpahlfnpo": true, // Dev Sfdc Inspector,
@@ -22,6 +22,10 @@
         };
 
         this.init = function() {
+            labels = {
+                "devtoolsNotif": chrome.i18n.getMessage("open_devtools_notif")
+            };
+
             chrome.runtime.onConnect.addListener(BackgroundPage_OnConnect.bind(this));
             // onSuspend?
 
@@ -91,7 +95,7 @@
             }, tab.id);
 
             if(!devToolsIsOpen){
-                alert("Please open the developer console and select the \"Lightning\" tab to access the Lightning inspector.");
+                alert(labels.devtoolsNotif);
             }
         }
 

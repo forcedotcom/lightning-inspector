@@ -462,6 +462,10 @@
 	"not_available": {
 		"message": "N/a",
 		"description": "The information is not available."
+	},
+	"open_devtools_notif": {
+		"message": "Please open the developer console and select the \"Lightning\" tab to access the Lightning inspector.",
+		"description": "Instructions on how to open up the Lightning Inspector."
 	}
 	/*,
 	"": {

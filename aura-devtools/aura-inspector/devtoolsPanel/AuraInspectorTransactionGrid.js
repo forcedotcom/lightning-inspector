@@ -97,7 +97,7 @@ function AuraInspectorTransactionGrid() {
         setLatestEndTime(marks);
 
         latestEndTime = Date.now() - recordTimeStamp;
-        updateTimeMarkers(Date.now() - recordTimeStamp);
+        updateTimeMarkers(latestEndTime);
 
         transposeTimesForLiveView(marks, recordTimeStamp);
 
@@ -133,7 +133,7 @@ function AuraInspectorTransactionGrid() {
         latestEndTime = 0;
 
         var timeline = document.getElementById("timeline-marker-container");
-        timeline.classList.add("invisible_class");
+        timeline.classList.add("invisible");
     };
 
     /* ---------------- START OF DATA PROCESSING METHODS ------------------------------ */
@@ -148,10 +148,11 @@ function AuraInspectorTransactionGrid() {
             examinedID = currAction.context.id;
 
             if (map[examinedID]){
-                if(!map[examinedID].context && currAction.context.def)
+                if(!map[examinedID].context && currAction.context.def) {
                     map[examinedID].context = currAction.context.def;
-                else
+                } else {
                     continue;
+                }
 
             } else {
                 insertNewActionData(currAction, map);
@@ -342,6 +343,6 @@ function AuraInspectorTransactionGrid() {
         marker4.innerHTML = Math.round(interval*100*3)/10 + "s";
 
         var timeline = document.getElementById("timeline-marker-container");
-        timeline.classList.remove("invisible_class");
+        timeline.classList.remove("invisible");
     }
 }
