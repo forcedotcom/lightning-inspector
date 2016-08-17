@@ -14,7 +14,7 @@
         var external = new Map();
 
         var MAX_QUEUE_LENGTH = 100000;
-        
+        var labels;
         // List of inspectors we want to pair with.
         var EXTERNAL_INSPECTOR_EXTENSION_IDS = {
             "hmoenmfdbkbjcpiibpfakppdpahlfnpo": true, // Dev Sfdc Inspector,
@@ -22,6 +22,10 @@
         };
 
         this.init = function() {
+            labels = {
+                "devtoolsNotif": chrome.i18n.getMessage("open_devtools_notif")
+            };
+
             chrome.runtime.onConnect.addListener(BackgroundPage_OnConnect.bind(this));
             // onSuspend?
 
@@ -82,10 +86,17 @@
         }
 
         function BackgroundPage_OnContextClick(event, tab) {
+            var tabInfo = getTabInfo(tab.id);
+            var devToolsIsOpen = !!tabInfo.port;
+
             passMessageToDevTools({
                 action  : "AuraInspector:publish",
                 key: "AuraInspector:OnContextMenu"
             }, tab.id);
+
+            if(!devToolsIsOpen){
+                alert(labels.devtoolsNotif);
+            }
         }
 
         function BackgroundPage_OnMessage(message, event) {

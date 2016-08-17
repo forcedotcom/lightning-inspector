@@ -14,7 +14,7 @@
         var allowedPostMessageKeys = {
             "AuraInspector:publishbatch": true,
             "AuraInspector:publish": true,
-            "AuraInspector:bootstrap": true
+            "AuraInspector:bootstrap": true,
         };
 
         /**
@@ -52,6 +52,7 @@
 
             // Catches all runtime commands and passes them to the injected script
             runtime.onMessage.addListener(Handler_OnRuntimeMessage);
+
         };
 
         this.injectBootstrap = function() {

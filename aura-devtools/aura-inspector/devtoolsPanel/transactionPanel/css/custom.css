@@ -28,5 +28,7 @@ text-align: left;
     max-width: 200px
 }
 
-#trs tr:nth-child(even) {background: #DDD}
-#trs tr:nth-child(odd) {background: #FFF}
+tr:nth-child(even) {background: #DDD}
+tr:nth-child(odd) {background: #FFF}
+
+

@@ -6,7 +6,7 @@
     //let's keep a map between actionID to action here, just like what AuraClientService is doing
     //when user wants to watch a action, let's add an entry here
     var actionsWatched = {};
-    //a map between acitonName to action, if action.nextResponse exist, we override next response, if no, just drop the action
+    //a map between actionName to action, if action.nextResponse exist, we override next response, if no, just drop the action
     var actionsToWatch = {};
 
     var $Symbol = Symbol.for("AuraDevTools");
@@ -230,6 +230,10 @@
                     bootstrapEventInstrumentation();
                 } catch(e){}
 
+                try {
+                    transactionReporting();
+                } catch(e){}
+
 
                 // Need a way to conditionally do this based on a user setting.
                 $A.PerfDevTools.init();
@@ -240,6 +244,7 @@
                 console.warn('Could not attach AuraDevTools Extension.');
             }
         }
+
     };//end of $Aura.actions
 
     /****************************************************************
@@ -1378,6 +1383,7 @@
     //     $Aura.Inspector.unsubscribe("AuraInspector:OnPanelAlreadyConnected", AuraInspector_OnPanelLoad);
     // });
 
+    $Aura.Inspector.subscribe("AuraInspector:GetLoadTimeStamp", $Aura.Inspector.relayPageLoadTime.bind($Aura.Inspector));
     $Aura.Inspector.subscribe("AuraInspector:OnHighlightComponent", $Aura.actions["AuraDevToolService.HighlightElement"]);
     $Aura.Inspector.subscribe("AuraInspector:OnHighlightComponentEnd", $Aura.actions["AuraDevToolService.RemoveHighlightElement"]);
 
@@ -1408,6 +1414,8 @@
         var increment = 0;
         var lastItemInspected;
         var countMap = new Map();
+        var loadTimeStamp = Date.now();
+
 
         this.init = function() {
             // Add Rightclick handler. Just track what we rightclicked on.
@@ -1418,6 +1426,7 @@
                     this.publish("AuraInspector:ShowComponentInTree", lastItemInspected.getAttribute("data-aura-rendered-by"));
                 }
             }.bind(this));
+
         };
 
         this.publish = function(key, data) {
@@ -1770,7 +1779,11 @@
             if(countMap.has(key)) {
                 countMap.delete(key);
             }
-        }
+        };
+
+        this.relayPageLoadTime = function(){
+            $Aura.Inspector.publish("AuraInspector:RelayPageLoadTime", loadTimeStamp);
+        };
 
         // Start listening for messages
         window.addEventListener("message", Handle_OnPostMessage);
@@ -1781,7 +1794,7 @@
                     callSubscribers(event.data.key, event.data.data);
                 } else if(event.data.action === PUBLISH_BATCH_KEY) {
                     var data = event.data.data || [];
-                    for(var c=0,length=data.length;c<length;c++) {
+                    for (var c = 0, length = data.length; c < length; c++) {
                         callSubscribers(data[c].key, data[c].data);
                     }
                 }
@@ -2360,7 +2373,6 @@
     }
 
 
-
     function bootstrapPerfDevTools() {
         $A.PerfDevToolsEnabled = true;
 
@@ -2622,8 +2634,6 @@
             }
         };
     };
-
-
-
+    
 
 })(this);

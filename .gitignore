@@ -11,7 +11,7 @@ pom.xml.releaseBackup
 .settings
 *.pyc
 .DS_Store
-.idea/*
+.idea/
 *.iml
 *.ipr
 *.iws
