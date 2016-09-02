@@ -921,9 +921,16 @@ body.remote .dock-status-bar-item {
     -webkit-mask-position: -64px 0;
 }
 
-/* Aaron */
 .refresh-transactions-bar-item .glyph{
     -webkit-mask-position: 0 1px;
+}
+
+.down-arrow-table-head-item .glyph{
+    -webkit-mask-position: -64px -71px;
+}
+
+.up-arrow-table-head-item .glyph{
+    -webkit-mask-position: -98px -67px;
 }
 
 .error-icon-small,

@@ -712,6 +712,19 @@ button aurainspector-onOffButton.on {
     text-shadow: rgba(0, 0, 0, .4) 0 1px 0;
 }
 
+button.transaction-tabs-button{
+    background-color: #E3F2FD;
+    padding: 3px;
+    margin-left: 10px;
+    padding-left: 5px;
+    padding-right: 5px;
+    border-width: 0px;
+}
+
+button.transaction-tabs-button.selected{
+    background-color: #EEEEEE;
+}
+
 .trans-panel .transactions {
   height: calc(100% - 60px);
   overflow: hidden;
@@ -722,6 +735,7 @@ button aurainspector-onOffButton.on {
   font-size: 12px;
   width: 100%;
 }
+
 .trans-panel thead {
     text-align: left;
     display: table;
@@ -736,6 +750,11 @@ button aurainspector-onOffButton.on {
   padding: .5rem;
   text-transform: uppercase;
   vertical-align: bottom;
+}
+
+.trans-panel .th-text{
+    vertical-align: bottom;
+    bottom: 20px;
 }
 
 .trans-panel .transactions tbody{
