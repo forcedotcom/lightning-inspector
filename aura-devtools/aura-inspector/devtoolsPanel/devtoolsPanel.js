@@ -106,7 +106,7 @@
                 var eventLog = new AuraInspectorEventLog(this);
                 var tree = new AuraInspectorComponentTree(this);
                 var perf = new AuraInspectorPerformanceView(this);
-                var transaction = new AuraInspectorTransactionView(this);
+                var transaction = new AuraInspectorTransactionPanel(this);
                 var actions = new AuraInspectorActionsView(this);
                 var storage = new AuraInspectorStorageView(this);
                 

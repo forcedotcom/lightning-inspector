@@ -1,84 +1,29 @@
-function AuraInspectorTransactionGrid() {
+function AuraInspectorTransactionGrid(controller) {
     var tableBody;
     var tab;  // HTML for the area we are working with (parents of tableBody)
     var labels;
-    var graphData = {}; // Current data we are working with
+    var graphData = []; // Current data we are working with
     var startTime;     // Timestamp of when Aura was created
     var latestEndTime = 0;
+    var dataType; //either "marks" or "customTrans"
+    var self = this;
 
-    /* -- API --
-        * this.init:            Should be called when transaction grid is invoked.
-        * 
-        * this.setLoadTime:     Sets the start time to be used to calculate times for live recording
-        * 
-        * this.liveUpdateTable: Data that is constantly updated should be passed into this method
-        *                       for live redrawing of the visualization and ignores previously
-        *                       recorded data
-        * 
-        * this.updateTable:     Should be used for static data that isn't updating live
-        *
-        * this.clear:           resets everything by clearing the data structures and visualization
-        *
-     */
+    var MARKS = "marks";
+    var CUSTOM_TRANS = "customTrans";
+
+    var eventManager;
     
     /* @parameters: tabBody -   The html element of which we will visualize transactions
                     initLabel - Of type Object where we set our front facing labels as its attributes
                                 (labels.starttime, labels.id, etc)
      */
     this.init = function (tabBody, initLabels) {
-        var markup;
-        var tableMarkup;
-        var timeline;
-        labels = initLabels;
-        console.log(labels);
-
-        markup = `
-                <table height="100%">
-                    <thead>
-                        <th width="33%">${labels.context}</th>
-                        <th width="5%">${labels.id}</th>
-                        <th width="8%">${labels.duration}</th>
-                        <th width="9%">${labels.starttime}</th>
-                        <th width="45%">${labels.timeline}
-<div class ="trans-graph-time-marker-container" id = "timeline-marker-container">
-   <div class="trans-graph-time-marker-timeline"></div>
-   
-   <div class="trans-graph-time-marker1">
-      <div class="trans-graph-time-number-mark"><span class="timeline-number-text" id="marker-number-1">0s</span></div>
-      <div class="trans-graph-time-marker-line"></div>
-   </div>
-   
-   <div class="trans-graph-time-marker2">
-      <div class="trans-graph-time-number-mark"><span class="timeline-number-text" id="marker-number-2">0s</span></div>
-      <div class="trans-graph-time-marker-line"></div>
-   </div>
-   
-   <div class="trans-graph-time-marker3">
-      <div class="trans-graph-time-number-mark"><span class="timeline-number-text" id="marker-number-3">0s</span></div>
-      <div class="trans-graph-time-marker-line"></div>
-   </div>
-   
-   <div class="trans-graph-time-marker4">
-      <div class="trans-graph-time-number-mark"><span class="timeline-number-text" id="marker-number-4">0s</span></div>
-      <div class="trans-graph-time-marker-line"></div>
-   </div>
-</div>
-                        <br><br></th>
-                     </thead>
-                    
-                    <tbody id="table-body"></tbody> 
-                </table>
-         `;
-
-        tableMarkup = document.createElement('div');
-        tableMarkup.classList.add("transactions");
-        tableMarkup.id = "trs";
-        tableMarkup.innerHTML = markup;
-
-
-        tabBody.appendChild(tableMarkup);
-        tableBody = tabBody.querySelector("#table-body");
         tab = tabBody;
+        dataType = "marks";
+        labels = initLabels;
+        this.createTableHeader("marks");
+
+        eventManager = new createEventManager();
     };
 
     // Sets timestamp of when Aura was loaded
@@ -86,167 +31,151 @@ function AuraInspectorTransactionGrid() {
         startTime = time;
     };
 
-    // Only update the table with new (LIVE) data not already displayed (used in recording)
-    this.liveUpdateTable = function(data, recordTimeStamp){
-        var marks = {};
-        this.clear();
-
-        getUniqueIDs(data, marks);
-        updateTimes(data, marks);
-        marks = sortGraphData(marks);
-        setLatestEndTime(marks);
-
-        latestEndTime = Date.now() - recordTimeStamp;
-        updateTimeMarkers(latestEndTime);
-
-        transposeTimesForLiveView(marks, recordTimeStamp);
-
-        for(var x = 0; x < marks.length; x++){
-            if(isLiveData(marks[x].stamp) && !graphData[marks[x]]) {
-                graphData[marks[x]] = graphData[marks[x]];
-                addActionToTable(marks[x]);
-            }
-        }
-        
-    };
-
-    // Update table with all data regardless if its old or new
-    this.updateTable = function (data){
-
-        this.clear();
-        getUniqueIDs(data, graphData);
-        updateTimes(data, graphData);
-
-        var sortedData = sortGraphData(graphData);
-        setLatestEndTime(sortedData);
-
-        updateTimeMarkers(latestEndTime);
-
-        for(var x = 0; x < sortedData.length; x++) {
-            addActionToTable(sortedData[x]);
-        }
-    };
-
     this.clear = function(){
-        tableBody.innerHTML = '';
-        graphData = {};
-        latestEndTime = 0;
+        if(tableBody) {
+            tableBody.innerHTML = '';
+            graphData = [];
+            //latestEndTime = 0;
+
+            var timeline = document.getElementById("timeline-marker-container");
+            timeline.classList.add("invisible");
+        }
+    };
+    
+    this.createTableHeader = function(typeOfData){
+        var markup;
+        var tableMarkup;
+        var timeline;
+
+        var entireTable = document.querySelector("#trs");
+        if(entireTable){
+            entireTable.parentNode.removeChild(entireTable);
+        }
+
+        if(typeOfData === MARKS){
+            markup = `
+                <table height="100%">
+                    <thead>
+                        <th width="33%">${labels.context}</th>
+                        <th width="5%">${labels.id}</th>
+                        <th width="8%">${labels.duration}</th>
+                        <th width="9%">${labels.starttime}</th>
+                        <th width="45%">${labels.timeline}
+                            <div class ="trans-graph-time-marker-container" id = "timeline-marker-container">
+                                <div class="trans-graph-time-marker-timeline"></div>
+   
+                                <div class="trans-graph-time-marker1">
+                                    <div class="trans-graph-time-number-mark"><span class="timeline-number-text" id="marker-number-1">0s</span></div>
+                                    <div class="trans-graph-time-marker-line"></div>
+                                </div>
+                           
+                                <div class="trans-graph-time-marker2">
+                                    <div class="trans-graph-time-number-mark"><span class="timeline-number-text" id="marker-number-2">0s</span></div>
+                                    <div class="trans-graph-time-marker-line"></div>
+                                </div>
+                           
+                                <div class="trans-graph-time-marker3">
+                                    <div class="trans-graph-time-number-mark"><span class="timeline-number-text" id="marker-number-3">0s</span></div>
+                                    <div class="trans-graph-time-marker-line"></div>
+                                </div>
+                           
+                                <div class="trans-graph-time-marker4">
+                                    <div class="trans-graph-time-number-mark"><span class="timeline-number-text" id="marker-number-4">0s</span></div>
+                                    <div class="trans-graph-time-marker-line"></div>
+                                </div>
+                            </div>
+                            
+                        <br><br></th>
+                     </thead>
+                    
+                    <tbody id="table-body"></tbody> 
+                </table>
+            `;
+        } else if (typeOfData === CUSTOM_TRANS) { // is custom transactions
+            markup = `
+                <table height="100%">
+                    <thead id="table-head">
+                        <th width="18%">${labels.context}</th>
+                        <th width="20%"><span class="th-text">${labels.id}</span></th>
+                        <th width="8%">${labels.duration}</th>
+                        <th width="9%">${labels.starttime}</th>
+                        <th width="45%">${labels.timeline}
+                        <div class ="trans-graph-time-marker-container" id = "timeline-marker-container">
+                            <div class="trans-graph-time-marker-timeline"></div>
+                            
+                            <div class="trans-graph-time-marker1">
+                                <div class="trans-graph-time-number-mark"><span class="timeline-number-text" id="marker-number-1">0s</span></div>
+                                <div class="trans-graph-time-marker-line"></div>
+                            </div>
+                            
+                            <div class="trans-graph-time-marker2">
+                                <div class="trans-graph-time-number-mark"><span class="timeline-number-text" id="marker-number-2">0s</span></div>
+                                <div class="trans-graph-time-marker-line"></div>
+                            </div>
+   
+                            <div class="trans-graph-time-marker3">
+                                <div class="trans-graph-time-number-mark"><span class="timeline-number-text" id="marker-number-3">0s</span></div>
+                                <div class="trans-graph-time-marker-line"></div>
+                            </div>
+   
+                            <div class="trans-graph-time-marker4">
+                                <div class="trans-graph-time-number-mark"><span class="timeline-number-text" id="marker-number-4">0s</span></div>
+                                <div class="trans-graph-time-marker-line"></div>
+                            </div>
+                        </div>
+                        <br><br></th>
+                     </thead>
+                    
+                    <tbody id="table-body"></tbody> 
+                </table>
+         `;
+        }
+
+        var sortIDButton = document.createElement("button");
+        var sortStartButton = document.createElement("button");
+
+        sortIDButton.classList.add("up-arrow-table-head-item");
+        sortIDButton.classList.add("status-bar-item");
+        //sortIDButton.title = labels.clear;
+        sortIDButton.innerHTML = `<div class="glyph"></div><div class="glyph shadow"></div>`;
+
+        sortStartButton.classList.add("down-arrow-table-head-item");
+        sortStartButton.classList.add("status-bar-item");
+        //sortStartButton.title = labels.clear;
+        sortStartButton.innerHTML = `<div class="glyph"></div><div class="glyph shadow"></div>`;
+
+        tableMarkup = document.createElement('div');
+        tableMarkup.classList.add("transactions");
+        tableMarkup.id = "trs";
+        tableMarkup.innerHTML = markup;
+
+        //tableHead = document.querySelector("#table-head");
+        //tableHead.children[1].appendChild(sortIDButton);
+        //tableHead.children[3].appendChild(sortStartTimeButton);
+
+        tab.appendChild(tableMarkup);
+        tableBody = tab.querySelector("#table-body");
+    };
+
+    // Updates the number markers on the timeline ruler
+    this.updateTimeMarkers = function(endTime){
+        latestEndTime = endTime;
+
+        var marker2 = document.getElementById("marker-number-2");
+        var marker3 = document.getElementById("marker-number-3");
+        var marker4 = document.getElementById("marker-number-4");
+        var interval = (endTime/10000)/4;
+
+        marker2.innerHTML = Math.round(interval*100)/10 + "s";
+        marker3.innerHTML = Math.round(interval*100*2)/10 + "s";
+        marker4.innerHTML = Math.round(interval*100*3)/10 + "s";
 
         var timeline = document.getElementById("timeline-marker-container");
-        timeline.classList.add("invisible");
+        timeline.classList.remove("invisible");
     };
 
-    /* ---------------- START OF DATA PROCESSING METHODS ------------------------------ */
-
-    // Returns an array of the unique IDs given data;
-    function getUniqueIDs(data, map){
-        var currAction;
-        var examinedID;
-
-        for (var x = 0; x < data.actions.length; x++){
-            currAction = data.actions[x];
-            examinedID = currAction.context.id;
-
-            if (map[examinedID]){
-                if(!map[examinedID].context && currAction.context.def) {
-                    map[examinedID].context = currAction.context.def;
-                } else {
-                    continue;
-                }
-
-            } else {
-                insertNewActionData(currAction, map);
-            }
-        }
-    }
-
-    // updates the stamp, start, and end times of the corresponding elements in map
-    function updateTimes(data, map){
-
-        for (var x = 0; x < data.actions.length; x++) {
-            var currAction = data.actions[x];
-
-            if(map[currAction.context.id]) {
-                map[currAction.context.id][currAction.phase] = currAction.ts;
-            }
-        }
-    }
-
-    // Creates a new data entry in the map with specified context of the actionData
-    function insertNewActionData(actionData, map){
-        var insert = {};
-        insert.id = actionData.context.id;
-
-        if(actionData.context.def){
-            insert.context = actionData.context.def;
-        }
-
-        map[insert.id] = insert;
-    }
-
-    // Sorts the graphData by its "start" timestamp attribute
-    function sortGraphData(map){
-        var array = [];
-
-        for(var dataPoint in map){
-            array.push(map[dataPoint]);
-        }
-
-        array.sort(function(dataPointA, dataPointB){
-            if(dataPointA.stamp > dataPointB.stamp){
-                return 1;
-            } else if (dataPointA.stamp == dataPointB.stamp) {
-                return 0;
-            } else {
-                return -1;
-            }
-        });
-        return array;
-    }
-
-    // Sets timestamp of the latest time to be used proportionally with drawn timelines
-    function setLatestEndTime(sortedGraphData){
-
-        for(var x = 0; x < sortedGraphData.length; x++){
-            if(sortedGraphData[x].end && sortedGraphData[x].stamp && sortedGraphData[x].start
-                && sortedGraphData[x].end > latestEndTime){
-
-                latestEndTime = sortedGraphData[x].end;
-            }
-        }
-    }
-
-    // Checks if this time is a point that is within the "live data" range
-    function isLiveData(timestamp){
-        return timestamp > 0;
-    }
-
-    // Finds and sets the latest end time of all transactions for graphing
-    function transposeTimesForLiveView(dataArray, recordStartTime){
-        var transposeTime = recordStartTime - startTime;
-
-
-        for(var x = 0; x < dataArray.length; x++){
-            currMark = dataArray[x];
-            if(currMark.stamp){
-                currMark.stamp = currMark.stamp - transposeTime;
-            }
-
-            if(currMark.start){
-                currMark.start = currMark.start - transposeTime;
-            }
-
-            if(currMark.end){
-                currMark.end = currMark.end - transposeTime;
-            }
-
-        }
-    }
-
-    /* ---------------- START OF VISUALIZATION METHODS ------------------------------ */
-
     // Graphically adds to the table
-    function addActionToTable(rowData){
+    this.addRow = function(rowData){
         var markup;
         var duration;
         var stamp;
@@ -277,7 +206,96 @@ function AuraInspectorTransactionGrid() {
 
         row.innerHTML = markup;
         tableBody.appendChild(row);
-    }
+    };
+
+    // Graphically adds to the table
+    this.addMasterRow = function(rowData){
+        var markup;
+        var duration;
+        var startTime;
+        var timelineMarkup;
+        var contextPrint;
+        var row = document.createElement('tr');
+
+        // TODO: create label
+        startTime = (rowData.ts / 1000).toLocaleString() + " s";
+
+        if(rowData.duration) {
+            duration = (rowData.duration).toLocaleString() + " " + labels.ms;
+        } else {
+            duration = labels.not_available;
+        }
+
+        timelineMarkup = createIndividualTimeline(rowData.stamp, rowData.start, rowData.end);
+
+        contextPrint = document.createElement("a");
+        contextPrint.setAttribute("href", "#");
+        contextPrint.addEventListener("click", function(){eventManager.notify("printToConsole", rowData.context);});
+        contextPrint.innerHTML = 'Print to Console';
+
+        markup = `<td width="13%"></td>
+                  <td width="25%">${rowData.id}</td>
+                  <td width="8%">${duration}</td>
+                  <td width="9%">${startTime}</td>
+                  <td width="45%">${timelineMarkup}</td>`;
+
+
+        row.innerHTML = markup;
+        if(rowData.context) {
+            row.firstChild.appendChild(contextPrint);
+        }
+        tableBody.appendChild(row);
+        graphData.push(row);
+    };
+
+    this.addDetailRow = function(rowData, index){
+        var markup;
+        var duration;
+        var startTime;
+        var timelineMarkup;
+        var contextPrint;
+        var row = document.createElement('tr');
+
+        // TODO: create label
+        startTime = (rowData.ts / 1000).toLocaleString() + " s";
+
+        if(rowData.duration) {
+            duration = (rowData.duration).toLocaleString() + " " + labels.ms;
+        } else {
+            duration = labels.not_available;
+        }
+
+        timelineMarkup = createIndividualTimeline(rowData.stamp, rowData.start, rowData.end);
+
+        contextPrint = document.createElement("a");
+        contextPrint.setAttribute("href", "#");
+        contextPrint.addEventListener("click", function(){eventManager.notify("printToConsole", rowData.context);});
+        contextPrint.innerHTML = 'Print to Console';
+
+        var name = "   Mark: " + rowData.name;
+        markup = `<td width="13%"></td>
+                  <td width="25%">${name}</td>
+                  <td width="8%">${duration}</td>
+                  <td width="9%">${startTime}</td>
+                  <td width="45%">${timelineMarkup}</td>`;
+
+
+        row.innerHTML = markup;
+        if(rowData.context) {
+            row.firstChild.appendChild(contextPrint);
+        }
+        // Uncomment once you add in the click to show
+        // row.classList.add("no-display");
+        row.classList.add("custom-trans-mark");
+        row.classList.add("red");
+
+        if(graphData[index].nextSibling) {
+            //console.log(graphData[index]);
+            graphData[index].parentNode.insertBefore(row, graphData[index].nextSibling);
+        } else {
+            graphData[index].parentNode.appendChild(row);
+        }
+    };
 
     // Create a small timeline for each "complete" transaction
     function createIndividualTimeline(stamp, start, end){
@@ -331,18 +349,45 @@ function AuraInspectorTransactionGrid() {
         return markup;
     }
 
-    // Updates the number markers on the timeline ruler
-    function updateTimeMarkers(endTime){
-        var marker2 = document.getElementById("marker-number-2");
-        var marker3 = document.getElementById("marker-number-3");
-        var marker4 = document.getElementById("marker-number-4");
-        var interval = (endTime/10000)/4;
 
-        marker2.innerHTML = Math.round(interval*100)/10 + "s";
-        marker3.innerHTML = Math.round(interval*100*2)/10 + "s";
-        marker4.innerHTML = Math.round(interval*100*3)/10 + "s";
+    /* ----------------------- Event Manager Methods ------------------------*/
+    function createEventManager(){
+        var eventManager = {};
 
-        var timeline = document.getElementById("timeline-marker-container");
-        timeline.classList.remove("invisible");
+        eventManager.attach = function(eventName, func){
+            if(!eventManager[eventName]){
+                eventManager[eventName] = [];
+            }
+            eventManager[eventName].push(func);
+        };
+
+        eventManager.remove = function(eventName){
+            if(eventManager[eventName] || eventManager[eventManager].length > 0){
+                eventManager[eventName] = [];
+            }
+        };
+
+        eventManager.notify = function(eventName, data){
+            if(eventManager[eventName] && eventManager[eventName].length > 0){
+                for(var x = 0; x < eventManager[eventName].length; x++){
+                    eventManager[eventName][x](data);
+                }
+            }
+        };
+
+        return eventManager;
     }
+
+    this.attach = function(eventName, callback){
+        eventManager.attach(eventName, callback);
+    };
+
+    this.remove = function(eventName){
+        eventManager.remove(eventName);
+    };
+
+    this.notify = function(eventName, data){
+        eventManager.notify(eventName, data);
+    };
+
 }

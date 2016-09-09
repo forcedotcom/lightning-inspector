@@ -2444,7 +2444,7 @@
                 setTimeout(function (){
                     // We do a timeout to give a chance to
                     // other transactionEnd handlers to modify the transaction
-                    $Aura.Inspector.publish("Transactions:OnTransactionEnd", $Aura.Inspector.safeStringify(t));
+                    $Aura.Inspector.publish("Transactions:OnTransactionEnd", t);
                 }, 0);
             },
 
