@@ -1,4 +1,4 @@
-function AuraInspectorTransactionView(controller) {
+function AuraInspectorTransactionView() {
 	var transactions = {};
 	var recordButton;
 	var marksButton;
@@ -19,10 +19,13 @@ function AuraInspectorTransactionView(controller) {
 	var labels;
 	var markup;
 
+    var eventManager;
+
 	/* --------- Controller and listener methods -------------- */
 
 	this.init = function(tabBody, initLabels) {
 		labels = initLabels;
+
 		markup = `
 			<div class="aura-panel panel-status-bar">
 			
@@ -50,17 +53,17 @@ function AuraInspectorTransactionView(controller) {
 			
 		</div>
 		`;
-		
 		tabBody.innerHTML = markup;
 		tabBody.classList.add("trans-panel");
 
-		transactionGrid = new AuraInspectorTransactionGrid(this);
+        eventManager = new createEventManager();
+        currentTypeOfData = MARKS;
+
+        transactionGrid = new AuraInspectorTransactionGrid(this, eventManager);
 		transactionGrid.init(tabBody, labels);
 
-		currentTypeOfData = MARKS;
-		controller.requestLoadTime();
-		controller.subscribeToOnTransactionEnd(AuraInspectorTransactionView_OnTransactionEnd.bind(this));
-	};
+        this.attach("initEventHandlers", initEventHandlers.bind(this));
+    };
 
 	/* 	Load time is unix timestamp of when the page successfully loaded
 	   	This load time will be used in calculations to decide if a piece of data is "live" when we
@@ -71,7 +74,7 @@ function AuraInspectorTransactionView(controller) {
 	};
 
 	this.render = function() {
-		var clearButton = document.querySelector('#tab-body-transaction .clear-status-bar-item');
+        var clearButton = document.querySelector('#tab-body-transaction .clear-status-bar-item');
 		clearButton.addEventListener('click', ClearTable_OnClick.bind(this), false);
 
 		var refreshButton = document.querySelector('#tab-body-transaction .refresh-transactions-bar-item');
@@ -86,7 +89,8 @@ function AuraInspectorTransactionView(controller) {
 		customTransButton = document.querySelector('#tab-body-transaction #custom-transactions-button');
 		customTransButton.addEventListener('click', CustomTransactionsButton_OnClick.bind(this), false);
 
-		controller.hideMisc();
+        eventManager.notify("hideMisc");
+
 
 		// Start live recording marks
 		var recordTimeStamp = Date.now();
@@ -96,16 +100,17 @@ function AuraInspectorTransactionView(controller) {
 		}.bind(this));
 	};
 
+    // May not be needed
 	this.printToConsole = function(obj){
-		controller.printToConsole(obj);
+        eventManager.notify("inspect", obj);
 	};
 
 	function getActions(callback) {
-		controller.getCurrentMarks(callback);
+        eventManager.notify("getCurrentMarks", callback.bind(this));
 	}
 
 	function MarksButton_OnClick(event){
-		if(currentTypeOfData === MARKS){
+		if(isCurrentTypeOfDataMarks()){
 			return;
 		} else {
 			customTransButton.classList.remove("selected");
@@ -117,7 +122,7 @@ function AuraInspectorTransactionView(controller) {
 	}
 
 	function CustomTransactionsButton_OnClick(event){
-		if(currentTypeOfData === CUSTOM_TRANS){
+		if(isCurrentTypeOfDataCustomTrans()){
 			return;
 		} else {
 			marksButton.classList.remove("selected");
@@ -141,7 +146,7 @@ function AuraInspectorTransactionView(controller) {
 	}
 
 	function RefreshTransactions_OnClick(event) {
-		if(currentTypeOfData === CUSTOM_TRANS){
+		if(isCurrentTypeOfDataCustomTrans()){
 			return;
 		}
 
@@ -173,7 +178,7 @@ function AuraInspectorTransactionView(controller) {
 		if(event.target.classList.contains("circle")){
 			if(event.target.classList.contains("on")){
 				recording = true;
-				if(currentTypeOfData === MARKS) {
+				if(isCurrentTypeOfDataMarks()) {
 					subscribeToMarks(function (data) {
 						liveUpdateTable(data, recordTimeStamp);
 					});
@@ -198,7 +203,7 @@ function AuraInspectorTransactionView(controller) {
 	}
 
 	function AuraInspectorTransactionView_OnTransactionEnd(data){
-		if(recording && currentTypeOfData === CUSTOM_TRANS) {
+		if(recording && isCurrentTypeOfDataCustomTrans()) {
 			customTransLiveUpdateTable(data, Date.now());
 		}
 	}
@@ -228,7 +233,7 @@ function AuraInspectorTransactionView(controller) {
 		transactionGrid.updateTimeMarkers(latestEndTime);
 
 		for(var x = 0; x < sortedData.length; x++) {
-			transactionGrid.addMarkToTable(sortedData[x]);
+			transactionGrid.addRow(sortedData[x]);
 		}
 	}
 
@@ -240,7 +245,6 @@ function AuraInspectorTransactionView(controller) {
 
 		getUniqueIDs(data, marks);
 		updateTimes(data, marks);
-
 		isNewData = retrieveNewData(graphData, marks);
 
 		if(isNewData) {
@@ -252,7 +256,7 @@ function AuraInspectorTransactionView(controller) {
 			transactionGrid.updateTimeMarkers(latestEndTime);
 			for (var x = 0; x < sortedData.length; x++) {
 				if(isLiveData(sortedData[x].stamp)) {
-					transactionGrid.addMarkToTable(sortedData[x]);
+					transactionGrid.addRow(sortedData[x]);
 				}
 			}
 		}
@@ -274,17 +278,38 @@ function AuraInspectorTransactionView(controller) {
 		sortCustomTransGraphDataByName(graphDataIndices);
 		transactionGrid.clear();
 
+        var index = 0;
 		for(var x = 0; x < graphDataIndices.length; x++){
 			var currID = graphDataIndices[x];
 			var currCustomTransArray = graphData[currID];
 			sortCustomTransDataByTime(currCustomTransArray);
 
 			for(var y = 0; y < currCustomTransArray.length; y++){
-				transactionGrid.addCustomTransToTable(currCustomTransArray[y]);
+				transactionGrid.addMasterRow(currCustomTransArray[y]);
+                index++;
+                // add detail views. Should create new function for this
+                if(currCustomTransArray[y].marks) {
+                    addCustomTransMarksToTable(currCustomTransArray[y].marks, index-1);
+                    //console.log("Custrom Trans: ",currCustomTransArray[y]);
+                    //console.log("index: ", index);
+
+                }
 			}
 		}
+	}
 
-	};
+    function addCustomTransMarksToTable(marks, index){
+        // Different types of marks: actions, force:record, etc
+        // each with their own array
+        for (var k in marks) {
+
+            currentMarks = marks[k];
+
+            for(var z = 0; z < currentMarks.length; z++){
+                transactionGrid.addDetailRow(currentMarks[z], index);
+            }
+        }
+    }
 
 	/* ----------- DATA PROCESSING ----------- */
 
@@ -309,6 +334,10 @@ function AuraInspectorTransactionView(controller) {
 			}
 		}
 	}
+
+    function setCurrentTypeOfData(dataType){
+
+    }
 
 	// updates the stamp, start, and end times of the corresponding elements in map
 	function updateTimes(data, map){
@@ -456,4 +485,58 @@ function AuraInspectorTransactionView(controller) {
 			transactionGrid.createTableHeader(type);
 		}
 	}
+
+    function isCurrentTypeOfDataCustomTrans(){
+        return (currentTypeOfData === CUSTOM_TRANS);
+    }
+
+    function isCurrentTypeOfDataMarks(){
+        return (currentTypeOfData === MARKS);
+    }
+
+    /* ------------------- Event related functions ---------------------*/
+
+    function createEventManager(){
+        var eventManager = {};
+
+        eventManager.attach = function(eventName, func){
+            if(!eventManager[eventName]){
+                eventManager[eventName] = [];
+            }
+            eventManager[eventName].push(func);
+        };
+
+        eventManager.remove = function(eventName){
+            if(eventManager[eventName] || eventManager[eventManager].length > 0){
+                eventManager[eventName] = [];
+            }
+        };
+
+        eventManager.notify = function(eventName, data){
+            if(eventManager[eventName] && eventManager[eventName].length > 0){
+                for(var x = 0; x < eventManager[eventName].length; x++){
+                    eventManager[eventName][x](data);
+                }
+            }
+        };
+
+        return eventManager;
+    }
+
+    this.attach = function(eventName, callback){
+        eventManager.attach(eventName, callback);
+    };
+    
+    this.remove = function(eventName){
+        eventManager.remove(eventName);
+    };
+    
+    this.notify = function(eventName, data){
+        eventManager.notify(eventName, data);
+    };
+
+    function initEventHandlers(){
+        eventManager.notify("initView");
+        eventManager.notify("onSubscribeToTransactionEnd", AuraInspectorTransactionView_OnTransactionEnd.bind(this));
+    }
 }

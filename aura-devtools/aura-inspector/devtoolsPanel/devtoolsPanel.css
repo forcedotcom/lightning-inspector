@@ -770,6 +770,14 @@ button.transaction-tabs-button.selected{
     width: 100%;
 }
 
+.trans-panel .transactions tr.no-display{
+    display: none;
+}
+
+.trans-panel .transactions tbody tr.custom-trans-mark.red{
+    background-color: #fff7fb;
+}
+
 .trans-panel .transactions tbody tr:nth-child(even) {
     background: #ececec;
 }

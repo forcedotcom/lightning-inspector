@@ -2,8 +2,7 @@ function AuraInspectorTransactionGrid(controller) {
     var tableBody;
     var tab;  // HTML for the area we are working with (parents of tableBody)
     var labels;
-    var graphData = {}; // Current data we are working with
-    var graphDataIndices = [];
+    var graphData = []; // Current data we are working with
     var startTime;     // Timestamp of when Aura was created
     var latestEndTime = 0;
     var dataType; //either "marks" or "customTrans"
@@ -11,6 +10,8 @@ function AuraInspectorTransactionGrid(controller) {
 
     var MARKS = "marks";
     var CUSTOM_TRANS = "customTrans";
+
+    var eventManager;
     
     /* @parameters: tabBody -   The html element of which we will visualize transactions
                     initLabel - Of type Object where we set our front facing labels as its attributes
@@ -21,6 +22,8 @@ function AuraInspectorTransactionGrid(controller) {
         dataType = "marks";
         labels = initLabels;
         this.createTableHeader("marks");
+
+        eventManager = new createEventManager();
     };
 
     // Sets timestamp of when Aura was loaded
@@ -31,8 +34,7 @@ function AuraInspectorTransactionGrid(controller) {
     this.clear = function(){
         if(tableBody) {
             tableBody.innerHTML = '';
-            graphData = {};
-            graphDataIndices = [];
+            graphData = [];
             //latestEndTime = 0;
 
             var timeline = document.getElementById("timeline-marker-container");
@@ -50,7 +52,6 @@ function AuraInspectorTransactionGrid(controller) {
             entireTable.parentNode.removeChild(entireTable);
         }
 
-
         if(typeOfData === MARKS){
             markup = `
                 <table height="100%">
@@ -60,72 +61,68 @@ function AuraInspectorTransactionGrid(controller) {
                         <th width="8%">${labels.duration}</th>
                         <th width="9%">${labels.starttime}</th>
                         <th width="45%">${labels.timeline}
-<div class ="trans-graph-time-marker-container" id = "timeline-marker-container">
-   <div class="trans-graph-time-marker-timeline"></div>
+                            <div class ="trans-graph-time-marker-container" id = "timeline-marker-container">
+                                <div class="trans-graph-time-marker-timeline"></div>
    
-   <div class="trans-graph-time-marker1">
-      <div class="trans-graph-time-number-mark"><span class="timeline-number-text" id="marker-number-1">0s</span></div>
-      <div class="trans-graph-time-marker-line"></div>
-   </div>
-   
-   <div class="trans-graph-time-marker2">
-      <div class="trans-graph-time-number-mark"><span class="timeline-number-text" id="marker-number-2">0s</span></div>
-      <div class="trans-graph-time-marker-line"></div>
-   </div>
-   
-   <div class="trans-graph-time-marker3">
-      <div class="trans-graph-time-number-mark"><span class="timeline-number-text" id="marker-number-3">0s</span></div>
-      <div class="trans-graph-time-marker-line"></div>
-   </div>
-   
-   <div class="trans-graph-time-marker4">
-      <div class="trans-graph-time-number-mark"><span class="timeline-number-text" id="marker-number-4">0s</span></div>
-      <div class="trans-graph-time-marker-line"></div>
-   </div>
-</div>
+                                <div class="trans-graph-time-marker1">
+                                    <div class="trans-graph-time-number-mark"><span class="timeline-number-text" id="marker-number-1">0s</span></div>
+                                    <div class="trans-graph-time-marker-line"></div>
+                                </div>
+                           
+                                <div class="trans-graph-time-marker2">
+                                    <div class="trans-graph-time-number-mark"><span class="timeline-number-text" id="marker-number-2">0s</span></div>
+                                    <div class="trans-graph-time-marker-line"></div>
+                                </div>
+                           
+                                <div class="trans-graph-time-marker3">
+                                    <div class="trans-graph-time-number-mark"><span class="timeline-number-text" id="marker-number-3">0s</span></div>
+                                    <div class="trans-graph-time-marker-line"></div>
+                                </div>
+                           
+                                <div class="trans-graph-time-marker4">
+                                    <div class="trans-graph-time-number-mark"><span class="timeline-number-text" id="marker-number-4">0s</span></div>
+                                    <div class="trans-graph-time-marker-line"></div>
+                                </div>
+                            </div>
+                            
                         <br><br></th>
                      </thead>
                     
                     <tbody id="table-body"></tbody> 
                 </table>
-         `;
+            `;
         } else if (typeOfData === CUSTOM_TRANS) { // is custom transactions
             markup = `
                 <table height="100%">
                     <thead id="table-head">
                         <th width="18%">${labels.context}</th>
-                        <th width="20%"><span class="th-text">${labels.id}</span>
-                        <!---
-                            <button class="up-arrow-table-head-item status-bar-item" title="${labels.clear}">
-				                <div class="glyph"></div><div class="glyph shadow"></div>
-			                </button>--->
-                        </th>
+                        <th width="20%"><span class="th-text">${labels.id}</span></th>
                         <th width="8%">${labels.duration}</th>
                         <th width="9%">${labels.starttime}</th>
                         <th width="45%">${labels.timeline}
-<div class ="trans-graph-time-marker-container" id = "timeline-marker-container">
-   <div class="trans-graph-time-marker-timeline"></div>
+                        <div class ="trans-graph-time-marker-container" id = "timeline-marker-container">
+                            <div class="trans-graph-time-marker-timeline"></div>
+                            
+                            <div class="trans-graph-time-marker1">
+                                <div class="trans-graph-time-number-mark"><span class="timeline-number-text" id="marker-number-1">0s</span></div>
+                                <div class="trans-graph-time-marker-line"></div>
+                            </div>
+                            
+                            <div class="trans-graph-time-marker2">
+                                <div class="trans-graph-time-number-mark"><span class="timeline-number-text" id="marker-number-2">0s</span></div>
+                                <div class="trans-graph-time-marker-line"></div>
+                            </div>
    
-   <div class="trans-graph-time-marker1">
-      <div class="trans-graph-time-number-mark"><span class="timeline-number-text" id="marker-number-1">0s</span></div>
-      <div class="trans-graph-time-marker-line"></div>
-   </div>
+                            <div class="trans-graph-time-marker3">
+                                <div class="trans-graph-time-number-mark"><span class="timeline-number-text" id="marker-number-3">0s</span></div>
+                                <div class="trans-graph-time-marker-line"></div>
+                            </div>
    
-   <div class="trans-graph-time-marker2">
-      <div class="trans-graph-time-number-mark"><span class="timeline-number-text" id="marker-number-2">0s</span></div>
-      <div class="trans-graph-time-marker-line"></div>
-   </div>
-   
-   <div class="trans-graph-time-marker3">
-      <div class="trans-graph-time-number-mark"><span class="timeline-number-text" id="marker-number-3">0s</span></div>
-      <div class="trans-graph-time-marker-line"></div>
-   </div>
-   
-   <div class="trans-graph-time-marker4">
-      <div class="trans-graph-time-number-mark"><span class="timeline-number-text" id="marker-number-4">0s</span></div>
-      <div class="trans-graph-time-marker-line"></div>
-   </div>
-</div>
+                            <div class="trans-graph-time-marker4">
+                                <div class="trans-graph-time-number-mark"><span class="timeline-number-text" id="marker-number-4">0s</span></div>
+                                <div class="trans-graph-time-marker-line"></div>
+                            </div>
+                        </div>
                         <br><br></th>
                      </thead>
                     
@@ -178,7 +175,7 @@ function AuraInspectorTransactionGrid(controller) {
     };
 
     // Graphically adds to the table
-    this.addMarkToTable = function(rowData){
+    this.addRow = function(rowData){
         var markup;
         var duration;
         var stamp;
@@ -212,7 +209,7 @@ function AuraInspectorTransactionGrid(controller) {
     };
 
     // Graphically adds to the table
-    this.addCustomTransToTable = function(rowData){
+    this.addMasterRow = function(rowData){
         var markup;
         var duration;
         var startTime;
@@ -233,7 +230,7 @@ function AuraInspectorTransactionGrid(controller) {
 
         contextPrint = document.createElement("a");
         contextPrint.setAttribute("href", "#");
-        contextPrint.addEventListener("click", function(){controller.printToConsole(rowData.context);});
+        contextPrint.addEventListener("click", function(){eventManager.notify("printToConsole", rowData.context);});
         contextPrint.innerHTML = 'Print to Console';
 
         markup = `<td width="13%"></td>
@@ -248,6 +245,56 @@ function AuraInspectorTransactionGrid(controller) {
             row.firstChild.appendChild(contextPrint);
         }
         tableBody.appendChild(row);
+        graphData.push(row);
+    };
+
+    this.addDetailRow = function(rowData, index){
+        var markup;
+        var duration;
+        var startTime;
+        var timelineMarkup;
+        var contextPrint;
+        var row = document.createElement('tr');
+
+        // TODO: create label
+        startTime = (rowData.ts / 1000).toLocaleString() + " s";
+
+        if(rowData.duration) {
+            duration = (rowData.duration).toLocaleString() + " " + labels.ms;
+        } else {
+            duration = labels.not_available;
+        }
+
+        timelineMarkup = createIndividualTimeline(rowData.stamp, rowData.start, rowData.end);
+
+        contextPrint = document.createElement("a");
+        contextPrint.setAttribute("href", "#");
+        contextPrint.addEventListener("click", function(){eventManager.notify("printToConsole", rowData.context);});
+        contextPrint.innerHTML = 'Print to Console';
+
+        var name = "   Mark: " + rowData.name;
+        markup = `<td width="13%"></td>
+                  <td width="25%">${name}</td>
+                  <td width="8%">${duration}</td>
+                  <td width="9%">${startTime}</td>
+                  <td width="45%">${timelineMarkup}</td>`;
+
+
+        row.innerHTML = markup;
+        if(rowData.context) {
+            row.firstChild.appendChild(contextPrint);
+        }
+        // Uncomment once you add in the click to show
+        // row.classList.add("no-display");
+        row.classList.add("custom-trans-mark");
+        row.classList.add("red");
+
+        if(graphData[index].nextSibling) {
+            //console.log(graphData[index]);
+            graphData[index].parentNode.insertBefore(row, graphData[index].nextSibling);
+        } else {
+            graphData[index].parentNode.appendChild(row);
+        }
     };
 
     // Create a small timeline for each "complete" transaction
@@ -302,5 +349,45 @@ function AuraInspectorTransactionGrid(controller) {
         return markup;
     }
 
+
+    /* ----------------------- Event Manager Methods ------------------------*/
+    function createEventManager(){
+        var eventManager = {};
+
+        eventManager.attach = function(eventName, func){
+            if(!eventManager[eventName]){
+                eventManager[eventName] = [];
+            }
+            eventManager[eventName].push(func);
+        };
+
+        eventManager.remove = function(eventName){
+            if(eventManager[eventName] || eventManager[eventManager].length > 0){
+                eventManager[eventName] = [];
+            }
+        };
+
+        eventManager.notify = function(eventName, data){
+            if(eventManager[eventName] && eventManager[eventName].length > 0){
+                for(var x = 0; x < eventManager[eventName].length; x++){
+                    eventManager[eventName][x](data);
+                }
+            }
+        };
+
+        return eventManager;
+    }
+
+    this.attach = function(eventName, callback){
+        eventManager.attach(eventName, callback);
+    };
+
+    this.remove = function(eventName){
+        eventManager.remove(eventName);
+    };
+
+    this.notify = function(eventName, data){
+        eventManager.notify(eventName, data);
+    };
 
 }

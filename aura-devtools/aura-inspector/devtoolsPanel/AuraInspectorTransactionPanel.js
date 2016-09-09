@@ -6,6 +6,7 @@
 
 function AuraInspectorTransactionPanel(devtoolsPanel) {
     var transactionView;
+    var _eventManager;
 
     this.init = function(tabBody) {
         var labels = {
@@ -22,8 +23,18 @@ function AuraInspectorTransactionPanel(devtoolsPanel) {
             "record_tooltip": chrome.i18n.getMessage("actions_menu_record_tooltip")
         };
 
-        transactionView = new AuraInspectorTransactionView(this);
+        _eventManager = createEventManager();
+
+        transactionView = new AuraInspectorTransactionView();
         transactionView.init(tabBody, labels);
+
+        transactionView.attach("initView", this.requestLoadTime.bind(this));
+        transactionView.attach("hideMisc", this.hideMisc.bind(this));
+        transactionView.attach("inspect", this.printToConsole.bind(this));
+        transactionView.attach("onSubscribeToTransactionEnd", this.subscribeToOnTransactionEnd.bind(this));
+        transactionView.attach("getCurrentMarks", this.getCurrentMarks.bind(this));
+
+        transactionView.notify("initEventHandlers");
     };
     
     this.render = function(){
@@ -60,4 +71,33 @@ function AuraInspectorTransactionPanel(devtoolsPanel) {
     this.subscribeToOnTransactionEnd = function(callback){
         devtoolsPanel.subscribe("Transactions:OnTransactionEnd", callback);
     };
+
+    /* ------------------- Event related functions ---------------------*/
+
+    function createEventManager(){
+        var eventManager = {};
+
+        eventManager.attach = function(eventName, func){
+            if(!eventManager[eventName]){
+                eventManager[eventName] = [];
+            }
+            eventManager[eventName].push(func);
+        };
+
+        eventManager.remove = function(eventName){
+            if(eventManager[eventName] || eventManager[eventManager].length > 0){
+                eventManager[eventName] = [];
+            }
+        };
+
+        eventManager.notify = function(eventName, data){
+            if(eventManager[eventName] && eventManager[eventName].length > 0){
+                for(var x = 0; x < eventManager[eventName].length; x++){
+                    eventManager[eventName][x](data);
+                }
+            }
+        };
+        
+        return eventManager;
+    }
 }
