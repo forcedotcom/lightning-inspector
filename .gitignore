@@ -22,3 +22,6 @@ aura-impl/src/test/eslint/
 node
 node_modules
 .tx
+build/*.crx
+build/*.zip
+build/*.pem

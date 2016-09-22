@@ -165,9 +165,10 @@
 				scope = document.createElement("aurainspector-auracomponent");
 				scope.setAttribute("summarize", true);
 				scope.setAttribute("globalId", eventInfo.data.sourceId);
-			} else {
-				scope = document.createTextNode("{" + eventInfo.data.sourceId + "}");
 			}
+			//  else {
+			// 	scope = document.createTextNode("{" + eventInfo.data.sourceId + "}");
+			// }
 			td = document.createElement("td");
 			
 			eventLabel = document.createElement("a");
@@ -178,7 +179,9 @@
 			eventLabel.addEventListener("click", EventCallStackEvent_OnClick);
 
 			td.appendChild(eventLabel);
-			td.appendChild(scope);
+			if(scope) {
+				td.appendChild(scope);
+			}
 
 			return td;
 		}

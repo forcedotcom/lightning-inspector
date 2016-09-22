@@ -230,9 +230,9 @@
                     bootstrapEventInstrumentation();
                 } catch(e){}
 
-                try {
-                    transactionReporting();
-                } catch(e){}
+                // try {
+                //     transactionReporting();
+                // } catch(e){}
 
 
                 // Need a way to conditionally do this based on a user setting.
