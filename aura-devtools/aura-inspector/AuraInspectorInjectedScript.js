@@ -1383,7 +1383,6 @@
     //     $Aura.Inspector.unsubscribe("AuraInspector:OnPanelAlreadyConnected", AuraInspector_OnPanelLoad);
     // });
 
-    $Aura.Inspector.subscribe("AuraInspector:GetLoadTimeStamp", $Aura.Inspector.relayPageLoadTime.bind($Aura.Inspector));
     $Aura.Inspector.subscribe("AuraInspector:OnHighlightComponent", $Aura.actions["AuraDevToolService.HighlightElement"]);
     $Aura.Inspector.subscribe("AuraInspector:OnHighlightComponentEnd", $Aura.actions["AuraDevToolService.RemoveHighlightElement"]);
 
@@ -1414,7 +1413,6 @@
         var increment = 0;
         var lastItemInspected;
         var countMap = new Map();
-        var loadTimeStamp = Date.now();
 
 
         this.init = function() {
@@ -1779,10 +1777,6 @@
             if(countMap.has(key)) {
                 countMap.delete(key);
             }
-        };
-
-        this.relayPageLoadTime = function(){
-            $Aura.Inspector.publish("AuraInspector:RelayPageLoadTime", loadTimeStamp);
         };
 
         // Start listening for messages

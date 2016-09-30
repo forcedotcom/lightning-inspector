@@ -290,30 +290,31 @@ function AuraInspectorActionsView(devtoolsPanel) {
             if(!isAllowed(action)) {
                 return;
             }
+
             if(action.state === "NEW") {
                 card = createActionCard(action.id, false);
             }
             else {
                 card = document.getElementById("action_card_" + action.id);
-                if(card) {
-                    card.setAttribute("state", action.state);
-                    card.setAttribute("returnValue", action.returnValue);
-                    card.setAttribute("fromStorage", action.fromStorage);
-                    card.setAttribute("storageKey", action.storageKey);
-                    card.setAttribute("returnError", action.error);
-                    //let's give user some idea if the action result was modified, and if so, in which way
-                    //responseModified_modify, responseModified_drop or responseModified_error
-                    card.setAttribute("howDidWeModifyResponse", action.howDidWeModifyResponse);
-                    if(action.howDidWeModifyResponse != undefined) {
-                        card.classList.add(action.howDidWeModifyResponse);
-                    }
-                    if(action.stats) {
-                        card.setAttribute("stats", JSON.stringify(action.stats));
-                    }
-                    card.parentNode.removeChild(card);
-                } else {
-                    console.error("cannot find previously created actionCard for action#"+action.id, action);
+                if(!card) {
+                    card = createActionCard(action.id, false);
                 }
+                card.setAttribute("state", action.state);
+                card.setAttribute("returnValue", action.returnValue);
+                card.setAttribute("fromStorage", action.fromStorage);
+                card.setAttribute("storageKey", action.storageKey);
+                card.setAttribute("returnError", action.error);
+                //let's give user some idea if the action result was modified, and if so, in which way
+                //responseModified_modify, responseModified_drop or responseModified_error
+                card.setAttribute("howDidWeModifyResponse", action.howDidWeModifyResponse);
+                if(action.howDidWeModifyResponse != undefined) {
+                    card.classList.add(action.howDidWeModifyResponse);
+                }
+                if(action.stats) {
+                    card.setAttribute("stats", JSON.stringify(action.stats));
+                }
+                card.parentNode.removeChild(card);
+            
             }
         }
 

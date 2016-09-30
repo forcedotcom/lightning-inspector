@@ -725,15 +725,17 @@ button.transaction-tabs-button.selected{
     background-color: #EEEEEE;
 }
 
-.trans-panel .transactions {
+.trans-panel {
   height: calc(100% - 60px);
   overflow: hidden;
 }
+
 .trans-panel table {
   border-collapse: collapse;
   font-family:  'Lucida Grande', 'Consolas', 'sans-serif';
   font-size: 12px;
   width: 100%;
+  height:100%;
 }
 
 .trans-panel thead {
@@ -742,7 +744,7 @@ button.transaction-tabs-button.selected{
     width: 100%;
     table-layout: fixed;
 }
-.trans-panel .transactions thead th {
+.trans-panel table thead th {
   box-shadow: 0 -1px 0 0 #d8dde6 inset;
   color: #54698d;
   font-weight: normal;
@@ -752,36 +754,62 @@ button.transaction-tabs-button.selected{
   vertical-align: bottom;
 }
 
+.trans-panel tbody td,
+.trans-panel thead th {
+  width: 33%;
+}
+.trans-panel tbody td + td,
+.trans-panel thead th + th {
+  width: 5%;
+}
+.trans-panel tbody td + td + td,
+.trans-panel thead th + th + th {
+  width: 8%;
+}
+.trans-panel tbody td + td + td + td,
+.trans-panel thead th + th + th + th {
+  width: 9%;
+}
+
+.trans-panel thead th + th + th + th + th {
+  width: 45%;
+  padding: 0;
+}
+
+.trans-panel tbody tr td:last-child {
+  width: 45%;
+}
+
 .trans-panel .th-text{
     vertical-align: bottom;
     bottom: 20px;
 }
 
-.trans-panel .transactions tbody{
+.trans-panel table tbody{
     height: 100%;
     overflow: scroll;
     display: block;
     padding-bottom: 75px;
 }
 
-.trans-panel .transactions tr{
+.trans-panel table tr{
     display: table;
     table-layout: fixed;
     width: 100%;
 }
 
-.trans-panel .transactions tr.no-display{
+.trans-panel table tr.no-display{
     display: none;
 }
 
-.trans-panel .transactions tbody tr.custom-trans-mark.red{
+.trans-panel table tbody tr.custom-trans-mark.red{
     background-color: #fff7fb;
 }
 
-.trans-panel .transactions tbody tr:nth-child(even) {
+.trans-panel table tbody tr:nth-child(even) {
     background: #ececec;
 }
-.trans-panel .transactions tbody tr:nth-child(odd) {
+.trans-panel table tbody tr:nth-child(odd) {
     background: #FFF;
 }
 
@@ -848,6 +876,38 @@ button.transaction-tabs-button.selected{
     border: invisible;
 }
 
+.transactions-graph-row {
+  position: relative;
+  width: 100%;
+  height: 9px;
+  border-bottom: 1px dotted #ccc;
+}
+
+.transactions-graph-row .transactions-graph-row-block {
+    min-width: 3px;
+    height: 15px;
+    position: absolute;
+}
+
+.transactions-graph-row .transactions-graph-row-block:nth-child(1) {
+    background-color: #03A9F4;
+    margin: 3px 0;
+    height: 9px;
+}
+
+.transactions-graph-row .transactions-graph-row-block:nth-child(2) {
+    margin: 0;
+    background-color: #00C853;
+    height:15px;
+}
+
+.transactions-graph-row .transactions-graph-row-block:nth-child(3) {
+    margin: 0;
+    background-color: #F00;
+    height:15px;
+}
+
+
 .trans-graph-bar.request-timing.total:after{
     /*margin: 3px 0;
     border-bottom: solid 1px #AAAAAA;
@@ -863,14 +923,14 @@ button.transaction-tabs-button.selected{
     display: block;
 }
 
-.trans-graph-bar.request-timing.stamp-start, -theme-preserve {
+.trans-graph-bar.request-timing.stamp-start {
     min-width: 3px;
     background-color: #03A9F4;
     margin: 2px 0;
     z-index: 1;
 }
 
-.trans-graph-bar.request-timing.start-end, -theme-preserve {
+.trans-graph-bar.request-timing.start-end {
     min-width: 3px;
     background-color: #00C853;
     z-index: 1;
@@ -881,7 +941,6 @@ button.transaction-tabs-button.selected{
     pointer-events: none;
     height: 91%;
     width: inherit;
-    padding-left: .43rem;
     padding-right: .43rem;
     display: table-cell;
     z-index: 1;
@@ -899,7 +958,7 @@ button.transaction-tabs-button.selected{
     border-top: 1px solid black;
 }
 
-.timeline-number-text{
+.trans-graph-time-number-mark span {
     font-size: 11px;
     text-transform: none;
     padding: 3px;

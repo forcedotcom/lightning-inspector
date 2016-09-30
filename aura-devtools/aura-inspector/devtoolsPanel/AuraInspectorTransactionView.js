@@ -1,9 +1,5 @@
 function AuraInspectorTransactionView() {
 	var transactions = {};
-	var recordButton;
-	var marksButton;
-	var customTransButton;
-
 	var currentTypeOfData; //Either "marks" or "customTrans"
 	var CUSTOM_TRANS = "customTrans";
 	var MARKS = "marks";
@@ -14,193 +10,129 @@ function AuraInspectorTransactionView() {
 	var graphData = {};
 	var graphDataIndices = [];
 	var latestEndTime = 0;
-	var startTime = 0;
 
 	var labels;
 	var markup;
 
     var eventManager;
+    var _bootstrapMetrics = {};
+    var _previousBootstrapMetrics = [];
+
+	// Start live recording marks
+	var _marks;
+	var _processor;
+
 
 	/* --------- Controller and listener methods -------------- */
 
-	this.init = function(tabBody, initLabels) {
+	this.init = function(initLabels) {
 		labels = initLabels;
-
-		markup = `
-			<div class="aura-panel panel-status-bar">
-			
-            <button id="record-button" class="record-button">
-            	<aurainspector-onOffButton class="circle on" title="${labels.record_tooltip}">
-            		<span>${labels.record}</span>
-            	</aurainspector-onOffButton>
-            </button>
-            
-            <button class="refresh-transactions-bar-item status-bar-item" title="${labels.clear}">
-				<div class="glyph"></div><div class="glyph shadow"></div>
-			</button>
-			
-			<button class="clear-status-bar-item status-bar-item" title="${labels.clear}">
-				<div class="glyph"></div><div class="glyph shadow"></div>
-			</button>			
-			
-			<button id="marks-button" class="transaction-tabs-button selected" title="Marks"> 
-				Marks
-			</button>
-			
-			<button id="custom-transactions-button" class="transaction-tabs-button" title="Custom Transactions"> 
-				Custom Transactions
-			</button>
-			
-		</div>
-		`;
-		tabBody.innerHTML = markup;
-		tabBody.classList.add("trans-panel");
 
         eventManager = new createEventManager();
         currentTypeOfData = MARKS;
 
         transactionGrid = new AuraInspectorTransactionGrid(this, eventManager);
-		transactionGrid.init(tabBody, labels);
+		transactionGrid.init(labels);
+		transactionGrid.attach("onitemclick", TransactionGrid_OnItemClick.bind(this));
 
-        this.attach("initEventHandlers", initEventHandlers.bind(this));
+		_processor = new MetricsServiceDataProcessor();
+
+        //this.attach("initEventHandlers", initEventHandlers.bind(this));
     };
 
-	/* 	Load time is unix timestamp of when the page successfully loaded
-	   	This load time will be used in calculations to decide if a piece of data is "live" when we
-	 	are recoding */
-	this.setLoadTime = function(time){
-		transactionGrid.setLoadTime(time);
-		startTime = time;
+    this.clear = function() {
+    	_processor = new MetricsServiceDataProcessor();
+
+    	transactionGrid.setStartOffsetTime(Date.now() - _bootstrapMetrics.pageStartTime);
+    	transactionGrid.setEndTime(Date.now() - _bootstrapMetrics.pageStartTime);
+    	transactionGrid.clear();
+    	transactionGrid.updateTimeMarkers();
+    };
+
+	/**
+	 * Show all the metrics 
+	 */
+    this.setBootstrapMetrics = function(metrics) {
+    	var updatedMetrics = _bootstrapMetrics && _bootstrapMetrics.pageStartTime !== metrics.pageStartTime;
+    	if(metrics) {
+    		if(updatedMetrics) {
+    			_previousBootstrapMetrics.push(_bootstrapMetrics);
+    		}
+    		_bootstrapMetrics = metrics;
+    	}
+
+	    transactionGrid.setStartTime(metrics.pageStartTime);
+    };
+
+    this.setMarksData = function(marks) {
+    	_marks = marks;
+
+    	_processor.addMarksData(_marks);
+
+    	updateGrid(_marks);
+
+    	// Transform the processed data into row data. 
+    	// _processor.onNewData(function(){}) ?
+    	
+    	// Pass to the transactions grid
+
+    };
+
+	this.render = function(container) {
+		transactionGrid.render(container);
 	};
 
-	this.render = function() {
-        var clearButton = document.querySelector('#tab-body-transaction .clear-status-bar-item');
-		clearButton.addEventListener('click', ClearTable_OnClick.bind(this), false);
+	function updateGrid(data){
+		var marks = {};
 
-		var refreshButton = document.querySelector('#tab-body-transaction .refresh-transactions-bar-item');
-		refreshButton.addEventListener('click', RefreshTransactions_OnClick.bind(this), false);
+		// Get Transports
+		var transports = _processor.getTransports();
 
-		recordButton = document.querySelector('#tab-body-transaction #record-button');
-		recordButton.addEventListener('click', RecordButton_OnClick.bind(this), false);
+		transactionGrid.setEndTime(_processor.getTimelineRange()[1]);
+		transactionGrid.updateTimeMarkers();
+		transactionGrid.clear();
 
-		marksButton = document.querySelector('#tab-body-transaction #marks-button');
-		marksButton.addEventListener('click', MarksButton_OnClick.bind(this), false);
+		var actions;
+		// Add a row for each Transport
+		for(var c=0;c<transports.length;c++) {
+			transactionGrid.addRow(new TransportDataRow(transports[c]));
 
-		customTransButton = document.querySelector('#tab-body-transaction #custom-transactions-button');
-		customTransButton.addEventListener('click', CustomTransactionsButton_OnClick.bind(this), false);
-
-        eventManager.notify("hideMisc");
-
-
-		// Start live recording marks
-		var recordTimeStamp = Date.now();
-		recording = true;
-		subscribeToMarks(function(data){
-			liveUpdateTable(data, recordTimeStamp);
-		}.bind(this));
-	};
-
-    // May not be needed
-	this.printToConsole = function(obj){
-        eventManager.notify("inspect", obj);
-	};
-
-	function getActions(callback) {
-        eventManager.notify("getCurrentMarks", callback.bind(this));
-	}
-
-	function MarksButton_OnClick(event){
-		if(isCurrentTypeOfDataMarks()){
-			return;
-		} else {
-			customTransButton.classList.remove("selected");
-			marksButton.classList.add("selected");
-			ClearTable_OnClick(event);
-
-			setDataType(MARKS);
-		}
-	}
-
-	function CustomTransactionsButton_OnClick(event){
-		if(isCurrentTypeOfDataCustomTrans()){
-			return;
-		} else {
-			marksButton.classList.remove("selected");
-			customTransButton.classList.add("selected");
-			ClearTable_OnClick(event);
-
-			setDataType(CUSTOM_TRANS);
-		}
-	}
-
-	function ClearTable_OnClick(event) {
-		if(recording) {
-			recording = false;
-			recordButton.classList.remove("on");
-			recordButton.children[0].classList.remove("on");
-
-			setTimeout(function(){clear()}, 500);
-		} else {
-			clear();
-		}
-	}
-
-	function RefreshTransactions_OnClick(event) {
-		if(isCurrentTypeOfDataCustomTrans()){
-			return;
-		}
-
-		if (recording) {
-			recording = false;
-			recordButton.classList.remove("on");
-			recordButton.children[0].classList.remove("on");
-
-			setTimeout(function () {
-				clear();
-				getActions(function (data) {
-					updateTable(data);
-				}.bind(this));
-			}.bind(this), 500);
-
-		} else {
-			clear();
-			getActions(function (data) {
-				updateTable(data);
-			}.bind(this));
-		}
-	}
-
-	// Automatic updates of transaction marks
-	function RecordButton_OnClick(event){
-		var recordTimeStamp = Date.now();
-
-		// Only works if user presses on the actual circle
-		if(event.target.classList.contains("circle")){
-			if(event.target.classList.contains("on")){
-				recording = true;
-				if(isCurrentTypeOfDataMarks()) {
-					subscribeToMarks(function (data) {
-						liveUpdateTable(data, recordTimeStamp);
-					});
+			actions = _processor.getActions(transports[c].id);
+			for(var d=0;d<actions.length;d++) {
+				if(actions[d]) {
+					transactionGrid.addRow(new ActionsDataRow(actions[d]));
 				}
-
-			} else {
-				recording = false;
 			}
 		}
-	}
-	
-	function subscribeToMarks(callback){
-		clear();
 
-		var refreshingTimer = setInterval(
-			function() {
-				getActions(callback);
-				if(recording == false){
-					clearInterval(refreshingTimer);
-				}
-			}.bind(this), 500);
 	}
+
+    // May not be needed
+	// this.printToConsole = function(obj){
+ //        eventManager.notify("inspect", obj);
+	// };
+
+	// function getActions(callback) {
+ //        eventManager.notify("getCurrentMarks", callback.bind(this));
+	// }
+
+	// function subscribeToMarks(callback){
+	// 	clear();
+
+	// 	var refreshingTimer = setInterval(
+	// 		function() {
+	// 			getActions(callback);
+	// 			if(recording == false){
+	// 				clearInterval(refreshingTimer);
+	// 			}
+	// 		}.bind(this), 500);
+	// }
+
+	// Will go away when I refactor for Custom Transactions
+    //function initEventHandlers(){
+        //eventManager.notify("initView");
+        //eventManager.notify("onSubscribeToTransactionEnd", AuraInspectorTransactionView_OnTransactionEnd.bind(this));
+    //}
 
 	function AuraInspectorTransactionView_OnTransactionEnd(data){
 		if(recording && isCurrentTypeOfDataCustomTrans()) {
@@ -318,6 +250,10 @@ function AuraInspectorTransactionView() {
 		var currAction;
 		var examinedID;
 
+		if(!data || !data.actions || !data.actions.length) {
+			return;
+		}
+
 		for (var x = 0; x < data.actions.length; x++){
 			currAction = data.actions[x];
 			examinedID = currAction.context.id;
@@ -341,6 +277,9 @@ function AuraInspectorTransactionView() {
 
 	// updates the stamp, start, and end times of the corresponding elements in map
 	function updateTimes(data, map){
+		if(!data.actions) {
+			return;
+		}
 
 		for (var x = 0; x < data.actions.length; x++) {
 			var currAction = data.actions[x];
@@ -417,7 +356,7 @@ function AuraInspectorTransactionView() {
 
 	// Finds and sets the latest end time of all transactions for graphing
 	function transposeTimesForLiveView(dataArray, recordStartTime){
-		var transposeTime = recordStartTime - startTime;
+		var transposeTime = recordStartTime - _bootstrapMetrics.pageStartTime;
 		for(var x = 0; x < dataArray.length; x++){
 			currMark = dataArray[x];
 
@@ -494,6 +433,370 @@ function AuraInspectorTransactionView() {
         return (currentTypeOfData === MARKS);
     }
 
+    function outputActionServerData(action) {
+    	if(!action) {
+    		return;
+    	}
+
+    	if(!action.serverData) {
+    		var name = action.stamp && action.stamp.context.def || "unknown action";
+    		chrome.devtools.inspectedWindow.eval(`
+    			console.log("Action: ${name} did not have any performance data.");
+    		`);
+    		return;
+    	}
+
+    	var data = action.serverData;
+    	var name = data.attachment.actionName.replace(/^\d\$/g, "")
+    	var callstack;
+    	var overview = JSON.stringify([{
+    		"name": name,
+    		"startTime": new Date(data.startTime).toLocaleString(),
+    		"totalTime": data.totalTime,
+    		"ownTime": data.ownTime,
+    		"childTime": data.childTime
+    	}]);
+
+    	if(data.children) {
+	    	callstack = JSON.stringify(data.children.map(function(item) {
+	    		return {
+	    			"sql": item.attachment.sql,
+	    			"startTime": new Date(item.startTime).toLocaleString(),
+	    			"totalTime": item.totalTime,
+	    			"childTime": item.childTime
+	    		}
+	    	}));
+	    }
+
+    	chrome.devtools.inspectedWindow.eval(`
+    		console.group("Action: ${name}");
+    		console.log("%cOverview", "font-size: 1.2em; font-weight: bold; color: #0070d2;");
+	    	console.table(${overview}, ["totalTime", "ownTime", "childTime"]);	
+    		if(${callstack}) {
+	    		console.log("%cCallstack", "font-size: 1.2em; font-weight: bold; color: #0070d2;");
+		    	console.table(${callstack}, ["sql", "totalTime", "childTime"]);
+		    }
+	    	console.groupEnd();
+    	`);
+
+    }
+
+    function outputTransportServerData(transport) {
+    	if(!transport) {
+    		return;
+    	}
+    	if(!transport.serverData) {
+    		var name = transport.name;
+    		chrome.devtools.inspectedWindow.eval(`
+    			console.log("Transport: ${name} did not have any performance data.");
+    		`);
+    		return;
+    	}
+    	var data = transport.serverData;
+		var name = transport.name;
+    	var overview = JSON.stringify([{
+    		"name": name,
+    		"startTime": new Date(data.startTime).toLocaleString(),
+    		"totalTime": data.totalTime,
+    		"ownTime": data.ownTime,
+    		"childTime": data.childTime
+    	}]);
+
+    	var callstack = JSON.stringify(data.children.map(function(item) {
+    		var type = item.name
+
+    		return {
+    			"type": item.name,
+    			"info": item.attachment[Object.keys(item.attachment)[0]],
+    			"startTime": new Date(item.startTime).toLocaleString(),
+    			"totalTime": item.totalTime,
+    			"childTime": item.childTime
+    		}
+    	}));
+
+    	chrome.devtools.inspectedWindow.eval(`
+    		console.group("${name}");
+    		console.log("%cOverview", "font-size: 1.2em; font-weight: bold; color: #0070d2;");
+	    	console.table(${overview}, ["startTime", "totalTime", "ownTime", "childTime"]);	
+    		console.log("%cCallstack", "font-size: 1.2em; font-weight: bold; color: #0070d2;");
+	    	console.table(${callstack}, ["type",  "info", "totalTime", "childTime"]);
+	    	console.groupEnd();
+    	`);
+
+
+    }
+
+    function MetricsServiceDataProcessor() {
+    	var _transports = new Map();
+    	var _actions = new Map();
+    	var _serverData = new Map();
+    	var _startRange = Infinity;
+    	var _endRange = 0;
+
+    	this.addMarksData = function(data) {
+    		// Process Marks 
+    		if(!data) {
+    			return;
+    		}
+
+    		if(Array.isArray(data.transport)) {
+	    		parseTransports(data.transport);
+	    	}
+
+	    	// Parse Actions
+	    	if(Array.isArray(data.actions)) {
+	    		parseActions(data.actions);
+	    	}
+
+	    	if(Array.isArray(data.server)) {
+	    		parseServerData(data.server);
+	    	}
+    	};
+
+    	this.getTransports = function() {
+    		var transports = [];
+    		return Array.from(_transports.values());
+    	};
+
+    	this.getTransportById = function(transportId) {
+    		return getTransportById(parseInt(transportId));
+    	};
+
+    	this.getActions = function(transportId) {
+    		var transport = getTransportById(transportId);
+
+    		if(!transport) {
+    			console.error("You provided an invalid transportId. The transport did not exist.")
+    			return [];
+    		}
+
+    		if(!transport.actions) {
+    			return [];
+    		}
+
+    		var ret = [];
+    		var actionIds = transport.actions;
+    		for(var actionId in actionIds) {
+    			ret.push(getActionById(actionId));
+    		}
+    		
+    		return ret;
+    	};
+
+    	this.getActionById = function(actionId) {
+    		return getActionById(actionId);
+    	};
+
+    	this.getServerData = function(actionId) {
+    		var action = getActionById(actionId);
+    		if(action) {
+    			return action.serverData;
+    		}
+    	};
+
+    	this.getTimelineRange = function() {
+    		return [_startRange, _endRange];
+    	}
+
+    	function getTransportById(id) {
+    		return _transports.get(id);
+    	}
+
+    	function setTransportById(id, value) {
+    		_transports.set(id, value);
+    	}
+
+    	function getActionById(id) {
+    		return _actions.get(id);
+    	}
+
+    	function setActionById(id, value) {
+    		_actions.set(id, value);
+    	}
+
+    	function getActionIdFromTransport(transport, actionPath) {
+    		if(!transport || !actionPath) {
+    			throw new Error("Necessary arguments not specified. Expected (transport, actionName)");
+    		}
+    		// No Actions? No need doing any further logic.
+    		if(!transport.actions) {
+    			return null;
+    		}
+
+			// Format: "1$apex://DreamforceData/ACTION$getFeatureList"
+    		var actionName = actionPath.split("$")[2];
+
+    		for(var actionId in transport.actions) {
+    			if(transport.actions[actionId] === actionName) {
+    				return actionId;
+    			}    			
+    		}
+
+    		return null;
+    	}
+
+    	function parseTransports(transportMarks) {
+    		var transport;
+    		var current;
+    		var id;
+    		for(var c=0;c<transportMarks.length;c++) {
+    			current = transportMarks[c];
+    			id = transportMarks[c].context.auraXHRId;
+    			transport = getTransportById(id);
+    			if(!transport) {
+    				transport = { "id": id, "name": "http-request {" + id + "}" };
+    				setTransportById(id, transport);
+    			}
+
+    			if(!transport[current.phase]) {
+    				transport[current.phase] = current;
+    			}
+
+    			_startRange = Math.min(current.ts, _startRange);
+    			_endRange = Math.max(current.ts, _endRange);
+
+    			if(current.context.actionDefs) {
+    				if(!transport.actions) {
+    					transport.actions = {};
+    				}
+
+    				for(var d=0;d<current.context.actionDefs.length;d++) {
+    					// Format is actionName$actionId
+    					var action = current.context.actionDefs[d].split("$");
+    					transport.actions[action[1]] = action[0];
+    				}
+
+    			}
+    		}
+    	}
+
+    	function parseActions(actionMarks) {
+    		var current;
+    		var id;
+    		var action;
+    		for(var c=0;c<actionMarks.length;c++) {
+    			current = actionMarks[c];
+    			id = current.context.id;
+
+    			action = getActionById(id);
+
+    			if(!action) {
+    				action = { "id": id };
+    				setActionById(id, action);
+    			}
+
+    			if(!action[current.phase]) {
+    				action[current.phase] = current;
+    			}
+
+    			_startRange = Math.min(current.ts, _startRange);
+    			_endRange = Math.max(current.ts, _endRange);
+
+    		}
+    	}
+
+    	function parseServerData(dataMarks) {
+
+			var current;
+    		var xhrId;
+    		var calltree;
+    		var transport;
+    		for(var c=0;c<dataMarks.length;c++) {
+    			current = dataMarks[c];
+    			xhrId = current.context.id;
+
+   				// data = { 
+   				// 	"id": xhrId, 
+   				// 	"ts": current.ts
+   				// };
+
+   				transport = getTransportById(xhrId);
+   				if(!transport) {
+   					continue; // Not sure why this would happen. Just being safe.
+   				}
+
+   				calltree = current.context.perf.calltree[0]
+
+   				transport.serverData = calltree;
+   				for(var d=0;d<calltree.children.length;d++) {
+   					if(calltree.children[d].name === "action") {
+   						var action = getActionById(getActionIdFromTransport(transport, calltree.children[d].attachment.actionName));
+   						if(action) {
+   							action.serverData = calltree.children[d];
+   						}
+   					}
+   				}
+
+    		}
+
+    	}
+
+    }
+
+    // Transforms PROCESSED marks to a row that the grid expects.
+    function TransportDataRow(marks) {
+    	this.columns = [marks.name, marks.id];
+    	this.id = marks.id;
+    	this.timeline = [];
+    	this.styles = {
+    		"timeline": "transport",
+    		"row": "transport"
+    	};
+
+    	if(marks.start) {
+    		this.timeline.push(marks.start.ts);
+
+    		// Start Time Column
+    		this.columns[3] = Math.round(marks.start.ts) + "ms";
+    	}
+
+    	if(marks.end) {
+    		this.timeline.push(marks.end.ts);
+
+    		// Duration Column
+    		this.columns[2] = Math.round(marks.end.ts - marks.start.ts) + "ms";
+
+    	}
+    }
+
+    function ActionsDataRow(marks) {
+    	this.columns = ["unknown action", marks.id];
+    	this.id = marks.id;
+    	this.timeline = [];
+    	this.styles = {
+    		"timeline": "action",
+    		"row": "action"
+    	};
+
+    	if(marks.stamp) {
+    		this.columns[0] = marks.stamp.context.def;
+    		this.timeline[0] = marks.stamp.ts;
+    	}
+
+    	if(marks.start) {
+    		this.timeline[1] = marks.start.ts;
+    		this.columns[3] = Math.round(marks.start.ts) + "ms";
+    	}
+
+    	if(marks.end) {
+    		this.timeline[2] = marks.end.ts;
+    		this.columns[2] = Math.round(marks.end.ts - marks.start.ts) + "ms";
+    	}
+    }
+
+    function TransactionGrid_OnItemClick(eventData) {
+    	if(eventData.type === "action") {
+    		outputActionServerData(_processor.getActionById(eventData.id));
+    		// Lets print out the server Data
+    	} else if(eventData.type === "transport") {
+    		outputTransportServerData(_processor.getTransportById(eventData.id));
+    		// Print out the server data.
+    	}
+
+    }
+
+
+
     /* ------------------- Event related functions ---------------------*/
 
     function createEventManager(){
@@ -535,8 +838,4 @@ function AuraInspectorTransactionView() {
         eventManager.notify(eventName, data);
     };
 
-    function initEventHandlers(){
-        eventManager.notify("initView");
-        eventManager.notify("onSubscribeToTransactionEnd", AuraInspectorTransactionView_OnTransactionEnd.bind(this));
-    }
 }

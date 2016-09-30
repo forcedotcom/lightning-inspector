@@ -26,7 +26,7 @@
      * AuraInspector:RemoveStorageData              Remove stored response for the action we would like to drop next time we see it
      * AuraInspector:ShowComponentInTree            Indicates you want to show the specified globalID in the component tree.
      * AuraInspector:OnClientActionStart
-     * AuraInspector:OnClientActionEnd
+     * AuraInspector:OnClientActionEnd              TODO: Kris, Is this the same as OnEventEnd?
      * AuraInspector:OnDescriptorSelect             A descriptor was clicked on, we may want to take some action here such as showing a panel that has more information. 
      * AuraInspector:OnStartChaosRun                User has click button "Start Chaos Run" in chaos tab, let's start randomly clicking through the app
      * AuraInspector:OnStopChaosRun                 User has click button "Stop the Run", we are done with current new chaos run
@@ -36,9 +36,7 @@
      * AuraInspector:OnContinueChaosRun             We might need to refresh during a replay, this will continue the ongoing replay.
      * AuraInspector:OnStopAllChaosRun              User has click the panic button, let's stop all chaos run, and clear up everything
      * AuraInspector:OnSomeActionGetDropped         We just drop some action during a replay
-     *
-     * Aaron:
-     * AuraInspector:RelayPageLoadTime              Channel where we send the timestamp of when the page loaded.
+     * AuraInspector:OnActionStateChange            TODO: Document
      */
 
     var panel = new AuraInspectorDevtoolsPanel();
@@ -138,8 +136,6 @@
 
                 this.subscribe("AuraInspector:AddPanel", AuraInspector_OnAddPanel.bind(this));
                 this.subscribe("AuraInspector:ShowComponentInTree", AuraInspector_OnShowComponentInTree.bind(this));
-                // Aaron
-                this.subscribe("AuraInspector:RelayPageLoadTime", AuraInspector_OnRelayPageLoadTime.bind(this));
 
                 // AuraInspector:publish and AuraInspector:publishbash are essentially the only things we listen for anymore.
                 // We broadcast one publish message everywhere, and then we have subscribers.
@@ -255,6 +251,7 @@
 
             chrome.devtools.inspectedWindow.eval(command, function() {
                 if(_subscribers.has(key)) {
+                    console.log(key);
                     _subscribers.get(key).forEach(function(callback){
                         callback(data);
                     });
@@ -383,6 +380,7 @@
          * Should probably just move to the publish and subscribe methods.
          */
         this.attach = function(eventName, eventHandler) {
+            throw new Error("TRACE!");
             if(!events.has(eventName)) {
                 events.set(eventName, new Set());
             }
@@ -401,8 +399,6 @@
                 });
              }
         };
-
-
 
         /*
          =========== BEGIN REFACTOR! ===============
@@ -531,12 +527,6 @@
         function AuraInspector_OnAuraInitialized() {
             // The initialize script ran.
             this.publish("AuraInspector:OnPanelConnect", {});
-        }
-
-        // Aaron
-        function AuraInspector_OnRelayPageLoadTime(time){
-            var transaction = panels.get("transaction");
-            transaction.setLoadTime(time);
         }
 
         /**  BEGIN HELP BUTTON */
