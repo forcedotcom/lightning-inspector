@@ -69,7 +69,7 @@ function AuraInspectorTransactionView() {
 
     	_processor.addMarksData(_marks);
 
-    	updateGrid(_marks);
+    	updateGrid();
 
     	// Transform the processed data into row data. 
     	// _processor.onNewData(function(){}) ?
@@ -78,11 +78,17 @@ function AuraInspectorTransactionView() {
 
     };
 
+    this.addTransaction = function(transaction) {
+    	_processor.addTransaction(transaction);
+
+    	updateGrid()
+    };
+
 	this.render = function(container) {
 		transactionGrid.render(container);
 	};
 
-	function updateGrid(data){
+	function updateGrid(){
 		var marks = {};
 
 		// Get Transports
@@ -104,6 +110,8 @@ function AuraInspectorTransactionView() {
 				}
 			}
 		}
+
+		// TransactionDataRow
 
 	}
 
@@ -460,7 +468,7 @@ function AuraInspectorTransactionView() {
     	if(data.children) {
 	    	callstack = JSON.stringify(data.children.map(function(item) {
 	    		return {
-	    			"sql": item.attachment.sql,
+	    			"work": item.attachment[Object.keys(item.attachment)[0]],
 	    			"startTime": new Date(item.startTime).toLocaleString(),
 	    			"totalTime": item.totalTime,
 	    			"childTime": item.childTime
@@ -474,7 +482,7 @@ function AuraInspectorTransactionView() {
 	    	console.table(${overview}, ["totalTime", "ownTime", "childTime"]);	
     		if(${callstack}) {
 	    		console.log("%cCallstack", "font-size: 1.2em; font-weight: bold; color: #0070d2;");
-		    	console.table(${callstack}, ["sql", "totalTime", "childTime"]);
+		    	console.table(${callstack}, ["work", "totalTime", "childTime"]);
 		    }
 	    	console.groupEnd();
     	`);
@@ -532,6 +540,11 @@ function AuraInspectorTransactionView() {
     	var _serverData = new Map();
     	var _startRange = Infinity;
     	var _endRange = 0;
+    	var _transactions = [];
+
+    	this.addTransaction = function(transaction) {
+    		_transactions.push(transaction);
+    	};
 
     	this.addMarksData = function(data) {
     		// Process Marks 
@@ -614,7 +627,7 @@ function AuraInspectorTransactionView() {
     		_actions.set(id, value);
     	}
 
-    	function getActionIdFromTransport(transport, actionPath) {
+    	function getActionFromTransport(transport, actionPath) {
     		if(!transport || !actionPath) {
     			throw new Error("Necessary arguments not specified. Expected (transport, actionName)");
     		}
@@ -624,15 +637,18 @@ function AuraInspectorTransactionView() {
     		}
 
 			// Format: "1$apex://DreamforceData/ACTION$getFeatureList"
-    		var actionName = actionPath.split("$")[2];
+			var actionDef = actionPath.replace(/^\d\$/g, "");
 
-    		for(var actionId in transport.actions) {
-    			if(transport.actions[actionId] === actionName) {
-    				return actionId;
-    			}    			
+			
+			var action;
+			for(var actionId in transport.actions) {
+				action = getActionById(actionId);
+    			if(action && action.stamp && action.stamp.context.def === actionDef) {
+    				return action;
+    			}
     		}
-
-    		return null;
+			
+			return null;
     	}
 
     	function parseTransports(transportMarks) {
@@ -661,9 +677,10 @@ function AuraInspectorTransactionView() {
     				}
 
     				for(var d=0;d<current.context.actionDefs.length;d++) {
-    					// Format is actionName$actionId
-    					var action = current.context.actionDefs[d].split("$");
-    					transport.actions[action[1]] = action[0];
+    					// Format is actionName$actionId in 202, actionId in 204
+    					var pair = current.context.actionDefs[d].split("$");
+    					var actionId = pair[1] || pair[0];
+    					transport.actions[actionId] = pair[0];
     				}
 
     			}
@@ -703,6 +720,9 @@ function AuraInspectorTransactionView() {
     		var transport;
     		for(var c=0;c<dataMarks.length;c++) {
     			current = dataMarks[c];
+    			if(!current.context){
+    				continue;
+    			}
     			xhrId = current.context.id;
 
    				// data = { 
@@ -720,7 +740,8 @@ function AuraInspectorTransactionView() {
    				transport.serverData = calltree;
    				for(var d=0;d<calltree.children.length;d++) {
    					if(calltree.children[d].name === "action") {
-   						var action = getActionById(getActionIdFromTransport(transport, calltree.children[d].attachment.actionName));
+
+   						var action = getActionFromTransport(transport, calltree.children[d].attachment.actionName);
    						if(action) {
    							action.serverData = calltree.children[d];
    						}
@@ -730,6 +751,17 @@ function AuraInspectorTransactionView() {
     		}
 
     	}
+
+    }
+
+    function TransactionDataRow(transaction) {    	
+    	this.columns = [transaction.id, "", transaction.duration, transaction.start];
+    	this.id = transaction.id;
+    	this.timeline = [transaction.start, transaction.start + transaction.duration];
+    	this.styles = {
+    		"timeline": "transaction",
+    		"row": "transaction"
+    	};
 
     }
 

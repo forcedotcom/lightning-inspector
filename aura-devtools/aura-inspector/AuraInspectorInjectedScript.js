@@ -231,7 +231,7 @@
                 } catch(e){}
 
                 // try {
-                //     transactionReporting();
+                //     bootstrapTransactionReporting();
                 // } catch(e){}
 
 
@@ -1419,11 +1419,21 @@
             // Add Rightclick handler. Just track what we rightclicked on.
             addRightClickObserver();
 
-            this.subscribe("AuraInspector:ContextElementRequest", function(){
+
+
+
+            this.subscribe("AuraInspector:ContextElementRequest", () => {
                 if(lastItemInspected && lastItemInspected.nodeType === 1) {
                     this.publish("AuraInspector:ShowComponentInTree", lastItemInspected.getAttribute("data-aura-rendered-by"));
                 }
-            }.bind(this));
+            });
+
+            // Pretty harmless, and improves our metrics on the Transactions tab.
+            this.subscribe("AuraInspector:OnAuraInitialized", () => {
+                try {
+                    bootstrapTransactionReporting();
+                } catch(e){}
+            });
 
         };
 
@@ -2364,6 +2374,25 @@
 
             $Aura.Inspector.publish("AuraInspector:OnClientActionEnd", data);
         }
+    }
+
+
+    function bootstrapTransactionReporting() {
+        $A.metricsService.transactionStart("AuraInspector", "transactionstab");
+
+        $A.metricsService.onTransactionEnd(function(transaction){
+            $Aura.Inspector.publish("AuraInspector:OnTransactionEnd", transaction);
+        });
+
+        $A.metricsService.onTransactionsKilled(function(transactions){
+            if(transactions) {
+                for(var c=0;c<transactions.length;c++) {
+                    if(transactions[c].id === "AuraInspector:transactionstab") {
+                        $A.metricsService.transactionStart("AuraInspector", "transactionstab");
+                    }
+                }
+            }
+        });
     }
 
 

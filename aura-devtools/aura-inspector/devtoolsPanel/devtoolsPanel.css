@@ -754,6 +754,10 @@ button.transaction-tabs-button.selected{
   vertical-align: bottom;
 }
 
+.trans-panel table tbody tr.transport td a {
+  color: #54698d;
+}
+
 .trans-panel tbody td,
 .trans-panel thead th {
   width: 33%;
@@ -887,6 +891,10 @@ button.transaction-tabs-button.selected{
     min-width: 3px;
     height: 15px;
     position: absolute;
+}
+
+.transactions-graph-row.transport .transactions-graph-row-block:nth-child(1) {
+    background-color: #f0c457;
 }
 
 .transactions-graph-row .transactions-graph-row-block:nth-child(1) {

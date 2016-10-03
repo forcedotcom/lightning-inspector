@@ -21,7 +21,7 @@
      * AuraInspector:ConsoleLog                     [DEPRECATED] Show a message in the DevTools console.
      * AuraInspector:OnEventStart                   An Aura event is about to fire. Allows us to track that everything between the start and end happend as a result of this event.
      * AuraInspector:OnEventEnd                     An Aura event fired. Process all the events and actions that have happened since the event fired.
-     * Transactions:OnTransactionEnd                Transaction has ended and should now be added to the UI.
+     * AuraInspector:OnTransactionEnd               Transaction has ended and should now be added to the UI.
      * AuraInspector:StorageData                    Aura Storage Service has async fetched data to show in the storage panel.
      * AuraInspector:RemoveStorageData              Remove stored response for the action we would like to drop next time we see it
      * AuraInspector:ShowComponentInTree            Indicates you want to show the specified globalID in the component tree.
@@ -251,7 +251,6 @@
 
             chrome.devtools.inspectedWindow.eval(command, function() {
                 if(_subscribers.has(key)) {
-                    console.log(key);
                     _subscribers.get(key).forEach(function(callback){
                         callback(data);
                     });

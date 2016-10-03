@@ -72,6 +72,7 @@ function AuraInspectorTransactionPanel(devtoolsPanel) {
 
         devtoolsPanel.subscribe("AuraInspector:OnActionStateChange", AuraInspector_OnActionStateChange.bind(this));
 
+        devtoolsPanel.subscribe("AuraInspector:OnTransactionEnd", AuraInspector_OnTransactionEnd.bind(this))
         
         _tabBody = tabBody;
     };
@@ -140,8 +141,13 @@ function AuraInspectorTransactionPanel(devtoolsPanel) {
         chrome.devtools.inspectedWindow.eval("$A.metricsService.enablePlugins();");
     }
 
-    function ClearTable_OnClick(event) {
+    function AuraInspector_OnTransactionEnd(transaction) {
+        if(_recording) {
+            transactionView.addTransaction(transaction);
+        }
+    }
 
+    function ClearTable_OnClick(event) {
         // Reset everything
         chrome.devtools.inspectedWindow.eval("$A.metricsService.clearMarks();", function(){
             transactionView.clear();
