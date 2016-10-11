@@ -14,7 +14,7 @@
         var allowedPostMessageKeys = {
             "AuraInspector:publishbatch": true,
             "AuraInspector:publish": true,
-            "AuraInspector:bootstrap": true,
+            "AuraInspector:bootstrap": true
         };
 
         /**
@@ -52,7 +52,6 @@
 
             // Catches all runtime commands and passes them to the injected script
             runtime.onMessage.addListener(Handler_OnRuntimeMessage);
-
         };
 
         this.injectBootstrap = function() {
@@ -60,7 +59,7 @@
             script.textContent = script.text = `
                 /**  Aura Inspector Script, ties into $A.initAsync and $A.initConfig to initialize the inspector as soon as possible. **/
                 (function(){
-                    function wrap(obj, original, before, after) {
+                    function wrap(obj, original, before, after) {/*from 204 and beyond, we no longer need this wrap*/
                         return function() {
                             if(before) before.apply(obj, arguments);
                             var returnValue = original.apply(obj, arguments);
@@ -74,8 +73,19 @@
                             key: "AuraInspector:OnAuraInitialized"
                         }, window.location.href);
                     }
+                    var _Aura;
+                    Object.defineProperty(window, "Aura", {
+                        enumerable: true,
+                        configurable: true,
+                        get: function() { return _Aura; },
+                        set: function(val) {
+                            val.beforeFrameworkInit = val.beforeFrameworkInit || [];
+                            val.beforeFrameworkInit.push(notifyDevTools);
+                            _Aura = val;
+                        }
+                    });
                     var _$A;
-                    Object.defineProperty(window, "$A", {
+                    Object.defineProperty(window, "$A", {/*from 204 and beyond, we no longer need this set*/
                         enumerable: true,
                         configurable: true,
                         get: function() { return _$A; },
@@ -86,9 +96,12 @@
                             if(val && val.initConfig) {
                                 val.initConfig = wrap(val, val.initConfig, notifyDevTools);
                             }
+                            
                             _$A = val;
+                            
                         }
                     });
+                    
                 })();
             `;
             document.documentElement.appendChild(script);
