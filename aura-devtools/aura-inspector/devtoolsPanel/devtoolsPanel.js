@@ -68,7 +68,7 @@
         var nodeId = 0;
         var events = new Map();
         var panels = new Map();
-        var _name = "AuraInspectorDevtoolsPanel" + Date.now();
+        var _name = "AuraInspectorDevtoolsPanel";
         var _onReadyQueue = [];
         var _isReady = false;
         var _initialized = false;
@@ -82,16 +82,13 @@
             tabId = chrome.devtools.inspectedWindow.tabId;
 
             runtime = chrome.runtime.connect({"name": _name });
-            runtime.onMessage.addListener(DevToolsPanel_OnMessage.bind(this));
+            runtime.onMessage.addListener(BackgroundScript_OnMessage.bind(this));
             //runtime.onDisconnect.addListener(DevToolsPanel_OnDisconnect.bind(this));
-
-            runtime.postMessage({subscribe: ["AuraInspector:bootstrap"], port: runtime.name, tabId: tabId});
+            runtime.postMessage( { "action": "BackgroundPage:publish", "key": "BackgroundPage:InjectContentScript", "data": tabId } );
+            runtime.postMessage( { "subscribe": ["AuraInspector:bootstrap"], "tabId": tabId });
         };
 
-        this.disconnect = function(port) {
-            // Panel was closed
-            //global.AuraInspector.ContentScript.disconnect();
-        };
+        this.disconnect = function(port) {};
 
         this.init = function(finishedCallback) {
             this.connect();
@@ -132,8 +129,6 @@
                    });
                 });
 
-                this.subscribe("AuraInspector:OnAuraInitialized", AuraInspector_OnAuraInitialized.bind(this));
-
                 this.subscribe("AuraInspector:OnContextMenu", function() {
                     this.publish("AuraInspector:ContextElementRequest", {});
                 }.bind(this));
@@ -154,17 +149,15 @@
                 }
             });
 
-            this.subscribe("AuraInspector:OnAuraUnavailable", () => {
-                document.body.classList.add("aura-unavailable");
-                document.querySelector("#no-aura-available-container").classList.remove("slds-hide");
-            });
+            this.subscribe("AuraInspector:OnAuraUnavailable", AuraInspector_OnAuraUnavailable.bind(this));
+            this.subscribe("AuraInspector:OnAuraInitialized", AuraInspector_OnAuraInitialized.bind(this));
 
             this.publish("AuraInspector:OnPanelConnect", "DevtoolsPanel: Devtools loaded." + Date.now());
 
             var tryAgainButton = document.querySelector("#no-aura-available-try-again");
             tryAgainButton.addEventListener("click", TryAgainButton_OnClick.bind(this));
 
-            setupContentScript();
+            toggleAvailableDialog();
         };
 
         /**
@@ -265,7 +258,7 @@
 
             chrome.devtools.inspectedWindow.eval(command, function() {
                 if(_subscribers.has(key)) {
-                    console.log(key, _subscribers.get(key).length)
+                    //console.log(key, _subscribers.get(key).length)
                     _subscribers.get(key).forEach(function(callback){
                         callback(data);
                     });
@@ -451,10 +444,10 @@
             if(url.startsWith("/")) {
                 // Resolve to be absolute first.
                 chrome.devtools.inspectedWindow.eval("window.location.origin", function(origin) {
-                    runtime.postMessage({ "open": origin + url });
+                    runtime.postMessage({ "action": "BackgroundPage:publish", "key":"BackgroundPage:OpenTab", "data": origin + url });
                 });
             } else {
-                runtime.postMessage({ "open": url });
+                runtime.postMessage({ "action": "BackgroundPage:publish", "key":"BackgroundPage:OpenTab", "data": url });
             }
         };
 
@@ -474,7 +467,7 @@
             this.disconnect();
         }
 
-        function DevToolsPanel_OnMessage(message) {
+        function BackgroundScript_OnMessage(message) {
             if(!message) { return; }
             if(message.action === "AuraInspector:bootstrap") {
                 this.publish("AuraInspector:OnBootstrapEnd", "DevtoolsPanel: AuraInspector:bootstrap was called.");
@@ -489,15 +482,18 @@
         }
 
         function callSubscribers(key, data) {
-            console.log("Calling Subscribers For: ", key);
+            //console.log("Calling Subscribers For: ", key);
             if(_subscribers.has(key)) {
                 _subscribers.get(key).forEach(function(callback){
                     try {
+                        //console.log("DevtoolsPanel:CallSubscribers", key, data);
                         callback(data);
                     } catch(e) {
                         console.error(e);
                     }
                 });
+            } else {
+                //console.log("DevtoolsPanel:NoSubscribersFor", key, data);
             }
         }
 
@@ -545,22 +541,25 @@
             }
         }
 
+        function AuraInspector_OnAuraUnavailable() {
+            document.querySelector("#no-aura-available-container").classList.remove("slds-hide");
+        }
+
         function AuraInspector_OnAuraInitialized() {
             // The initialize script ran.
             this.publish("AuraInspector:OnPanelConnect", "DevtoolsPanel:OnAuraInitialized");
 
-            document.body.classList.remove("aura-unavailable");
             document.querySelector("#no-aura-available-container").classList.add("slds-hide");
         }
 
         function TryAgainButton_OnClick() {
             this.showLoading();
 
-            setupContentScript();
+            toggleAvailableDialog();
 
             setTimeout(() => {
                 this.hideLoading();
-            }, 500);
+            }, 300);
         }
 
         /**  BEGIN HELP BUTTON */
@@ -707,18 +706,18 @@
 
         /** END HELP BUTTON */
 
-        function setupContentScript() {
+        function toggleAvailableDialog() {
             // Check if Aura is present, but not the InjectedScript
-            chrome.devtools.inspectedWindow.eval("[!!(window.$A || window.Aura), !!window[Symbol.for('AuraDevTools')]]", function(availability) {
-                const isAuraPresent = availability[0];
-                const isContentScriptPresent = availability[1];
+            chrome.devtools.inspectedWindow.eval("!!(window.$A || window.Aura)", function(isAuraPresent) {
+                // const isAuraPresent = availability[0];
+                // const isContentScriptPresent = availability[1];
                 const noAuraAvailable = document.querySelector("#no-aura-available-container");
 
                 if(isAuraPresent) {
                     noAuraAvailable.classList.add("slds-hide");
-                    if(!isContentScriptPresent) {
-                        runtime.postMessage( { "injectContentScriptToTab": chrome.devtools.inspectedWindow.tabId } );
-                    }
+                    // if(!isContentScriptPresent) {
+                    //     runtime.postMessage( { "injectContentScriptToTab": chrome.devtools.inspectedWindow.tabId } );
+                    // }
                 } else {
                     noAuraAvailable.classList.remove("slds-hide");
                 }

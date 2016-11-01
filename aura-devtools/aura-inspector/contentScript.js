@@ -68,6 +68,7 @@
             script.textContent = script.text = `
                 /**  Aura Inspector Script, ties into $A.initAsync and $A.initConfig to initialize the inspector as soon as possible. **/
                 (function(global){
+                    var injectedScript = Symbol.for('AuraDevTools');
                     function wrap(obj, original, before, after) {/*from 204 and beyond, we no longer need this wrap*/
                         return function() {
                             if(before) before.apply(obj, arguments);
@@ -79,12 +80,13 @@
                     var initialized = false;
                     function notifyDevTools() {
                         if(initialized) { return; }
+                        // Try to bootstrap, this way all the actions get caught as postMessage is async.
+                        window[injectedScript].Inspector.bootstrap();
                         window.postMessage({
                             action  : "AuraInspector:publish",
                             key: "AuraInspector:OnAuraInitialized",
                             data: "ContentScript: notifyDevTools()"
                         }, window.location.origin);
-
                         // Only do once.
                         initialized = true;
                     }
@@ -135,6 +137,8 @@
             if(runtime && allowedPostMessageKeys[event.data.action]) {
                 //console.log("ContentScript-ToRuntime:", event.data.action, event.data);
                 runtime.postMessage(event.data);
+            } else {
+                //console.log("NotAllowedContentScript:", event.data.action, event.data);
             }
         }
 
