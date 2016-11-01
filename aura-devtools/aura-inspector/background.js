@@ -27,16 +27,19 @@
             };
 
             chrome.runtime.onConnect.addListener(BackgroundPage_OnConnect.bind(this));
-            // onSuspend?
-
             chrome.runtime.onConnectExternal.addListener(BackgroundPage_OnConnectExternal.bind(this));
-
             chrome.runtime.onMessageExternal.addListener(BackgroundPage_OnMessageExternal.bind(this));
 
+            chrome.tabs.onUpdated.addListener(BackgroundPage_OnTabUpdated.bind(this));
+
+            // Consider tying this into the injected set, so we add the context to injected tabs.
+            // Might just need to change the documentUrlPatterns in that case.
             chrome.contextMenus.create({
                 title: "Inspect Lightning Component",
                 contexts:["all"],
                 onclick: BackgroundPage_OnContextClick.bind(this),
+
+                // Consider moving this into onConnect, and using the href of the page as the documentUrlPattern
                 documentUrlPatterns: ["*://*/*cmp*", "*://*/*app*"]
             });
         };
@@ -47,7 +50,7 @@
                 ports.set(port.name, port);
             } else {
                 // Chrome Tab
-                var tabId = port.sender.tab.id;
+                const tabId = port.sender.tab.id;
                 createTabInfo(tabId);
             }
 
@@ -71,7 +74,6 @@
 
                 // Port is closed, delete it.
                 ports.delete(port.name);
-
             }
 
             // Don't just build up a bunch of messages for tabs that have been unloaded
@@ -108,7 +110,7 @@
                 // Tab doesn't exist.
                 // Can happen when you launch dev tools on dev tools.
                 if(!tabInfo) {
-                    return;
+                    tabInfo = createTabInfo(tabId);
                 }
 
                 tabInfo.port = port;
@@ -140,8 +142,10 @@
                         stored.delete(tabId);
                     }
                 }
-            } else if(message.open){
-              chrome.tabs.create({url: message.open});
+            } else if("open" in message){
+                chrome.tabs.create({url: message.open});
+            } else if("injectContentScriptToTab" in message) {
+                chrome.tabs.executeScript(message.injectContentScriptToTab, { file: "contentScript.js" });
             } else {
                 var tabId = event.sender.tab.id;
                 if(tabId !== -1) {
@@ -163,6 +167,14 @@
             // But lets just be extra sure who we are communicating with.
             if(EXTERNAL_INSPECTOR_EXTENSION_IDS[id]) {
                 external.set(id, port);
+            }
+        }
+
+        function BackgroundPage_OnTabUpdated(tabId, changeInfo, tab) {
+            // Only happens when we've attached to this tab before.
+            const tabInfo = getTabInfo(tab.id);
+            if(tabInfo && tabInfo.port && changeInfo.status === "loading") {
+                chrome.tabs.executeScript(tabId, { file: "contentScript.js",  "runAt": "document_start"});
             }
         }
 

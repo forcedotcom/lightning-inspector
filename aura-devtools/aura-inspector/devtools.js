@@ -1,9 +1,14 @@
-chrome.devtools.inspectedWindow.eval("!!window[Symbol.for('AuraDevTools')] && !!window.$A", function(isAuraPresent){
+//chrome.devtools.inspectedWindow.eval("!!window[Symbol.for('AuraDevTools')] && !!window.$A", function(isAuraPresent){
+
+// Detect if we are inspecting anything other than a DevTools Window
+chrome.devtools.inspectedWindow.eval("location.protocol", loadDevtools);
+
+
+function loadDevtools(protocol){
+    var isDevTools = protocol === "chrome-devtools:";
 
     // So we don't include Aura when inspecting an Inspector
-    if(isAuraPresent) {
-
-
+    if(!isDevTools) {
         chrome.devtools.panels.create(chrome.i18n.getMessage("devtools_tabname"),
                                       "icon24.png",
                                       "devtoolsPanel/devtoolsPanel.html",
@@ -24,11 +29,10 @@ chrome.devtools.inspectedWindow.eval("!!window[Symbol.for('AuraDevTools')] && !!
 
         chrome.devtools.panels.elements.createSidebarPane(chrome.i18n.getMessage("devtools_tabname"), function(sidebar) {
           sidebar.setPage("sidebarPanel/sidebarPanel.html");
-          sidebar.setHeight("1000px");
         });
 
         chrome.devtools.panels.elements.onSelectionChanged.addListener(function(){
-            chrome.devtools.inspectedWindow.eval("this.$0 && $0.getAttribute && $0.getAttribute('data-aura-rendered-by')", function(globalId){
+            chrome.devtools.inspectedWindow.eval("window.$A && this.$0 && $0.getAttribute && $0.getAttribute('data-aura-rendered-by')", function(globalId){
                 if(globalId) {
                     // Need to include undefined at the end, or devtools can't handle it internally.
                     // You'll see this error.
@@ -40,4 +44,4 @@ chrome.devtools.inspectedWindow.eval("!!window[Symbol.for('AuraDevTools')] && !!
         });
 
     }
-});
+}

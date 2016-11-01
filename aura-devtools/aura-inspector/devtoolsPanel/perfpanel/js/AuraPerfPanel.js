@@ -58,6 +58,9 @@ AuraPerfPanel.prototype = {
     _showStats: function () {
         this.runOnInspectedWindow(this.commands.getCmpCreation, function (data, exception) {
                 if (!exception) {
+                    if(Object.keys(data).length === 0) {
+                        return alert("No data was recorded");
+                    }
                     this._setWebInspectorData(data);
                 } else {
                     console.log(exception);

@@ -2,25 +2,6 @@
 // This is injected in the DOM directly via <script> injection
 (function(global){
     var $Aura = {};
-
-    //let's keep a map between actionID to action here, just like what AuraClientService is doing
-    //when user wants to watch a action, let's add an entry here
-    var actionsWatched = {};
-    //a map between actionName to action, if action.nextResponse exist, we override next response, if no, just drop the action
-    var actionsToWatch = {};
-
-    var $Symbol = Symbol.for("AuraDevTools");
-
-    // Communicate directly with the aura inspector
-    $Aura.Inspector = new AuraInspector();
-    $Aura.Inspector.init();
-
-    $Aura.chaos = new ChaosManager();
-
-    // Attach to the global object so our integrations can access it, but
-    // use a symbol so it doesn't create a global property.
-    global[$Symbol] = $Aura;
-
     $Aura.actions = {
 
         /* event handlder for OnActionToRemoveFromWatchEnqueue, this will remove one action from watch list
@@ -230,22 +211,70 @@
                     bootstrapEventInstrumentation();
                 } catch(e){}
 
-                // try {
-                //     bootstrapTransactionReporting();
-                // } catch(e){}
+                try {
+                    bootstrapTransactionReporting();
+                } catch(e){}
 
+                // Currently in progress to get this going. Its work to be able to show the URL for the XHR in the transactions panel.
+                // try {
+                //     $A.installOverride("ClientService.decode", function(config, oldResponse, noStrip,timedOut){
+                //         var transport = $A.metricsService.getCurrentMarks().transport;
+                //         // get last
+                //         var latest = transport[transport.length-1];
+                //         latest[Symbol.for("url")] = oldReponse.responseUrl;
+
+                //         var ret = config["fn"].call(config["scope"], oldResponse, noStrip, timedOut);
+
+                //         return ret;
+                //     });
+                // }catch(e) {}
 
                 // Need a way to conditionally do this based on a user setting.
                 $A.PerfDevTools.init();
 
+                window.postMessage({
+                    "action": "AuraInspector:bootstrap",
+                    "key":"AuraInspector:bootstrap",
+                    "data": "InjectedScript: AuraDevToolService.Bootstrap()"
+                }, window.location.origin);
+
                 // Only do once, we wouldn't want to instrument twice, that would give us double listeners.
-                this["AuraDevToolService.Bootstrap"] = function(){};
+                this["AuraDevToolService.Bootstrap"] = function(){
+
+                    // If you close the panel, then reopen it, the bootstrap will have already happened
+                    // on the page. But the inspector doesn't know that, we still need to communicate
+                    // to it that we're done. So we always post the bootstrap back.
+                    window.postMessage({
+                        "action": "AuraInspector:bootstrap",
+                        "key": "AuraInspector:bootstrap",
+                        "data": "InjectedScript: Aura is already present at initialization, calling bootstrap."
+                    }, window.location.origin);
+                };
             } else {
                 console.warn('Could not attach AuraDevTools Extension.');
             }
         }
 
     };//end of $Aura.actions
+
+
+    //let's keep a map between actionID to action here, just like what AuraClientService is doing
+    //when user wants to watch a action, let's add an entry here
+    var actionsWatched = {};
+    //a map between actionName to action, if action.nextResponse exist, we override next response, if no, just drop the action
+    var actionsToWatch = {};
+
+    var $Symbol = Symbol.for("AuraDevTools");
+
+    // Communicate directly with the aura inspector
+    $Aura.Inspector = new AuraInspector();
+    $Aura.Inspector.init();
+
+    $Aura.chaos = new ChaosManager();
+
+    // Attach to the global object so our integrations can access it, but
+    // use a symbol so it doesn't create a global property.
+    global[$Symbol] = $Aura;
 
     /****************************************************************
     ****************** Chaos Functions Starts **********************
@@ -1353,23 +1382,7 @@
     ****************************************************************/
 
 
-
     // Subscribes!
-    $Aura.Inspector.subscribe("AuraInspector:OnPanelConnect", function AuraInspector_OnPanelLoad() {
-        $Aura.actions["AuraDevToolService.Bootstrap"]();
-
-        window.postMessage({
-            "action": "AuraInspector:bootstrap",
-            "data": {"key":"AuraInspector:bootstrap", "data":{}}
-        }, window.location.href);
-
-    });
-
-    // $Aura.Inspector.subscribe("AuraInspector:OnPanelAlreadyConnected", function AuraInspector_OnPanelLoad() {
-    //     $Aura.actions["AuraDevToolService.Bootstrap"]();
-    //     $Aura.Inspector.unsubscribe("AuraInspector:OnPanelAlreadyConnected", AuraInspector_OnPanelLoad);
-    // });
-
     $Aura.Inspector.subscribe("AuraInspector:OnHighlightComponent", $Aura.actions["AuraDevToolService.HighlightElement"]);
     $Aura.Inspector.subscribe("AuraInspector:OnHighlightComponentEnd", $Aura.actions["AuraDevToolService.RemoveHighlightElement"]);
 
@@ -1386,9 +1399,8 @@
     $Aura.Inspector.subscribe("AuraInspector:OnStopAllChaosRun", $Aura.chaos.stopAllChaosRun.bind($Aura.chaos));
     $Aura.Inspector.subscribe("AuraInspector:OnSomeActionOperationDuringChaosRun", $Aura.chaos.recordActionOperationDuringChaosRun.bind($Aura.chaos));
 
-
     function AuraInspector() {
-        var subscribers = new Map();
+        var subscribers = {};
         var PUBLISH_KEY = "AuraInspector:publish";
         var PUBLISH_BATCH_KEY = "AuraInspector:publishbatch";
         var BOOTSTRAP_KEY = "AuraInspector:bootstrap";
@@ -1399,15 +1411,11 @@
         var ESCAPE_CHAR = "\u2353"; // This value was escaped, unescape before using.
         var increment = 0;
         var lastItemInspected;
-        var countMap = new Map();
-
+        var countMap = {};
 
         this.init = function() {
             // Add Rightclick handler. Just track what we rightclicked on.
             addRightClickObserver();
-
-
-
 
             this.subscribe("AuraInspector:ContextElementRequest", () => {
                 if(lastItemInspected && lastItemInspected.nodeType === 1) {
@@ -1415,13 +1423,31 @@
                 }
             });
 
-            // Pretty harmless, and improves our metrics on the Transactions tab.
+            // Aura's present, our script is present, bootstrap!
             this.subscribe("AuraInspector:OnAuraInitialized", () => {
-                try {
-                    bootstrapTransactionReporting();
-                } catch(e){}
+                $Aura.actions["AuraDevToolService.Bootstrap"]();
+
+                this.subscribe("AuraInspector:OnPanelConnect", AuraInspector_OnPanelLoad.bind(this));
             });
 
+            // Aura is present and the root has already been initialized.
+            if(window.$A && !!window.$A.getContext()) {
+                $Aura.actions["AuraDevToolService.Bootstrap"]();
+
+                this.publish("AuraInspector:OnAuraInitialized", "InjectedScript: Aura Present already during load." );
+            }
+
+            if(document.readyState === "complete") {
+                if(!window.$A) {
+                    this.publish("AuraInspector:OnAuraUnavailable", {});
+                }
+            } else {
+                window.addEventListener("load", () => {
+                    if(!window.$A) {
+                        this.publish("AuraInspector:OnAuraUnavailable", {});
+                    }
+                });
+            }
         };
 
         this.publish = function(key, data) {
@@ -1440,25 +1466,24 @@
         this.subscribe = function(key, callback) {
             if(!key || !callback) { return; }
 
-            if(!subscribers.has(key)) {
-                subscribers.set(key, []);
+            if(!subscribers[key]) {
+                subscribers[key] = [];
             }
 
-            subscribers.get(key).push(callback);
+            subscribers[key].push(callback);
         };
 
         this.unsubscribe = function(key, callback) {
             if(!key || !callback) { return false; }
 
-            if(!subscribers.has(key)) {
+            if(!subscribers[key]) {
                 return false;
             }
 
-            var listeners = subscribers.get(key);
-            subscribers.set(key, listeners.filter(function(item){
+            var listeners = subscribers[key];
+            subscribers[key] = listeners.filter(function(item){
                 return item !== callback;
-            }));
-
+            });
         };
 
         // Overriden by some tricky code down below to try to get into the context of the app.
@@ -1468,8 +1493,55 @@
             }
         };
 
+        /**
+         * Get all the top level elements.
+         * This obviously includes $A.getRoot(), but for Lightning Out that is empty.
+         * So we also include all the Disconnected components attached to dom elements.
+         */
+        this.getRootComponents = function() {
+            var topLevelDomNodes = null;
+            var rootNodes = [];
+            try {
+                var app = $A.getRoot();
+                rootNodes.push({
+                    "components": [this.getComponent(app.getGlobalId())]
+                });
+
+                if(app.isInstanceOf("ltng:outApp")) {
+                    topLevelDomNodes = $x("//*[@data-aura-rendered-by and not(ancestor::*[@data-aura-rendered-by])]");
+
+                    var map = {};
+                    var parentNodes = [];
+
+                    // Do some fancy dancing to identify Root dom nodes
+                    var parent;
+                    var position;
+                    for(let c=0,length=topLevelDomNodes.length;c<length;c++) {
+                        parent = topLevelDomNodes[c].parentNode;
+                        position = parentNodes.indexOf(parent);
+                        if(position === -1) {
+                            position = parentNodes.length;
+                            map[position] = [];
+                            parentNodes.push(parent);
+                        }
+                        map[position].push($A.getComponent(topLevelDomNodes[c].getAttribute("data-aura-rendered-by")));
+                    }
+
+                    for(let key in map) {
+                        rootNodes.push({
+                            "dom": parentNodes[key],
+                            "trace": getComponentForLtngOut(map[key]),
+                            "components": [this.getComponent(getComponentForLtngOut(map[key]))]
+                        });
+                    }
+                }
+            } catch(e) {}
+
+            return this.safeStringify(rootNodes);
+        }
+
         this.getComponent = function(componentId, options) {
-            var component = $A.getComponent(componentId);
+            var component = $A.util.isComponent(componentId) ? componentId : $A.getComponent(componentId);
             var configuration = Object.assign({
                 "attributes": true, // True to serialize the attributes, if you just want the body you can set this to false and body to true. (Good for serializing supers)
                 "body": true, // Serialize the Body? This can be expensive so you can turn it off.
@@ -1489,7 +1561,7 @@
                     // So if its not there, just run the bootstrap code.
                     if(!("_$getSelfGlobalId$" in component)){
                         $Aura.actions["AuraDevToolService.Bootstrap"]();
-                    } 
+                    }
                     var output = {
                         "descriptor": component.getDef().getDescriptor().toString(),
                         "globalId": component._$getSelfGlobalId$(),
@@ -1691,7 +1763,11 @@
                     }
 
                     if($A.util.isComponent(value)) {
-                        return COMPONENT_CONTROL_CHAR + value.getGlobalId();
+                        if(value.isValid()) {
+                            return COMPONENT_CONTROL_CHAR + value.getGlobalId();
+                        } else {
+                            return value.toString();
+                        }
                     }
 
                     if($A.util.isExpression(value)) {
@@ -1753,7 +1829,7 @@
          * @param  {String} key Any unique ID to count
          */
         this.count = function(key) {
-            countMap.set(key, countMap.has(key) ? countMap.get(key) + 1 : 1)
+            countMap[key] = countMap.hasOwnProperty(key) ? countMap[key] + 1 : 1;
         };
 
         /**
@@ -1762,7 +1838,7 @@
          * @param  {String} key Unique id to count.
          */
         this.getCount = function(key) {
-            return countMap.has(key) ? countMap.get(key) : 0;
+            return countMap.hasOwnProperty(key) ? countMap[key] : 0;
         };
 
         /**
@@ -1771,8 +1847,8 @@
          * @param  {String} key Unique id that you passed to this.count(key) to increment the counter.
          */
         this.clearCount = function(key) {
-            if(countMap.has(key)) {
-                countMap.delete(key);
+            if(countMap.hasOwnProperty(key)) {
+                delete countMap[key];
             }
         };
 
@@ -1790,6 +1866,26 @@
                     }
                 }
             }
+        }
+
+        function AuraInspector_OnPanelLoad() {
+            if(window.$A) {
+                window.postMessage({
+                    "action": "AuraInspector:bootstrap",
+                    "key":"AuraInspector:bootstrap",
+                    "data": "Panel connected, the injected script has already bootstrapped."
+                }, window.location.origin);
+            }
+        }
+
+        // This is temporary till we can add the data-ltngout-rendered-by attribute.
+        function getComponentForLtngOut(components) {
+            if(!components.length) { return; }
+            let owner = components[0].getOwner();
+            while(!owner.getOwner().isInstanceOf("aura:application") && owner.getOwner() !== owner) {
+                owner = owner.getOwner();
+            }
+            return owner;
         }
 
         /** Serializing Passthrough Values as valueProviders is a bit complex, so we have this helper function to do it. */
@@ -1843,8 +1939,8 @@
         }
 
         function callSubscribers(key, data) {
-            if(subscribers.has(key)) {
-                subscribers.get(key).forEach(function(callback){
+            if(subscribers[key]) {
+                subscribers[key].forEach(function(callback){
                     callback(data);
                 });
             }
@@ -1858,13 +1954,15 @@
             }
 
             function sendQueuedPostMessagesCallback() {
-                try {
-                    window.postMessage({
-                        "action": PUBLISH_BATCH_KEY,
-                        "data": postMessagesQueue
-                    }, window.location.href);
-                } catch(e) {
-                    console.error("AuraInspector: Failed to communicate to inspector.", e);
+                if(postMessagesQueue.length) {
+                    try {
+                        window.postMessage({
+                            "action": PUBLISH_BATCH_KEY,
+                            "data": postMessagesQueue
+                        }, window.location.origin);
+                    } catch(e) {
+                        console.error("AuraInspector: Failed to communicate to inspector.", e);
+                    }
                 }
                 postMessagesQueue = [];
                 batchPostId = null;
@@ -2056,7 +2154,7 @@
                         var actionWatched = actionsWatched[actionWatchedId];
                         if( oldResponseText.startsWith("while(1);") ) {
                             //parse oldResponseObj out of oldResponseText
-                            
+
                             var oldResponseObj = JSON.parse(oldResponseText.substring(9, oldResponseText.length));
 
                             //replace returnValue in oldResponseObj's actions
@@ -2164,7 +2262,7 @@
             var r1 = Math.random() * 100;
             if($Aura.chaos.shouldWeDropAction(r1)) {
                 //if we are in a new chaos run and user would like to drop action randomly
-                responseWithIncomplete = $Aura.chaos.randomlyDropAction(responseWithIncomplete, oldResponseText); 
+                responseWithIncomplete = $Aura.chaos.randomlyDropAction(responseWithIncomplete, oldResponseText);
             }
             var r2 = Math.random() * 100;
             if($Aura.chaos.shouldWeErrorResponseAction(r2)) {
@@ -2173,8 +2271,8 @@
                 responseWithError = resObj.responseWithError;
                 newResponseText = resObj.newResponseText;
             }
-            
-            
+
+
 
             if(responseWithIncomplete) {
                 oldResponse.status = 0;//so AuraClientService.isDisconnectedOrCancelled will return true
@@ -2365,10 +2463,14 @@
 
 
     function bootstrapTransactionReporting() {
+        $A.metricsService.enablePlugins();
+
         $A.metricsService.transactionStart("AuraInspector", "transactionstab");
 
         $A.metricsService.onTransactionEnd(function(transaction){
-            $Aura.Inspector.publish("AuraInspector:OnTransactionEnd", transaction);
+            setTimeout(() => {
+                $Aura.Inspector.publish("AuraInspector:OnTransactionEnd", transaction);
+            }, 0);
         });
 
         $A.metricsService.onTransactionsKilled(function(transactions){
@@ -2425,9 +2527,6 @@
                 if (this.opts.componentCreation /* && $A.getContext().mode !== 'PROD'*/) {
                     this._initializeHooksComponentCreation();
                 }
-                // It should work in all modes
-                this._initializeHooksTransactions();
-
             },
             _createNode: function (name, mark, id) {
                 return {
@@ -2447,17 +2546,6 @@
                     this.collector[i] = [];
                 }
             },
-            _initializeHooksTransactions: function () {
-                $A.metricsService.onTransactionEnd(this._onTransactionEnd.bind(this));
-            },
-            _onTransactionEnd: function (t) {
-                setTimeout(function (){
-                    // We do a timeout to give a chance to
-                    // other transactionEnd handlers to modify the transaction
-                    $Aura.Inspector.publish("Transactions:OnTransactionEnd", t);
-                }, 0);
-            },
-
             _initializeHooksComponentCreation: function () {
                 this._hookOverride("ComponentService.createComponentPriv", CMP_CREATE_MARK);
             },
@@ -2644,6 +2732,6 @@
             }
         };
     };
-    
+
 
 })(this);

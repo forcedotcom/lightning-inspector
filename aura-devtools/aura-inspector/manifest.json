@@ -2,7 +2,7 @@
     "manifest_version":2,
 	"name": "__MSG_manifest_name__",
 	"description": "__MSG_manifest_description__",
-    "version": "1.0.0.8",
+    "version": "1.0.1.1",
 	"icons": {
 		"16": "images/icon16.png",
 		"48": "images/icon48.png",
@@ -15,16 +15,18 @@
     	"AuraInspectorInjectedScript.js"
     ],
 	"devtools_page": "devtools.html",
-	"content_scripts": [{
-        "matches": ["*://*/*cmp*", "*://*/*app*", "*://*.force.com/*", "*://*.salesforce.com/*", "*://*/*/s/*", "*://*/s/*"],
-		"js": ["contentScript.js"],
-		"run_at": "document_start",
-		"all_frames": false
-	}],
+	// "content_scripts": [{
+ //        "matches": ["*://*/*cmp*", "*://*/*app*", "*://*.force.com/*", "*://*.salesforce.com/*", "*://*/*/s/*", "*://*/s/*"],
+	// 	"js": ["contentScript.js"],
+	// 	"run_at": "document_start",
+	// 	"all_frames": false
+	// }],
 	"permissions": [
 		"tabs", 
 		"background",
-		"contextMenus"
+		"contextMenus",
+		"http://*/",
+        "https://*/"
 	],
 	"default_locale": "en",
 
