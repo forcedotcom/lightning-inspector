@@ -13,6 +13,8 @@
 		<link rel="import" href="components/auracomponent/auracomponent.html"/>
 		<link rel="import" href="components/controllerreference/controllerreference.html"/>
 		<link rel="import" href="components/label/label.html"/>
+
+        <link rel="stylesheet" type="text/css" href="external/slds-assets/styles/salesforce-lightning-design-system.css">
 	</head>
 	<body>
 		<div id="loading">
@@ -26,8 +28,24 @@
 
 		</div>
 		<header class="tabs"></header>
+		<div class="slds-align--absolute-center slds-hide" id="no-aura-available-container">
+			<div class="slds-box">
+				<div>
+					<span class="slds-icon_container">
+					  <svg aria-hidden="true" class="slds-icon slds-icon-text-error slds-icon--small">
+					    <use xlink:href="external/slds-assets/icons/utility-sprite/svg/symbols.svg#error"></use>
+					  </svg>
 
-        <link rel="stylesheet" type="text/css" href="external/salesforce-lightning-design-system.css">
+					  <span class="slds-assistive-text">Error Icon</span>
+					</span>
+					<aurainspector-label key="lightning_unavailable" class="slds-text-heading--large"></aurainspector-label>
+				</div>
+				<div class="slds-p-top--large slds-grid slds-grid--vertical-align-center slds-grid--align-center">
+					<button class="slds-button slds-button--neutral" id="no-aura-available-try-again"><aurainspector-label key="try_again_button"></aurainspector-label></button>
+				</div>
+			</div>
+		</div>
+
 
         <link rel="stylesheet" type="text/css" href="perfpanel/css/inspector.css">
         <link rel="stylesheet" type="text/css" href="perfpanel/css/profilesPanel.css">

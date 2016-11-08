@@ -466,7 +466,17 @@
 	"open_devtools_notif": {
 		"message": "Please open the developer console and select the \"Lightning\" tab to access the Lightning inspector.",
 		"description": "Instructions on how to open up the Lightning Inspector."
+	},
+	"lightning_unavailable": {
+		"message": "Lightning was not detected on this page",
+		"description": "When the inspector is launched and the page doesn't have Aura, we won't be able to work, so instead show this message."
+	},
+	"try_again_button": {
+		"message": "Try Again",
+		"description": "Button the user can click to see if Lightning is on the page yet."
+
 	}
+
 	/*,
 	"": {
 		"message": "",

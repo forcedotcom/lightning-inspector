@@ -50,7 +50,7 @@ function AuraInspectorTransactionView() {
     };
 
 	/**
-	 * Show all the metrics 
+	 * Show all the metrics
 	 */
     this.setBootstrapMetrics = function(metrics) {
     	var updatedMetrics = _bootstrapMetrics && _bootstrapMetrics.pageStartTime !== metrics.pageStartTime;
@@ -70,12 +70,6 @@ function AuraInspectorTransactionView() {
     	_processor.addMarksData(_marks);
 
     	updateGrid();
-
-    	// Transform the processed data into row data. 
-    	// _processor.onNewData(function(){}) ?
-    	
-    	// Pass to the transactions grid
-
     };
 
     this.addTransaction = function(transaction) {
@@ -91,56 +85,31 @@ function AuraInspectorTransactionView() {
 	function updateGrid(){
 		var marks = {};
 
-		// Get Transports
-		var transports = _processor.getTransports();
+		// TODO: Finish this.
+		var items = _processor.getSortedItems();
 
 		transactionGrid.setEndTime(_processor.getTimelineRange()[1]);
 		transactionGrid.updateTimeMarkers();
+
+		// Ideally we wouldn't do this either.
 		transactionGrid.clear();
 
-		var actions;
+		var children;
 		// Add a row for each Transport
-		for(var c=0;c<transports.length;c++) {
-			transactionGrid.addRow(new TransportDataRow(transports[c]));
+		for(var c=0;c<items.length;c++) {
+			 if(items[c] instanceof TransportDataRow) {
+				transactionGrid.addRow(items[c]);
+				children = _processor.getActions(items[c].id);
 
-			actions = _processor.getActions(transports[c].id);
-			for(var d=0;d<actions.length;d++) {
-				if(actions[d]) {
-					transactionGrid.addRow(new ActionsDataRow(actions[d]));
+				for(var d=0;d<children.length;d++) {
+					transactionGrid.addRow(children[d]);
 				}
+			} else {
+				transactionGrid.addRow(items[c]);
 			}
 		}
 
-		// TransactionDataRow
-
 	}
-
-    // May not be needed
-	// this.printToConsole = function(obj){
- //        eventManager.notify("inspect", obj);
-	// };
-
-	// function getActions(callback) {
- //        eventManager.notify("getCurrentMarks", callback.bind(this));
-	// }
-
-	// function subscribeToMarks(callback){
-	// 	clear();
-
-	// 	var refreshingTimer = setInterval(
-	// 		function() {
-	// 			getActions(callback);
-	// 			if(recording == false){
-	// 				clearInterval(refreshingTimer);
-	// 			}
-	// 		}.bind(this), 500);
-	// }
-
-	// Will go away when I refactor for Custom Transactions
-    //function initEventHandlers(){
-        //eventManager.notify("initView");
-        //eventManager.notify("onSubscribeToTransactionEnd", AuraInspectorTransactionView_OnTransactionEnd.bind(this));
-    //}
 
 	function AuraInspectorTransactionView_OnTransactionEnd(data){
 		if(recording && isCurrentTypeOfDataCustomTrans()) {
@@ -426,21 +395,6 @@ function AuraInspectorTransactionView() {
 		return newDataBool;
 	}
 
-	function setDataType(type){
-		if(currentTypeOfData != type){
-			currentTypeOfData = type;
-			transactionGrid.createTableHeader(type);
-		}
-	}
-
-    function isCurrentTypeOfDataCustomTrans(){
-        return (currentTypeOfData === CUSTOM_TRANS);
-    }
-
-    function isCurrentTypeOfDataMarks(){
-        return (currentTypeOfData === MARKS);
-    }
-
     function outputActionServerData(action) {
     	if(!action) {
     		return;
@@ -479,7 +433,7 @@ function AuraInspectorTransactionView() {
     	chrome.devtools.inspectedWindow.eval(`
     		console.group("Action: ${name}");
     		console.log("%cOverview", "font-size: 1.2em; font-weight: bold; color: #0070d2;");
-	    	console.table(${overview}, ["totalTime", "ownTime", "childTime"]);	
+	    	console.table(${overview}, ["totalTime", "ownTime", "childTime"]);
     		if(${callstack}) {
 	    		console.log("%cCallstack", "font-size: 1.2em; font-weight: bold; color: #0070d2;");
 		    	console.table(${callstack}, ["work", "totalTime", "childTime"]);
@@ -525,7 +479,7 @@ function AuraInspectorTransactionView() {
     	chrome.devtools.inspectedWindow.eval(`
     		console.group("${name}");
     		console.log("%cOverview", "font-size: 1.2em; font-weight: bold; color: #0070d2;");
-	    	console.table(${overview}, ["startTime", "totalTime", "ownTime", "childTime"]);	
+	    	console.table(${overview}, ["startTime", "totalTime", "ownTime", "childTime"]);
     		console.log("%cCallstack", "font-size: 1.2em; font-weight: bold; color: #0070d2;");
 	    	console.table(${callstack}, ["type",  "info", "totalTime", "childTime"]);
 	    	console.groupEnd();
@@ -541,13 +495,29 @@ function AuraInspectorTransactionView() {
     	var _startRange = Infinity;
     	var _endRange = 0;
     	var _transactions = [];
+    	var _uid = 1;
+
+    	this.getSortedItems = function() {
+    		var transports = this.getTransports();
+    		var items = _transactions.concat(transports);
+
+    		// TODO: Move sort function decleration out of here.
+    		return items.sort(function(a, b) {
+    			var aTimestamp = a.getStartTime();
+    			var bTimestamp = b.getStartTime();
+
+    			if(aTimestamp === bTimestamp) { return 0; }
+    			else if(aTimestamp < bTimestamp) { return -1; }
+    			return 1;
+    		});
+    	};
 
     	this.addTransaction = function(transaction) {
-    		_transactions.push(transaction);
+    		_transactions.push(new TransactionDataRow(transaction));
     	};
 
     	this.addMarksData = function(data) {
-    		// Process Marks 
+    		// Process Marks
     		if(!data) {
     			return;
     		}
@@ -566,6 +536,13 @@ function AuraInspectorTransactionView() {
 	    	}
     	};
 
+    	this.getChildren = function(dataRow) {
+    		if(dataRow.getChildren) {
+    			return dataRow.getChildren();
+    		}
+    		return [];
+    	};
+
     	this.getTransports = function() {
     		var transports = [];
     		return Array.from(_transports.values());
@@ -573,6 +550,14 @@ function AuraInspectorTransactionView() {
 
     	this.getTransportById = function(transportId) {
     		return getTransportById(parseInt(transportId));
+    	};
+
+    	this.getTransactionById = function(transactionId) {
+    		for(var c=0;c<_transactions.length;c++) {
+    			if(_transactions[c].id === transactionId) {
+    				return _transactions[c];
+    			}
+    		}
     	};
 
     	this.getActions = function(transportId) {
@@ -583,16 +568,12 @@ function AuraInspectorTransactionView() {
     			return [];
     		}
 
-    		if(!transport.actions) {
-    			return [];
-    		}
-
     		var ret = [];
-    		var actionIds = transport.actions;
+    		var actionIds = transport.getActions();
     		for(var actionId in actionIds) {
     			ret.push(getActionById(actionId));
     		}
-    		
+
     		return ret;
     	};
 
@@ -609,6 +590,14 @@ function AuraInspectorTransactionView() {
 
     	this.getTimelineRange = function() {
     		return [_startRange, _endRange];
+    	};
+
+    	this.getUid = function(prefix) {
+    		_uid = _uid+1;
+    		if(prefix) {
+    			return prefix + _uid;
+    		}
+    		return _uid;
     	}
 
     	function getTransportById(id) {
@@ -639,15 +628,15 @@ function AuraInspectorTransactionView() {
 			// Format: "1$apex://DreamforceData/ACTION$getFeatureList"
 			var actionDef = actionPath.replace(/^\d\$/g, "");
 
-			
+
 			var action;
 			for(var actionId in transport.actions) {
 				action = getActionById(actionId);
-    			if(action && action.stamp && action.stamp.context.def === actionDef) {
+    			if(action && action.columns[0] === actionDef) {
     				return action;
     			}
     		}
-			
+
 			return null;
     	}
 
@@ -660,30 +649,14 @@ function AuraInspectorTransactionView() {
     			id = transportMarks[c].context.auraXHRId;
     			transport = getTransportById(id);
     			if(!transport) {
-    				transport = { "id": id, "name": "http-request {" + id + "}" };
+    				transport = new TransportDataRow({ "id": id, "name": "http-request {" + id + "}" });
     				setTransportById(id, transport);
     			}
 
-    			if(!transport[current.phase]) {
-    				transport[current.phase] = current;
-    			}
+    			transport.mergeData(current);
 
-    			_startRange = Math.min(current.ts, _startRange);
-    			_endRange = Math.max(current.ts, _endRange);
-
-    			if(current.context.actionDefs) {
-    				if(!transport.actions) {
-    					transport.actions = {};
-    				}
-
-    				for(var d=0;d<current.context.actionDefs.length;d++) {
-    					// Format is actionName$actionId in 202, actionId in 204
-    					var pair = current.context.actionDefs[d].split("$");
-    					var actionId = pair[1] || pair[0];
-    					transport.actions[actionId] = pair[0];
-    				}
-
-    			}
+    			_startRange = Math.min(transport.getStartTime(), _startRange);
+    			_endRange = Math.max(transport.getStartTime(), _endRange);
     		}
     	}
 
@@ -698,17 +671,14 @@ function AuraInspectorTransactionView() {
     			action = getActionById(id);
 
     			if(!action) {
-    				action = { "id": id };
+    				action = new ActionsDataRow({ "id": id });
     				setActionById(id, action);
     			}
 
-    			if(!action[current.phase]) {
-    				action[current.phase] = current;
-    			}
+    			action.mergeData(current);
 
-    			_startRange = Math.min(current.ts, _startRange);
-    			_endRange = Math.max(current.ts, _endRange);
-
+    			_startRange = Math.min(action.getStartTime(), _startRange);
+    			_endRange = Math.max(action.getStartTime(), _endRange);
     		}
     	}
 
@@ -725,44 +695,37 @@ function AuraInspectorTransactionView() {
     			}
     			xhrId = current.context.id;
 
-   				// data = { 
-   				// 	"id": xhrId, 
-   				// 	"ts": current.ts
-   				// };
-
    				transport = getTransportById(xhrId);
    				if(!transport) {
    					continue; // Not sure why this would happen. Just being safe.
    				}
 
-   				calltree = current.context.perf.calltree[0]
-
-   				transport.serverData = calltree;
-   				for(var d=0;d<calltree.children.length;d++) {
-   					if(calltree.children[d].name === "action") {
-
-   						var action = getActionFromTransport(transport, calltree.children[d].attachment.actionName);
-   						if(action) {
-   							action.serverData = calltree.children[d];
-   						}
-   					}
-   				}
-
+   				transport.mergeData(current);
     		}
 
     	}
 
     }
 
-    function TransactionDataRow(transaction) {    	
-    	this.columns = [transaction.id, "", transaction.duration, transaction.start];
-    	this.id = transaction.id;
+    function TransactionDataRow(transaction) {
+    	this.columns = [transaction.id, "", transaction.duration, transaction.ts + "ms"];
+    	this.id = _processor.getUid(transaction.id);
     	this.timeline = [transaction.start, transaction.start + transaction.duration];
     	this.styles = {
     		"timeline": "transaction",
     		"row": "transaction"
     	};
 
+    	this.mergeData = function() {};
+
+    	this.getStartTime = function() {
+    		return transaction.ts;
+    	};
+
+    	// Used in temporary console.log
+    	this.getData = function() {
+    		return transaction;
+    	};
     }
 
     // Transforms PROCESSED marks to a row that the grid expects.
@@ -775,20 +738,69 @@ function AuraInspectorTransactionView() {
     		"row": "transport"
     	};
 
-    	if(marks.start) {
-    		this.timeline.push(marks.start.ts);
+    	this.mergeData = function(data) {
+    		var calltree;
 
-    		// Start Time Column
-    		this.columns[3] = Math.round(marks.start.ts) + "ms";
-    	}
+			if(!marks[data.phase]) {
+				marks[data.phase] = data;
+			}
 
-    	if(marks.end) {
-    		this.timeline.push(marks.end.ts);
+			if(data.context && data.context.actionDefs) {
+				if(!marks.actions) {
+					marks.actions = {};
+				}
 
-    		// Duration Column
-    		this.columns[2] = Math.round(marks.end.ts - marks.start.ts) + "ms";
+				for(var d=0;d<data.context.actionDefs.length;d++) {
+					// Format is actionName$actionId in 202, actionId in 204
+					var pair = data.context.actionDefs[d].split("$");
+					var actionId = pair[1] || pair[0];
+					marks.actions[actionId] = pair[0];
+				}
+			}
 
-    	}
+			if(data.context && data.context.perf && data.context.perf.calltree) {
+   				calltree = data.context.perf.calltree[0]
+   				if(calltree) {
+					marks.serverData = calltree;
+	   				for(var d=0;d<calltree.children.length;d++) {
+	   					if(calltree.children[d].name === "action") {
+	   						var action = getActionFromTransport(marks, calltree.children[d].attachment.actionName);
+	   						if(action) {
+	   							action.serverData = calltree.children[d];
+	   						}
+	   					}
+	   				}
+	   			}
+   			}
+
+			if(marks.start) {
+	    		this.timeline.push(marks.start.ts);
+
+	    		// Start Time Column
+	    		this.columns[3] = Math.round(marks.start.ts) + "ms";
+	    	}
+
+	    	if(marks.end && marks.start) {
+	    		this.timeline.push(marks.end.ts);
+
+	    		// Duration Column
+	    		this.columns[2] = Math.round(marks.end.ts - marks.start.ts) + "ms";
+	    	}
+    	};
+
+    	this.getChildren = function() {
+    		return _processor.getActions(this.id);
+    	};
+
+    	this.getActions = function() {
+    		return marks.actions || [];
+    	};
+
+    	this.getStartTime = function() {
+    		return marks.start && marks.start.ts || 0;
+    	};
+
+    	this.mergeData(marks);
     }
 
     function ActionsDataRow(marks) {
@@ -800,20 +812,33 @@ function AuraInspectorTransactionView() {
     		"row": "action"
     	};
 
-    	if(marks.stamp) {
-    		this.columns[0] = marks.stamp.context.def;
-    		this.timeline[0] = marks.stamp.ts;
-    	}
+    	this.mergeData = function(data) {
+			if(!marks[data.phase]) {
+				marks[data.phase] = data;
+			}
 
-    	if(marks.start) {
-    		this.timeline[1] = marks.start.ts;
-    		this.columns[3] = Math.round(marks.start.ts) + "ms";
-    	}
+	    	if(marks.stamp) {
+	    		this.columns[0] = marks.stamp.context.def;
+	    		this.timeline[0] = marks.stamp.ts;
+	    	}
 
-    	if(marks.end) {
-    		this.timeline[2] = marks.end.ts;
-    		this.columns[2] = Math.round(marks.end.ts - marks.start.ts) + "ms";
-    	}
+	    	if(marks.start) {
+	    		this.timeline[1] = marks.start.ts;
+	    		this.columns[3] = Math.round(marks.start.ts) + "ms";
+	    	}
+
+	    	if(marks.end) {
+	    		this.timeline[2] = marks.end.ts;
+	    		this.columns[2] = Math.round(marks.end.ts - marks.start.ts) + "ms";
+	    	}
+
+		};
+
+		this.getStartTime = function() {
+			return marks.start && marks.start.ts || 0;
+		};
+
+    	this.mergeData(marks);
     }
 
     function TransactionGrid_OnItemClick(eventData) {
@@ -823,6 +848,14 @@ function AuraInspectorTransactionView() {
     	} else if(eventData.type === "transport") {
     		outputTransportServerData(_processor.getTransportById(eventData.id));
     		// Print out the server data.
+    	} else if(eventData.type === "transaction") {
+    		var transaction = _processor.getTransactionById(eventData.id);
+    		if(transaction) {
+    			var json = JSON.stringify(transaction.getData());
+    			chrome.devtools.inspectedWindow.eval(`
+	    			console.log(${json});
+	    		`);
+    		}
     	}
 
     }
@@ -861,11 +894,11 @@ function AuraInspectorTransactionView() {
     this.attach = function(eventName, callback){
         eventManager.attach(eventName, callback);
     };
-    
+
     this.remove = function(eventName){
         eventManager.remove(eventName);
     };
-    
+
     this.notify = function(eventName, data){
         eventManager.notify(eventName, data);
     };

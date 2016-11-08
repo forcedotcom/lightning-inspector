@@ -96,9 +96,9 @@ function AuraInspectorComponentTree(devtoolsPanel) {
         }
 
         try {
-            generateTree(_items, new TreeNode(), function(treeNode){
+            generateRootComponents(_items, function(treeNodes) {
                 treeComponent.clearChildren();
-                treeComponent.addChild(treeNode);
+                treeComponent.addChildren(treeNodes);
                 treeComponent.render({ "collapsable" : true, "selectedNodeId": selectedNodeId });
                 isDirty = false;
 
@@ -109,6 +109,7 @@ function AuraInspectorComponentTree(devtoolsPanel) {
 
                 devtoolsPanel.hideLoading();
             });
+          
         } catch(e) {
             alert([e.message, e.stack]);
         }
@@ -117,8 +118,8 @@ function AuraInspectorComponentTree(devtoolsPanel) {
 
     this.refresh = function() {
         devtoolsPanel.showLoading();
-        devtoolsPanel.getRootComponent(function(component){
-            this.setData(component);
+        devtoolsPanel.getRootComponents(function(components){
+            this.setData(components);
         }.bind(this));
     };
 
@@ -145,7 +146,7 @@ function AuraInspectorComponentTree(devtoolsPanel) {
         if(event && event.data) {
             var domNode = event.data.domNode;
             var treeNode = event.data.treeNode;
-            var globalId = treeNode && treeNode.getRawLabel().globalId;
+            var globalId = treeNode && treeNode.getRawLabel() && treeNode.getRawLabel().globalId;
 
             if(globalId) {
                 devtoolsPanel.highlightElement(globalId);
@@ -182,6 +183,36 @@ function AuraInspectorComponentTree(devtoolsPanel) {
                 var command = "$auraTemp = $A.getCmp('" + globalId + "'); undefined;";
                 chrome.devtools.inspectedWindow.eval(command);
             }
+        }
+    }
+
+    function generateRootComponents(components, callback) {
+        let current;
+        const returnNodes = [];
+        const length = components.length;
+        let counter = length;
+
+        for(let c=0;c<length;c++) {
+            current = components[c];
+            if("dom" in current) {
+                parentTreeNode = new TreeNode(current.dom, "");
+                generateTree(current.components.map(devtoolsPanel.jsonParse), parentTreeNode, function(treeNode){
+                    returnNodes.push(treeNode);
+                    if(--counter === 0) {
+                        callback(returnNodes);
+                    }
+                });   
+            } else {
+                parentTreeNode = new TreeNode();
+                generateTree(current.components.map(devtoolsPanel.jsonParse), parentTreeNode, function(treeNode){
+                    returnNodes.push(treeNode.getChildren()[0]);
+                    if(--counter === 0) {
+                        callback(returnNodes);
+                    }
+                });   
+            }
+
+             
         }
     }
 

@@ -109,7 +109,6 @@ function AuraInspectorActionsView(devtoolsPanel) {
         devtoolsPanel.subscribe("AuraInspector:OnActionEnqueue", AuraInspectorActionsView_OnActionEnqueue.bind(this));
         devtoolsPanel.subscribe("AuraInspector:OnActionStateChange", AuraInspectorActionsView_OnActionStateChange.bind(this));
         devtoolsPanel.subscribe("AuraInspector:OnPanelConnect", AuraInspectorActionsView_OnBootstrap.bind(this));
-        devtoolsPanel.subscribe("AuraInspector:OnPanelAlreadyConnected", AuraInspectorActionsView_OnBootstrap.bind(this));
 
         devtoolsPanel.subscribe("AuraInspector:RemoveActionFromWatchList", AuraInspectorActionsView_OnRemoveActionFromWatchList.bind(this));
         devtoolsPanel.subscribe("AuraInspector:EnqueueNextResponseForAction", AuraInspectorActionsView_OnEnqueueNextResponseForAction.bind(this));

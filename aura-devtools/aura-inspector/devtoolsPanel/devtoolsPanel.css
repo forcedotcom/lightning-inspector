@@ -218,9 +218,9 @@ header.tabs button.selected {
 
 /*-----dropdown menu styles---------*/
 header.tabs div.dropdown-trigger#help {
-  float:right;
-  position: relative;
+  position: absolute;
   bottom: 0;
+  right: 10px;
 }
 header.tabs div.dropdown-trigger#help .trigger {
   border: 1px solid #DADEE2;
@@ -1274,7 +1274,7 @@ table.trans-graph-bar-info-table{
 #storage-viewer { padding: 10px; overflow:auto; height:100%; }
 
 /* Loading Indicator */
-#loading { display: none; position: absolute; height: 100%; width: 100%; }
+#loading { display: none; position: absolute; top: 0; bottom: 0; left: 0;  right:0; z-index: 100;}
 #loading .dotsSpinner { width: 100px; height: 100px;}
 #loading .opaque { content: ' '; background: #fff; width: 100%; height: 100%; opacity: .6; z-index: 99; }
 
@@ -1295,6 +1295,17 @@ table.trans-graph-bar-info-table{
 #loading .dots:after { animation-delay: 416.66667ms; }
 #loading .a:after { animation-delay: 583.33333ms; }
 #loading .b:after { animation-delay: 750.0ms; }
+
+/* No Aura Available */
+.aura-unavailable > section,
+.aura-unavailable > header {
+  display: none;
+}
+
+#no-aura-available-container .slds-icon_container {
+  position: relative;
+  top: -5px;
+}
 
 
 @-webkit-keyframes dotsBounceBefore-medium {

@@ -63,9 +63,6 @@ function AuraInspectorTransactionPanel(devtoolsPanel) {
         // Starts listening for custom transactions
         //transactionView.notify("initEventHandlers");
 
-        // Enable Transaction Plugins (would not be auto enabled in prod mode)
-        devtoolsPanel.subscribe("AuraInspector:OnPanelConnect", AuraInspector_OnPanelConnect);
-
         // When we OnPanelConnect, enable the plugins again. 
         // This is if we reload the page while the devtools are open.
         devtoolsPanel.subscribe("AuraInspector:OnBootstrapEnd", AuraInspector_OnBootstrapEnd);
@@ -129,16 +126,10 @@ function AuraInspectorTransactionPanel(devtoolsPanel) {
     }
 
     function AuraInspector_OnBootstrapEnd() {
-        chrome.devtools.inspectedWindow.eval("$A.metricsService.enablePlugins();");
-
         // Bootstrap metrics include things like page start time
         chrome.devtools.inspectedWindow.eval("$A.metricsService.getBootstrapMetrics()", (metrics) => {
             transactionView.setBootstrapMetrics(metrics);
         });
-    }
-
-    function AuraInspector_OnPanelConnect() {
-        chrome.devtools.inspectedWindow.eval("$A.metricsService.enablePlugins();");
     }
 
     function AuraInspector_OnTransactionEnd(transaction) {

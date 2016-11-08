@@ -502,7 +502,7 @@ function AuraInspectorTreeView(treeContainer) {
         // Configurable rendering options
         options = Object.assign({ 
             "collapsable": false,
-            selectedNodeId: undefined
+            "selectedNodeId": undefined
         }, options);
         
         try {
@@ -524,7 +524,7 @@ function AuraInspectorTreeView(treeContainer) {
 
         isRendered = true;
 
-        if(options.selectedNodeId) {
+        if(options.hasOwnProperty("selectedNodeId")) {
             this.selectById(options.selectedNodeId);
         }
 

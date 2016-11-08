@@ -1,4 +1,5 @@
 (function(global){
+    //chrome.devtools.inspectedWindow.eval("window.kris = (!!window.kris) ? window.kris+1 : 1;");
     /**
      * You can use the publish and subscribe methods to broadcast messages through to the end points of the architecture.
      * The majority of the work is done in the devtoolsPanel and the AuraInspectorInjectedScript. So you'll usually want
@@ -27,7 +28,7 @@
      * AuraInspector:ShowComponentInTree            Indicates you want to show the specified globalID in the component tree.
      * AuraInspector:OnClientActionStart
      * AuraInspector:OnClientActionEnd              TODO: Kris, Is this the same as OnEventEnd?
-     * AuraInspector:OnDescriptorSelect             A descriptor was clicked on, we may want to take some action here such as showing a panel that has more information. 
+     * AuraInspector:OnDescriptorSelect             A descriptor was clicked on, we may want to take some action here such as showing a panel that has more information.
      * AuraInspector:OnStartChaosRun                User has click button "Start Chaos Run" in chaos tab, let's start randomly clicking through the app
      * AuraInspector:OnStopChaosRun                 User has click button "Stop the Run", we are done with current new chaos run
      * AuraInspector:OnSaveChaosRun                 User has click button "Save the Run", we will save the chaos run into local file
@@ -44,13 +45,14 @@
     // Connects to content script
     // and draws the panels.
     panel.init(function(){
-            // Probably the default we want
+        // Probably the default we want
         AuraInspectorOptions.getAll({ "activePanel": "transaction" }, function(options) {
             if(!panel.hasPanel(options["activePanel"])) {
                 // If the panel we are switching to doesn't exist, use the
                 // default which is the transaction panel.
                 options["activePanel"] = "transaction";
             }
+
             panel.showPanel(options["activePanel"]);
         });
     });
@@ -81,21 +83,23 @@
 
             runtime = chrome.runtime.connect({"name": _name });
             runtime.onMessage.addListener(DevToolsPanel_OnMessage.bind(this));
+            //runtime.onDisconnect.addListener(DevToolsPanel_OnDisconnect.bind(this));
 
-            runtime.postMessage({subscribe: [BOOTSTRAP_KEY], port: runtime.name, tabId: tabId});
+            runtime.postMessage({subscribe: ["AuraInspector:bootstrap"], port: runtime.name, tabId: tabId});
         };
 
         this.disconnect = function(port) {
             // Panel was closed
-            global.AuraInspector.ContentScript.disconnect();
+            //global.AuraInspector.ContentScript.disconnect();
         };
 
         this.init = function(finishedCallback) {
             this.connect();
 
             // Wait for the AuraInjectedScript to finish loading.
-            this.subscribe("AuraInspector:OnBootstrapEnd", function(){
+            this.subscribe("AuraInspector:OnBootstrapEnd", () => {
                 if(_initialized) { return; }
+
                 //-- Attach Event Listeners
                 var header = document.querySelector("header.tabs");
                 header.addEventListener("click", HeaderActions_OnClick.bind(this));
@@ -107,7 +111,7 @@
                 var transaction = new AuraInspectorTransactionPanel(this);
                 var actions = new AuraInspectorActionsView(this);
                 var storage = new AuraInspectorStorageView(this);
-                
+
                 this.addPanel("component-tree", tree, chrome.i18n.getMessage("tabs_componenttree"));
                 this.addPanel("performance", perf, chrome.i18n.getMessage("tabs_performance"));
                 this.addPanel("transaction", transaction, chrome.i18n.getMessage("tabs_transactions"));
@@ -141,16 +145,26 @@
                 // We broadcast one publish message everywhere, and then we have subscribers.
                 // We do this here, after we've setup all the subscribers. So now we say send us everything that has been
                 // queued up, and start listening going forward.
-                runtime.postMessage({subscribe : [PUBLISH_KEY, PUBLISH_BATCH_KEY], port: runtime.name, tabId: tabId });
+                runtime.postMessage({subscribe: [PUBLISH_KEY, PUBLISH_BATCH_KEY], port: runtime.name, tabId: tabId });
 
                 _initialized = true;
 
                 if(typeof finishedCallback === "function") {
                     finishedCallback();
                 }
-            }.bind(this));
+            });
 
-            this.publish("AuraInspector:OnPanelConnect", {});
+            this.subscribe("AuraInspector:OnAuraUnavailable", () => {
+                document.body.classList.add("aura-unavailable");
+                document.querySelector("#no-aura-available-container").classList.remove("slds-hide");
+            });
+
+            this.publish("AuraInspector:OnPanelConnect", "DevtoolsPanel: Devtools loaded." + Date.now());
+
+            var tryAgainButton = document.querySelector("#no-aura-available-try-again");
+            tryAgainButton.addEventListener("click", TryAgainButton_OnClick.bind(this));
+
+            setupContentScript();
         };
 
         /**
@@ -195,9 +209,9 @@
             var buttonKey = "tabs-"+panelKey;
             var current = panels.get(panelKey);
 
-            // When you try to show the panel that already is shown, we don't want to refire render. 
+            // When you try to show the panel that already is shown, we don't want to refire render.
             // That does setup stuff and that shouldn't happen while you are using a panel.
-            if(current === currentPanel) {
+            if(current === currentPanel || !current) {
                 return;
             } else {
                 currentPanel = current;
@@ -251,6 +265,7 @@
 
             chrome.devtools.inspectedWindow.eval(command, function() {
                 if(_subscribers.has(key)) {
+                    console.log(key, _subscribers.get(key).length)
                     _subscribers.get(key).forEach(function(callback){
                         callback(data);
                     });
@@ -359,19 +374,22 @@
             }
         };
 
-        this.getRootComponent = function(callback) {
+        this.getRootComponents = function(callback) {
             if(typeof callback !== "function") { throw new Error("callback is required for - getRootComponent(callback)"); }
-            var command = "window.$A && $A.getRoot() && window[Symbol.for('AuraDevTools')].Inspector.getComponent($A.getRoot().getGlobalId());";
-            chrome.devtools.inspectedWindow.eval(command, function(response, exceptionInfo) {
-                if(exceptionInfo) { console.error(exceptionInfo); }
-                if(!response) { return; }
-                var component = JSON.parse(response);
+
+            chrome.devtools.inspectedWindow.eval("window.$A && $A.getRoot() && window[Symbol.for('AuraDevTools')].Inspector.getRootComponents();", function(rootNodes, exceptionInfo) {
+                if(exceptionInfo) {
+                    console.error(exceptionInfo);
+                }
+                if(!rootNodes) { return; }
+                var component = JSON.parse(rootNodes);
 
                 // RESOLVE REFERENCES
                 component = ResolveJSONReferences(component);
 
                 callback(component);
             });
+
         };
 
         /**
@@ -379,7 +397,6 @@
          * Should probably just move to the publish and subscribe methods.
          */
         this.attach = function(eventName, eventHandler) {
-            throw new Error("TRACE!");
             if(!events.has(eventName)) {
                 events.set(eventName, new Set());
             }
@@ -422,8 +439,8 @@
             console.error(msg);
         };
 
-        /** 
-         * Slower than just JSON.parse because it tries to resolve any 
+        /**
+         * Slower than just JSON.parse because it tries to resolve any
          * circular references.
          */
         this.jsonParse = function(jsonString) {
@@ -453,10 +470,14 @@
             }
         }
 
+        function DevToolsPanel_OnDisconnect() {
+            this.disconnect();
+        }
+
         function DevToolsPanel_OnMessage(message) {
             if(!message) { return; }
-            if(message.action === BOOTSTRAP_KEY) {
-                this.publish("AuraInspector:OnBootstrapEnd", {});
+            if(message.action === "AuraInspector:bootstrap") {
+                this.publish("AuraInspector:OnBootstrapEnd", "DevtoolsPanel: AuraInspector:bootstrap was called.");
             } else if(message.action === PUBLISH_KEY) {
                 callSubscribers(message.key, message.data);
             } else if(message.action === PUBLISH_BATCH_KEY) {
@@ -468,6 +489,7 @@
         }
 
         function callSubscribers(key, data) {
+            console.log("Calling Subscribers For: ", key);
             if(_subscribers.has(key)) {
                 _subscribers.get(key).forEach(function(callback){
                     try {
@@ -525,7 +547,20 @@
 
         function AuraInspector_OnAuraInitialized() {
             // The initialize script ran.
-            this.publish("AuraInspector:OnPanelConnect", {});
+            this.publish("AuraInspector:OnPanelConnect", "DevtoolsPanel:OnAuraInitialized");
+
+            document.body.classList.remove("aura-unavailable");
+            document.querySelector("#no-aura-available-container").classList.add("slds-hide");
+        }
+
+        function TryAgainButton_OnClick() {
+            this.showLoading();
+
+            setupContentScript();
+
+            setTimeout(() => {
+                this.hideLoading();
+            }, 500);
         }
 
         /**  BEGIN HELP BUTTON */
@@ -671,6 +706,25 @@
         }
 
         /** END HELP BUTTON */
+
+        function setupContentScript() {
+            // Check if Aura is present, but not the InjectedScript
+            chrome.devtools.inspectedWindow.eval("[!!(window.$A || window.Aura), !!window[Symbol.for('AuraDevTools')]]", function(availability) {
+                const isAuraPresent = availability[0];
+                const isContentScriptPresent = availability[1];
+                const noAuraAvailable = document.querySelector("#no-aura-available-container");
+
+                if(isAuraPresent) {
+                    noAuraAvailable.classList.add("slds-hide");
+                    if(!isContentScriptPresent) {
+                        runtime.postMessage( { "injectContentScriptToTab": chrome.devtools.inspectedWindow.tabId } );
+                    }
+                } else {
+                    noAuraAvailable.classList.remove("slds-hide");
+                }
+
+            });
+        }
 
         function stripDescriptorProtocol(descriptor) {
             if(typeof descriptor != 'string') { return descriptor; }
