@@ -1297,11 +1297,6 @@ table.trans-graph-bar-info-table{
 #loading .b:after { animation-delay: 750.0ms; }
 
 /* No Aura Available */
-.aura-unavailable > section,
-.aura-unavailable > header {
-  display: none;
-}
-
 #no-aura-available-container .slds-icon_container {
   position: relative;
   top: -5px;

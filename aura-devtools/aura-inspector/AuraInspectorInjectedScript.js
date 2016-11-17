@@ -1425,15 +1425,13 @@
 
             // Aura's present, our script is present, bootstrap!
             this.subscribe("AuraInspector:OnAuraInitialized", () => {
-                $Aura.actions["AuraDevToolService.Bootstrap"]();
-
+                this.bootstrap();
                 this.subscribe("AuraInspector:OnPanelConnect", AuraInspector_OnPanelLoad.bind(this));
             });
 
             // Aura is present and the root has already been initialized.
             if(window.$A && !!window.$A.getContext()) {
-                $Aura.actions["AuraDevToolService.Bootstrap"]();
-
+                this.bootstrap();
                 this.publish("AuraInspector:OnAuraInitialized", "InjectedScript: Aura Present already during load." );
             }
 
@@ -1448,6 +1446,10 @@
                     }
                 });
             }
+        };
+
+        this.bootstrap = function() {
+            $Aura.actions["AuraDevToolService.Bootstrap"]();
         };
 
         this.publish = function(key, data) {
