@@ -489,7 +489,7 @@
                         //console.log("DevtoolsPanel:CallSubscribers", key, data);
                         callback(data);
                     } catch(e) {
-                        console.error(e);
+                        console.error("Key: ", key, " resulted in error ", e);
                     }
                 });
             } else {

@@ -1,5 +1,7 @@
 <template id="actionCardTemplate">
 	<style>
+	h1, h2, h3, h4, h5, h6 { padding: 0; margin: 0; }
+
 	button, html input[type=button], input[type=reset], input[type=submit] {
 		-webkit-appearance: button;
 		cursor: pointer;
@@ -123,7 +125,6 @@
 		font-weight: 300;
 		font-size: 1.125rem;
 		line-height: 1.25;
-		margin: .5rem;
 		overflow-wrap: break-word;
 	}
 	.span_removeActionCard {
@@ -132,11 +133,10 @@
 	dl{
 			display: flex;
 			flex-wrap: wrap;
+			margin: 0;
 	}
-	th, dt {
+	th, dt, h3 {
 			font-weight: normal;
-			font-size: .75em;
-			padding: .5rem .5rem 0 .5rem;
 			text-align: left;
 			font-size: 0.75rem;
 			line-height: 1.25;
@@ -146,7 +146,7 @@
 	td, dd {
 			color: #16325c;
 			font-size: .75rem;
-			padding: 0 .5rem 0 .5rem;
+			padding: 0 1rem 0 0;
 			margin: 0;
 	}
 	dd {
@@ -265,6 +265,9 @@
 	.p-right--xsmall{
 			padding-right: .5rem;
 	}
+	.p-bottom--xsmall {
+		padding-bottom: .5rem;
+	}
 	.p-bottom--none{
 			padding-bottom: 0;
 	}
@@ -306,11 +309,11 @@
 		display:none;
 	}
 	</style>
-	<div class="card">
+	<div class="card p-around--xsmall">
 		<div>
 			<div class="grid">
 				<div class="col">
-					<div class="div_actionName" id="div_actionName"></div>
+					<div class="div_actionName p-bottom--xsmall" id="div_actionName"></div>
 				</div>
 				<div class="shrink-none">
 					<button id='span_removeActionCard' class='span_removeActionCard button button--icon button--icon-bare button--icon-small'>
@@ -322,15 +325,15 @@
 		</div>
 	    <div>
 			<dl class="inline">
-				<div class="div_actionParameter p-around--xsmall p-bottom--none grid">
+				<div class="div_actionParameter p-bottom--xsmall grid">
 					<dt class="shink"><aurainspector-label key="actioncard_parameters"></aurainspector-label></dt>
 					<dd class="col"><aurainspector-json class="parameters code" expandTo="0"></aurainspector-json></dd>
 		        </div>
-		        <div id="div_actionResponse" class="div_actionResponse p-around--xsmall p-bottom--none grid">
+		        <div id="div_actionResponse" class="div_actionResponse p-bottom--xsmall grid">
 		        	<dt class="shrink"><aurainspector-label key="actioncard_result"></aurainspector-label></dt>
 		            <dd class="col"><aurainspector-json class="result code" expandTo="0" id="actionResult"></aurainspector-json></dd>
 		        </div>
-		        <div id="div_actionError" class="div_actionResponse p-around--xsmall p-bottom--none grid">
+		        <div id="div_actionError" class="div_actionResponse p-bottom--xsmall grid">
 		            <dt class="shrink"><aurainspector-label key="actioncard_error"></aurainspector-label></dt>
 		            <dd class="col"><aurainspector-json class="code" expandTo="0" id="actionError" ></aurainspector-json></dd>
 		        </div>
@@ -346,14 +349,14 @@
 	            </textarea>
 	        </div>
 	        -->
-			<div class="p-around--xsmall p-bottom--none dropOrModify">
+			<div class="p-bottom--xsmall dropOrModify">
 				<select id="select_dropOrModify" class="select_dropOrModify select">
 				   	<option value="dropAction"><aurainspector-label key="actioncard_dropaction"></aurainspector-label></option>
 				    <option value="modifyResponse"><aurainspector-label key="actioncard_overrideresult"></aurainspector-label></option>
 				    <option value="errorResponseNextTime"><aurainspector-label key="actioncard_errorresponse"></aurainspector-label></option>
 				</select>
 			</div>
-	        <div class="div_editActionResult p-around--xsmall p-bottom--none">
+	        <div class="div_editActionResult p-bottom--xsmall">
 	            <div class="div_textarea_ActionResult">
 	            	<label for="actionResult" class="label"><aurainspector-label key="actioncard_key"></aurainspector-label></label>
 	            	<select id="select_actionResultKey" class="select">
@@ -368,7 +371,7 @@
 		            <button id="button_editActionResult" class="button_editActionResult text-button hidden"><aurainspector-label key="actioncard_edit"></aurainspector-label></button>
 				</div>
 	        </div>
-	        <div class="div_errorResponse p-around--xsmall p-bottom--none">
+	        <div class="div_errorResponse p-bottom--xsmall">
 	        	<label for="actionResult" class="label"><aurainspector-label key="actioncard_errormessage"></aurainspector-label></label>
 	        	<textarea name="actionErrorMessage" id="textarea_actionErrorMessage" class="textarea_ActionResult code" rows="3" wrap="off">
 	            </textarea>
@@ -387,41 +390,47 @@
 			</div>
 	    </div>
 	    <dl class="attributes">
-			<div class="col">
+			<div class="col p-bottom--xsmall">
 			     <dt><aurainspector-label key="actioncard_id"></aurainspector-label></dt><dd id="actionId"></dd>
 			</div>
-			<div class="col">
+			<div class="col p-bottom--xsmall">
         		<dt><aurainspector-label key="actioncard_state"></aurainspector-label></dt><dd id="actionState"></dd>
 			</div>
-			<div class="col">
+			<div class="col p-bottom--xsmall">
         		<dt><aurainspector-label key="actioncard_abortable"></aurainspector-label></dt><dd id="actionIsAbortable"></dd>
 			</div>
-			<div class="col">
+			<div class="col p-bottom--xsmall">
         		<dt><aurainspector-label key="actioncard_background"></aurainspector-label></dt><dd id="actionIsBackground"></dd>
 			</div>
-			<div class="col">
+			<div class="col p-bottom--xsmall">
         		<dt><aurainspector-label key="actioncard_created"></aurainspector-label></dt><dd id="statsCreated"></dd>
 			</div>
-			<div class="col">
+			<div class="col p-bottom--xsmall">
         		<dt><aurainspector-label key="actioncard_storable"></aurainspector-label></dt><dd id="actionIsStorable"></dd>
 			</div>
-
-			<div class="col storable-info">
+			<div class="col storable-info p-bottom--xsmall">
         		<dt><aurainspector-label key="actioncard_storablesize"></aurainspector-label></dt><dd id="actionStorableSize"></dd>
 			</div>
-			<div class="col storable-info">
+			<div class="col storable-info p-bottom--xsmall">
         		<dt><aurainspector-label key="actioncard_storablerefresh"></aurainspector-label></dt><dd id="actionIsRefresh"></dd>
 					</div>
-			<div class="col storable-info">
+			<div class="col storable-info p-bottom--xsmall">
         		<dt><aurainspector-label key="actioncard_storablecachehit"></aurainspector-label></dt><dd id="actionFromStorage"></dd>
 			</div>
-			<div class="col storable-info">
+			<div class="col storable-info p-bottom--xsmall">
         		<dt><aurainspector-label key="actioncard_storablekey"></aurainspector-label></dt><dd id=""><aurainspector-json class="storageKey code" expandTo="0"></aurainspector-json></dd>
 			</div>
 	    </dl>
+	    
+	    <div class="calling-component-container">
+		    <h3><aurainspector-label key="actioncard_callingComponent"></aurainspector-label></h3>
+		    <div id="callingComponent"></div>
+	    </div>
+		
 	</div>
 
 </template>
 
 <!-- CSP ruins all our fun, this has to be external because of that -->
 <script src="actionCard.js"></script>
+<!-- <link rel="import" href="../auracomponent/auracomponent.html"/> -->

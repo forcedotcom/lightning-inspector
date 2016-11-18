@@ -355,6 +355,9 @@
 		"message": "Error Stack",
 		"description": "When specifying the action should throw an error, this is the stack trace for the error it should throw."
 	},
+	"actioncard_callingComponent": {
+		"message": "Component Source"
+	},
 	"componentview_globalid": {
 		"message": "Global ID",
 		"description": "Unique Global ID of the component you are inspecting"

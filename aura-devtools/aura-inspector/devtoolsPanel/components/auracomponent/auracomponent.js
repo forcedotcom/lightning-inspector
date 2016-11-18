@@ -5,7 +5,6 @@
 	var auracomponent = Object.create(HTMLDivElement.prototype);
 
     auracomponent.createdCallback = function() {
-
         this.addEventListener("click", AuraComponent_OnClick.bind(this));
         this.addEventListener("dblclick", AuraComponent_OnDblClick.bind(this));
     }
@@ -14,13 +13,11 @@
 		var _data = this.getAttribute("componentData");
 		if(!_data) {
             var summarize = this.getAttribute("summarize") || false;
+            this.setAttribute("componentData", "{}");
 			getComponentData(this.getAttribute("globalId"), {
                 "summarize": summarize
-            }, function(data) {
-				_data = data;
-				this.setAttribute("componentData", _data);
-				render(this, _data);
-			}.bind(this));
+            }, AuraComponent_OnGetComponent.bind(this));
+
 		} else {
             // If we do a setAttribute("componentData", "JSONSTRING");
             // It would be nice if it just worked.
@@ -28,12 +25,21 @@
                 if(typeof _data === "string") {
                     _data = ResolveJSONReferences(JSON.parse(_data));
                 }
-    			render(this, _data);
+                if(Object.keys(_data).length) {
+                    render(this, _data);
+                }
             } catch(e) {
                 // Something went wrong with the rendering or the parsing of the data?
                 // Just show the globalId, at least its something.
                 var shadowRoot = this.shadowRoot || this.createShadowRoot();
-                shadowRoot.appendChild(document.createTextNode(globalId));
+                var globalId = this.getAttribute("globalId");
+
+                if(globalId) {
+                    getComponentData(globalId, {
+                        "summarize": this.getAttribute("summarize") || false
+                    }, AuraComponent_OnGetComponent.bind(this));
+                }
+                //shadowRoot.appendChild(document.createTextNode("#error"));
             }
 		}
 	};
@@ -75,6 +81,8 @@
 
         var shadowRoot = element.shadowRoot || element.createShadowRoot();
         // Import CSS
+        
+        shadowRoot.innerHTML = "";
         shadowRoot.appendChild(document.importNode(ownerDocument.querySelector("template").content, true));
         shadowRoot.appendChild(template.content);
 	}
@@ -147,6 +155,11 @@
 
 
         return object;
+    }
+
+    function AuraComponent_OnGetComponent(data) {
+        this.setAttribute("componentData", data);
+        render(this, data);
     }
 
     function AuraComponent_OnClick(event) {
