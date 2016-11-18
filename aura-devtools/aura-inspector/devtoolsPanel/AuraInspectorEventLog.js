@@ -60,7 +60,7 @@ function AuraInspectorEventLog(devtoolsPanel) {
 
         var filterText = tabBody.querySelector("#filter-text");
         filterText.addEventListener("change", FilterText_OnChange.bind(this));
-        filterText.addEventListener("keyup", FilterText_OnChange.bind(this));
+        filterText.addEventListener("keyup", debounce(FilterText_OnChange.bind(this), 200));
 
         var menu = tabBody.querySelector("menu");
         menu.addEventListener("click", Menu_OnClick.bind(this));
@@ -221,6 +221,21 @@ function AuraInspectorEventLog(devtoolsPanel) {
         return current;
     }
 
+    function debounce(func, wait, immediate) {
+        var timeout;
+        return function() {
+            var context = this, args = arguments;
+            var later = function() {
+                timeout = null;
+                if (!immediate) func.apply(context, args);
+            };
+            var callNow = immediate && !timeout;
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+            if (callNow) func.apply(context, args);
+        };
+    }
+
     function AuraInspectorEventLog_OnEventStart(eventInfo) {
         if(!isRecording()) {
             return;
@@ -350,7 +365,7 @@ function AuraInspectorEventLog(devtoolsPanel) {
     }
 
     function FilterText_OnChange(event) {
-        var text = event.currentTarget;
+        var text = event.srcElement;
         _visible.eventName = text.value;
 
         this.refresh();

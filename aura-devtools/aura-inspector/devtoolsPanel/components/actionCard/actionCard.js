@@ -30,7 +30,8 @@
             //storageKey could be very long, I want people be able to see it when they want to, hide it like other JSON object when no one cares
 			storageKey:	this.getAttribute("isStorable") === "true" ? "{\"storageKey\":"+JSON.stringify(this.getAttribute("storageKey"))+"}" : "-",
 			// storageKey: this.getAttribute("isStorable") === "true" ? this.getAttribute("storageKey") : "-",
-			storableSize:	this.getAttribute("isStorable") === "true" ? (JSON.stringify(this.getAttribute("returnValue")).length / 1024).toFixed(1) + " KB" : "-"
+			storableSize:	this.getAttribute("isStorable") === "true" ? (JSON.stringify(this.getAttribute("returnValue")).length / 1024).toFixed(1) + " KB" : "-",
+			callingComponent: this.getAttribute("callingComponent")
 		};
 
 		// I'm still working on what the best pattern is here
@@ -46,6 +47,18 @@
     	this.shadowRoot.querySelector("#actionStorableSize").textContent = model.storableSize;
     	this.shadowRoot.querySelector("#actionIsRefresh").textContent 	= model.isRefresh;
     	this.shadowRoot.querySelector("#actionFromStorage").textContent = model.fromStorage;
+
+    	var callingComponentCol = this.shadowRoot.querySelector("#callingComponent");
+    	if(!callingComponentCol.hasChildNodes()) {
+    		if(model.callingComponent) {
+	    		var auracomponent = document.createElement("aurainspector-auracomponent");
+				auracomponent.setAttribute("globalId", model.callingComponent);
+	    		callingComponentCol.appendChild(auracomponent);
+	    	} else {
+	    		this.shadowRoot.querySelector(".calling-component-container").classList.add("hidden");
+	    	}
+    	}
+
     	if(model.returnError != undefined || model.returnError != null) {//when there is error, we don't show action result.
     		this.shadowRoot.querySelector("#actionError").textContent = model.returnError;
     		this.shadowRoot.querySelector("#div_actionResponse").classList.add("hidden");

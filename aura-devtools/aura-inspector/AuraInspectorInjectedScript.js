@@ -2359,6 +2359,7 @@
         function OnEnqueueAction(config, action, scope) {
             var ret = config["fn"].call(config["scope"], action, scope);
 
+            var cmp = action.getComponent();
             var data =  {
                 "id"         : action.getId(),
                 "params"     : $Aura.Inspector.safeStringify(action.getParams()),
@@ -2370,7 +2371,8 @@
                 "defName"    : action.getDef()+"",
                 "fromStorage": action.isFromStorage(),
                 "enqueueTime": performance.now(),
-                "storageKey" : action.getStorageKey()
+                "storageKey" : action.getStorageKey(),
+                "callingCmp" : cmp && cmp.getGlobalId()
             };
 
             $Aura.Inspector.publish("AuraInspector:OnActionEnqueue", data);

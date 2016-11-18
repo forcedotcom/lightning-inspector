@@ -141,7 +141,7 @@ function AuraInspectorActionsView(devtoolsPanel) {
 
         var filterText = tabBody.querySelector("#filter-text");
         filterText.addEventListener("change", FilterText_OnChange.bind(this));
-        filterText.addEventListener("keyup", FilterText_OnChange.bind(this));
+        filterText.addEventListener("keyup", debounce(FilterText_OnChange.bind(this), 200));
 
     };
 
@@ -209,7 +209,7 @@ function AuraInspectorActionsView(devtoolsPanel) {
     }
 
     function FilterText_OnChange(event) {
-        var text = event.currentTarget;
+        var text = event.srcElement;
         _filtered.name = text.value;
 
         this.refresh();
@@ -312,8 +312,9 @@ function AuraInspectorActionsView(devtoolsPanel) {
                 if(action.stats) {
                     card.setAttribute("stats", JSON.stringify(action.stats));
                 }
-                card.parentNode.removeChild(card);
-            
+                if(card.parentNode) {
+                    card.parentNode.removeChild(card);
+                }
             }
         }
 
@@ -377,6 +378,7 @@ function AuraInspectorActionsView(devtoolsPanel) {
             card.setAttribute("isFromStorage", action.fromStorage);
             card.setAttribute("storageKey", action.storageKey);
             card.setAttribute("dropOrModify", "dropAction");
+            card.setAttribute("callingComponent", action.callingCmp || "");
             if(action.stats) {
                 card.setAttribute("stats", JSON.stringify(action.stats));
             }
@@ -394,6 +396,21 @@ function AuraInspectorActionsView(devtoolsPanel) {
 
         return card;
     }
+
+    function debounce(func, wait, immediate) {
+        var timeout;
+        return function() {
+            var context = this, args = arguments;
+            var later = function() {
+                timeout = null;
+                if (!immediate) func.apply(context, args);
+            };
+            var callNow = immediate && !timeout;
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+            if (callNow) func.apply(context, args);
+        };
+    };
 
     //remove the tooltip message (it should be the last child node of element)
     function removeTooltipMessage (event) {
