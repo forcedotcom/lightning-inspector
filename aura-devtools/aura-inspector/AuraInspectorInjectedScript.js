@@ -2191,6 +2191,7 @@
                             if(actionsObj && actionsObj.actions) {
                                 for(var i=0; i < actionsObj.actions.length; i++) {
                                     if(actionsObj.actions[i].id && actionsObj.actions[i].id === actionWatchedId) {
+                                        if(actionWatched.nextError) {//we would like to return error response
                                             var errsArr = [];
                                             errsArr.push(actionWatched.nextError);
                                             actionsObj.actions[i].state = "ERROR";
@@ -2267,7 +2268,7 @@
             var r1 = Math.random() * 100;
             if($Aura.chaos.shouldWeDropAction(r1)) {
                 //if we are in a new chaos run and user would like to drop action randomly
-                responseWithIncomplete = $Aura.chaos.randomlyDropAction(responseWithIncomplete, oldResponseText);
+                responseWithIncomplete = $Aura.chaos.randomlyDropAction(responseWithIncomplete, oldResponseText); 
             }
             var r2 = Math.random() * 100;
             if($Aura.chaos.shouldWeErrorResponseAction(r2)) {
@@ -2276,8 +2277,8 @@
                 responseWithError = resObj.responseWithError;
                 newResponseText = resObj.newResponseText;
             }
-
-
+            
+            
 
             if(responseWithIncomplete) {
                 //oldResponse.status = 0;//so AuraClientService.isDisconnectedOrCancelled will return true
