@@ -1430,7 +1430,7 @@
             });
 
             // Aura is present and the root has already been initialized.
-            if(window.$A && !!window.$A.getContext()) {
+            if(window.$A && window.$A.getContext && !!window.$A.getContext()) {
                 this.bootstrap();
                 this.publish("AuraInspector:OnAuraInitialized", "InjectedScript: Aura Present already during load." );
             }

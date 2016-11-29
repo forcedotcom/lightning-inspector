@@ -103,7 +103,8 @@
         }
 
         function BackgroundPage_OnConnect(port) {
-            var tabId = port.sender.tab.id;
+            // It is possible for some reason to not have a tab object from devToolPanels connecting.
+            var tabId = getTabId(port);
 
             if(tabId !== -1) {
 
@@ -133,7 +134,7 @@
                 return; // Not sure why this would happen.
             }
 
-            var tab = port.sender.tab;
+            //var tab = port.sender.tab;
             
             // Delete the stored port on the tab
             var tabInfo = TabInfo.get(port.tabId);
@@ -159,7 +160,8 @@
 
         function BackgroundPage_OnContextClick(event, tab) {
             var tabInfo = TabInfo.get(tab.id);
-            var devToolsIsOpen = !!tabInfo.port;
+
+            var devToolsIsOpen = tabInfo && !!tabInfo.hasPanels();
 
             passMessageToDevTools({
                 action  : "AuraInspector:publish",
@@ -180,6 +182,10 @@
                 // Tab doesn't exist.
                 // Can happen when you launch dev tools on dev tools.
                 if(!tabInfo) {
+                    if(TabInfo.count() === 0) {
+                        chrome.tabs.onUpdated.addListener(BackgroundPage_OnTabUpdated);
+                    }
+                    
                     tabInfo = TabInfo.create(tabId);
                 }
 
@@ -204,7 +210,7 @@
             } if(message.action === BACKGROUND_KEY) {
                 callBackgroundPageSubscribers(message.key, [message.data, port.sender]);
             }else {
-                var tabId = port.sender.tab.id;
+                var tabId = getTabId(port);
                 if(tabId !== -1) {
                     passMessageToDevTools(message, tabId);
                 }
@@ -280,15 +286,17 @@
             }
         }
 
+        function getTabId(port) {
+            return port && port.sender && port.sender.tab ? port.sender.tab.id : -1;
+        }
+
         function TabInfo(tabId) {
             const _subscriptions = new Set();
             const _panels = new Map();
             var _queue = [];
             var MAX_QUEUE_LENGTH = 100000;
 
-            this.kris = _panels;
-
-            // TODO: Should the external items go in here?
+            // TODO: Should the external ports go in here?
             this.addPanel = function(port) {
                 if(!port.name) { return; }
                 _panels.set(port.name, port);

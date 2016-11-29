@@ -1,6 +1,6 @@
 function ChromeRuntime(name) {
 	const onConnectListeners = [];
-	const onMessageListeners = [];
+    const _subscribers = new Map();
 
 
 	this.connect = function(callback) {
@@ -14,13 +14,53 @@ function ChromeRuntime(name) {
         runtime.postMessage( { "action": "BackgroundPage:publish", "key": "BackgroundPage:InjectContentScript", "data": tabId } );
         runtime.onMessage.addListener(BackgroundScript_OnMessage.bind(this));
         runtime.postMessage({subscribe: ["AuraInspector:bootstrap"], port: runtime.name, tabId: tabId});
+        this.publish("AuraInspector:OnPanelConnect", "Chrome Runtime: Panel " + name + " connected to the page.");
 	};
 
-	this.subscribe = function(callback) {
-		if(callback) {
-			onMessageListeners.push(callback);
-		}
-	};
+    /**
+     * Listen for a published message through the system.
+     *
+     * @param  {String} key Unique MessageId that would be broadcast through the system.
+     * @param  {Function} callback function to be executed when the message is published.
+     */
+    this.subscribe = function(key, callback) {
+        if(!_subscribers.has(key)) {
+            _subscribers.set(key, []);
+        }
+
+        _subscribers.get(key).push(callback);
+    };
+
+    /**
+     * Broadcast a message to a listener at any (Non Background) level in the inspector. Including, the InjectedScript, the ContentScript or the DevToolsPanel object.
+     *
+     * @param  {String} key MessageID to broadcast.
+     * @param  {Object} data any type of data to pass to the subscribe method.
+     */
+    this.publish = function(key, data) {
+        if(!key) { return; }
+
+        const jsonData = JSON.stringify(data);
+        const command = `
+            window.postMessage({
+                "action": "AuraInspector:publish",
+                "key": "${key}",
+                "data": ${jsonData}
+            }, window.location.origin);
+        `;
+
+        chrome.devtools.inspectedWindow.eval(command, function() {
+            if(_subscribers.has(key)) {
+                //console.log(key, _subscribers.get(key).length)
+                _subscribers.get(key).forEach(function(callback){
+                    callback(data);
+                });
+            }
+        });
+
+        chromeEval(command);
+
+    };
 
 	// Aren't doing yet.
 	// We'll probably want two, sendMessageToBackgroundScript(), sendMessageToContentScript()
@@ -56,7 +96,7 @@ function ChromeRuntime(name) {
 					return;
 				}
 
-				var component = ResolveJSONReferences(JSON.parse(response));
+				const component = ResolveJSONReferences(JSON.parse(response));
 
 				if(callback) {
 					callback(component);
@@ -95,9 +135,9 @@ function ChromeRuntime(name) {
     function ResolveJSONReferences(object) {
         if(!object) { return object; }
 
-        var count = 0;
-        var serializationMap = new Map();
-        var unresolvedReferences = [];
+        //var count = 0;
+        const serializationMap = new Map();
+        const unresolvedReferences = [];
 
         function resolve(current, parent, property) {
             if(!current) { return current; }
@@ -117,7 +157,7 @@ function ChromeRuntime(name) {
                     delete current["$serId$"];
                 }
 
-                for(var property in current) {
+                for(let property in current) {
                     if(current.hasOwnProperty(property)) {
                         if(typeof current[property] === "object") {
                             current[property] = resolve(current[property], current, property);
@@ -131,12 +171,11 @@ function ChromeRuntime(name) {
         object = resolve(object);
 
         // If we had some resolutions out of order, lets clean those up now that we've parsed everything that is serialized.
-        var unresolved;
-        for(var c=0,length=unresolvedReferences.length;c<length;c++) {
+        let unresolved;
+        for(let c=0,length=unresolvedReferences.length;c<length;c++) {
             unresolved = unresolvedReferences[c];
             unresolved.parent[unresolved.property] = serializationMap.get(unresolved["$serRefId$"]);
         }
-
 
         return object;
     }

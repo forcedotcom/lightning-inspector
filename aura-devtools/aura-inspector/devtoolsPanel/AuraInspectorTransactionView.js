@@ -616,30 +616,6 @@ function AuraInspectorTransactionView() {
     		_actions.set(id, value);
     	}
 
-    	function getActionFromTransport(transport, actionPath) {
-    		if(!transport || !actionPath) {
-    			throw new Error("Necessary arguments not specified. Expected (transport, actionName)");
-    		}
-    		// No Actions? No need doing any further logic.
-    		if(!transport.actions) {
-    			return null;
-    		}
-
-			// Format: "1$apex://DreamforceData/ACTION$getFeatureList"
-			var actionDef = actionPath.replace(/^\d\$/g, "");
-
-
-			var action;
-			for(var actionId in transport.actions) {
-				action = getActionById(actionId);
-    			if(action && action.columns[0] === actionDef) {
-    				return action;
-    			}
-    		}
-
-			return null;
-    	}
-
     	function parseTransports(transportMarks) {
     		var transport;
     		var current;
@@ -706,6 +682,30 @@ function AuraInspectorTransactionView() {
     	}
 
     }
+
+	function getActionFromTransport(transport, actionPath) {
+		if(!transport || !actionPath) {
+			throw new Error("Necessary arguments not specified. Expected (transport, actionName)");
+		}
+		// No Actions? No need doing any further logic.
+		if(!transport.actions) {
+			return null;
+		}
+
+		// Format: "1$apex://DreamforceData/ACTION$getFeatureList"
+		var actionDef = actionPath.replace(/^\d\$/g, "");
+
+
+		var action;
+		for(var actionId in transport.actions) {
+			action = _processor.getActionById(actionId);
+			if(action && action.columns[0] === actionDef) {
+				return action;
+			}
+		}
+
+		return null;
+	}
 
     function TransactionDataRow(transaction) {
     	this.columns = [transaction.id, "", transaction.duration, transaction.ts + "ms"];
@@ -813,6 +813,10 @@ function AuraInspectorTransactionView() {
     	};
 
     	this.mergeData = function(data) {
+    		if(!data.hasOwnProperty("phase")) {
+    			return;
+    		}
+
 			if(!marks[data.phase]) {
 				marks[data.phase] = data;
 			}
@@ -825,11 +829,17 @@ function AuraInspectorTransactionView() {
 	    	if(marks.start) {
 	    		this.timeline[1] = marks.start.ts;
 	    		this.columns[3] = Math.round(marks.start.ts) + "ms";
+
+	    		if(marks.end) {
+	    			this.columns[2] = Math.round(marks.end.ts - marks.start.ts) + "ms";
+	    		}
 	    	}
 
 	    	if(marks.end) {
 	    		this.timeline[2] = marks.end.ts;
-	    		this.columns[2] = Math.round(marks.end.ts - marks.start.ts) + "ms";
+	    		if(marks.start) {
+	    			this.columns[2] = Math.round(marks.end.ts - marks.start.ts) + "ms";
+	    		}
 	    	}
 
 		};

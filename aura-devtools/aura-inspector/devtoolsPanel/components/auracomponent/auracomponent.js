@@ -4,6 +4,13 @@
 
 	var auracomponent = Object.create(HTMLDivElement.prototype);
 
+    // Just debugging, keeping cause it's helpful.
+    // auracomponent.attributeChangedCallback = function(name, oldVal, newVal) {
+    //     if((name === "componentData" || name==="componentdata") && newVal === "[object Object]") {
+    //         debugger;
+    //     }
+    // }
+
     auracomponent.createdCallback = function() {
         this.addEventListener("click", AuraComponent_OnClick.bind(this));
         this.addEventListener("dblclick", AuraComponent_OnDblClick.bind(this));
@@ -158,7 +165,11 @@
     }
 
     function AuraComponent_OnGetComponent(data) {
-        this.setAttribute("componentData", data);
+        if(typeof data === "object") {
+            this.setAttribute("componentData", JSON.stringify(data));
+        } else {
+            this.setAttribute("componentData", data);
+        }
         render(this, data);
     }
 

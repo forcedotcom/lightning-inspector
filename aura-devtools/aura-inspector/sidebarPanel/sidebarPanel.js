@@ -1,7 +1,6 @@
 // get Id From URL
 document.addEventListener("DOMContentLoaded", () => {
 	var sidebarPanel = new AuraInspectorSideBarPanel();
-    debugger;
 	sidebarPanel.init(document.getElementById("sidebarContainer"));	
 });
 
@@ -12,8 +11,9 @@ function AuraInspectorSideBarPanel() {
     var _runtime;
 
 	this.init = function(container) {
-		_container = container;
+        _container = container;
         _runtime = new ChromeRuntime("AuraInspectorSideBarPanel");
+
         _runtime.connect(()=>{
             _componentView = new AuraInspectorComponentView(this);
             _componentView.init(_container);
@@ -55,11 +55,10 @@ function AuraInspectorSideBarPanel() {
     this.publish = function(key, data) {
         if(!key) { return; }
 
-        const PUBLISH_KEY = "AuraInspector:publish";
-        var jsonData = JSON.stringify(data);
-        var command = `
+        const jsonData = JSON.stringify(data);
+        const command = `
             window.postMessage({
-                "action": "${PUBLISH_KEY}",
+                "action": "AuraInspector:publish",
                 "key": "${key}",
                 "data": ${jsonData}
             }, window.location.href);
