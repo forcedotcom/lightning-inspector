@@ -870,7 +870,9 @@
             },
             function(errorObj) {
                 if(errorObj && errorObj.errorType && errorObj.errorType === "TryAgain") {
-                    that.resolveWaitForElementFromAStepToAppear(samplingInterval, tryCount+1, stepIndex);
+                    that.resolveWaitForElementFromAStepToAppear(samplingInterval, count+1, stepIndex);
+                } else if(errorObj && errorObj.errorType && errorObj.errorType === "locatorEngineNotLoaded") { 
+                    //nothing, we will load the locatorEngine with this function as callback
                 } else {
                      that.removeCircleElement();
                      //this will call AuraInspectorChaosView_OnReplayChaosRunFinished in InspectorPanelSfdcChaos
@@ -910,8 +912,20 @@
                             if(step.hasOwnProperty("locator")) {
                                 if(!that.locatorEngine) {
                                     that.loadLocatorEngine(that.resolveWaitForElementFromAStepToAppear.bind(that, samplingInterval, 0, 0));
+                                    reject(
+                                    {
+                                        errorType: "locatorEngineNotLoaded",
+                                        errorMsg: "need to load locatorEngine"
+                                    });
                                 } else {
-                                    elementToClick = that.locatorEngine.findElementByLocator(step["locator"]);
+                                    try {
+                                        elementToClick = that.locatorEngine.findElementByLocator(step["locator"]);
+                                    } catch(e) {
+                                        var warnmsg = "locatorEngine run into issue :" + e.message?e.message:"no error message" + ", let's try css selector if possible";
+                                        console.warn(warnmsg);
+                                        $Aura.Inspector.publish("AuraInspector:OnNewChaosRunNewStatus", {'message': warnmsg});
+                                        elementToClick = this.findElementWithLocatorOrCSSPath(undefined, step["cssPath"]);
+                                    }
                                 }
                             } else if(step.hasOwnProperty("cssPath")) {
                                 elementToClick = that.findElementWithLocatorOrCSSPath(step.locator, step.cssPath);                            
@@ -1016,6 +1030,10 @@
                         }
                     }.bind(this)
                 );
+        }
+        else {
+            console.warn("locatorEngine already loaded, no need to load it again, will just run the callback");
+            callback();
         }
     }
 
