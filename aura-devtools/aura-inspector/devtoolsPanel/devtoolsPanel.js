@@ -187,7 +187,7 @@
                 panel.init(tabBody);
                 panels.set(key, panel);
 
-                document.body.appendChild(tabBody);
+                document.getElementById("devtools-container").appendChild(tabBody);
             }
         };
 
@@ -542,14 +542,14 @@
         }
 
         function AuraInspector_OnAuraUnavailable() {
-            document.querySelector("#no-aura-available-container").classList.remove("slds-hide");
+            toggleAvailableDialog()
         }
 
         function AuraInspector_OnAuraInitialized() {
             // The initialize script ran.
             this.publish("AuraInspector:OnPanelConnect", "DevtoolsPanel:OnAuraInitialized");
 
-            document.querySelector("#no-aura-available-container").classList.add("slds-hide");
+            toggleAvailableDialog()
         }
 
         function TryAgainButton_OnClick() {
@@ -712,17 +712,33 @@
                 // const isAuraPresent = availability[0];
                 // const isContentScriptPresent = availability[1];
                 const noAuraAvailable = document.querySelector("#no-aura-available-container");
+                const container = document.querySelector("#devtools-container");
 
                 if(isAuraPresent) {
-                    noAuraAvailable.classList.add("slds-hide");
-                    // if(!isContentScriptPresent) {
-                    //     runtime.postMessage( { "injectContentScriptToTab": chrome.devtools.inspectedWindow.tabId } );
-                    // }
+                    hide(noAuraAvailable);
+                    show(container);
                 } else {
-                    noAuraAvailable.classList.remove("slds-hide");
+                    show(noAuraAvailable);
+                    hide(container);
                 }
 
             });
+        }
+
+        function show(element) {
+            if(Array.isArray(element) || element instanceof NodeList){
+                element.forEach(show);
+                return;
+            }
+            element.classList.remove("slds-hide");
+        }
+
+        function hide(element) {
+            if(Array.isArray(element) || element instanceof NodeList){
+                element.forEach(hide);
+                return;
+            }
+            element.classList.add("slds-hide");
         }
 
         function stripDescriptorProtocol(descriptor) {
