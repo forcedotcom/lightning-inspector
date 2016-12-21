@@ -31,37 +31,43 @@ function AuraInspectorTransactionView() {
         eventManager = new createEventManager();
         currentTypeOfData = MARKS;
 
-        transactionGrid = new AuraInspectorTransactionGrid(this, eventManager);
+        transactionGrid = new AuraInspectorTransactionGrid();
 		transactionGrid.init(labels);
 		transactionGrid.attach("onitemclick", TransactionGrid_OnItemClick.bind(this));
 
-		_processor = new MetricsServiceDataProcessor();
+		_processor = new MetricsServiceDataProcessor(_bootstrapMetrics);
 
-        //this.attach("initEventHandlers", initEventHandlers.bind(this));
     };
 
     this.clear = function() {
-    	_processor = new MetricsServiceDataProcessor();
+    	_processor = new MetricsServiceDataProcessor(_bootstrapMetrics);
 
-    	transactionGrid.setStartOffsetTime(Date.now() - _bootstrapMetrics.pageStartTime);
-    	transactionGrid.setEndTime(Date.now() - _bootstrapMetrics.pageStartTime);
-    	transactionGrid.clear();
-    	transactionGrid.updateTimeMarkers();
+    	// TODO: This probably doesn't work right anymore.
+    	// Try this: transactionGrid.setStartOffsetTime(Date.now());
+    	//transactionGrid.setStartTimeOffset(Date.now() - _bootstrapMetrics.pageStartTime);
+    	chrome.devtools.inspectedWindow.eval("window.performance.now()", function(now) {
+	    	transactionGrid.setStartTimeOffset(now);
+	    	transactionGrid.setStartTime(_bootstrapMetrics.pageStartTime || Infinity);
+	    	transactionGrid.setEndTime(0);
+	    	transactionGrid.clear();
+	    	transactionGrid.updateTimeMarkers();
+    	});
     };
 
 	/**
 	 * Show all the metrics
 	 */
     this.setBootstrapMetrics = function(metrics) {
-    	var updatedMetrics = _bootstrapMetrics && _bootstrapMetrics.pageStartTime !== metrics.pageStartTime;
-    	if(metrics) {
-    		if(updatedMetrics) {
-    			_previousBootstrapMetrics.push(_bootstrapMetrics);
-    		}
-    		_bootstrapMetrics = metrics;
-    	}
+    	// So our reference passed into the metrics processor stays live to the data.
+    	Object.assign(_bootstrapMetrics, metrics);
 
-	    transactionGrid.setStartTime(metrics.pageStartTime);
+    	var currentStartTime = transactionGrid.getStartTime();
+
+    	if(isNaN(currentStartTime)) {
+	    	transactionGrid.setStartTime(metrics.pageStartTime);
+    	} else {
+	    	transactionGrid.setStartTime(Math.min(metrics.pageStartTime, currentStartTime));
+    	}
     };
 
     this.setMarksData = function(marks) {
@@ -88,7 +94,10 @@ function AuraInspectorTransactionView() {
 		// TODO: Finish this.
 		var items = _processor.getSortedItems();
 
-		transactionGrid.setEndTime(_processor.getTimelineRange()[1]);
+		var range = _processor.getTimelineRange();
+		transactionGrid.setStartTimeOffset(range[1] !== Infinity ? range[1] - range[0]:0);
+		transactionGrid.setStartTime(range[1]);
+		transactionGrid.setEndTime(range[2]);
 		transactionGrid.updateTimeMarkers();
 
 		// Ideally we wouldn't do this either.
@@ -109,290 +118,6 @@ function AuraInspectorTransactionView() {
 			}
 		}
 
-	}
-
-	function AuraInspectorTransactionView_OnTransactionEnd(data){
-		if(recording && isCurrentTypeOfDataCustomTrans()) {
-			customTransLiveUpdateTable(data, Date.now());
-		}
-	}
-
-	/* ----------- DATA VISUALIZATION (interacts with transGrid) ----------- */
-
-	function clear(){
-		graphData = {};
-		graphDataIndices = [];
-		latestEndTime = 0;
-
-		transactionGrid.clear();
-	}
-
-	/* Input: MARKS object from $A.metricsService.getCurrentMarks()
-	 * Update table with all marks data regardless if its old or new
-	 */
-	function updateTable(data){
-		clear();
-
-		getUniqueIDs(data, graphData);
-		updateTimes(data, graphData);
-
-		var sortedData = sortGraphData(graphData);
-		setLatestEndTime(sortedData);
-
-		transactionGrid.updateTimeMarkers(latestEndTime);
-
-		for(var x = 0; x < sortedData.length; x++) {
-			transactionGrid.addRow(sortedData[x]);
-		}
-	}
-
-	// Only update the table with new (LIVE) data not already displayed (used in recording)
-	function liveUpdateTable(data, recordTimeStamp){
-		var marks = {};
-		var isNewData;
-		var sortedData;
-
-		getUniqueIDs(data, marks);
-		updateTimes(data, marks);
-		isNewData = retrieveNewData(graphData, marks);
-
-		if(isNewData) {
-			sortedData = sortGraphData(graphData);
-			transposeTimesForLiveView(sortedData, recordTimeStamp);
-			setLatestEndTime(sortedData);
-
-			transactionGrid.clear();
-			transactionGrid.updateTimeMarkers(latestEndTime);
-			for (var x = 0; x < sortedData.length; x++) {
-				if(isLiveData(sortedData[x].stamp)) {
-					transactionGrid.addRow(sortedData[x]);
-				}
-			}
-		}
-	}
-
-	function customTransLiveUpdateTable(data, recordTimeStamp){
-		/* There are 2: data structures here. graphData, a map, will contain all the actual
-		 data of the custom transactions.
-
-		 graphDataIndices will contain all the UNIQUE ids of the custom transactions
-		 we will use this array to sort.
-		 */
-
-		if(!graphData[data.id]){
-			graphDataIndices.push(data.id);
-			graphData[data.id] = [];
-		}
-		graphData[data.id].push(data);
-		sortCustomTransGraphDataByName(graphDataIndices);
-		transactionGrid.clear();
-
-        var index = 0;
-		for(var x = 0; x < graphDataIndices.length; x++){
-			var currID = graphDataIndices[x];
-			var currCustomTransArray = graphData[currID];
-			sortCustomTransDataByTime(currCustomTransArray);
-
-			for(var y = 0; y < currCustomTransArray.length; y++){
-				transactionGrid.addMasterRow(currCustomTransArray[y]);
-                index++;
-                // add detail views. Should create new function for this
-                if(currCustomTransArray[y].marks) {
-                    addCustomTransMarksToTable(currCustomTransArray[y].marks, index-1);
-                    //console.log("Custrom Trans: ",currCustomTransArray[y]);
-                    //console.log("index: ", index);
-
-                }
-			}
-		}
-	}
-
-    function addCustomTransMarksToTable(marks, index){
-        // Different types of marks: actions, force:record, etc
-        // each with their own array
-        for (var k in marks) {
-
-            currentMarks = marks[k];
-
-            for(var z = 0; z < currentMarks.length; z++){
-                transactionGrid.addDetailRow(currentMarks[z], index);
-            }
-        }
-    }
-
-	/* ----------- DATA PROCESSING ----------- */
-
-	// Returns an array of the unique IDs given data;
-	function getUniqueIDs(data, map){
-		var currAction;
-		var examinedID;
-
-		if(!data || !data.actions || !data.actions.length) {
-			return;
-		}
-
-		for (var x = 0; x < data.actions.length; x++){
-			currAction = data.actions[x];
-			examinedID = currAction.context.id;
-
-			if (map[examinedID]){
-				if(!map[examinedID].context && currAction.context.def) {
-					map[examinedID].context = currAction.context.def;
-				} else {
-					continue;
-				}
-
-			} else {
-				insertNewActionData(currAction, map);
-			}
-		}
-	}
-
-    function setCurrentTypeOfData(dataType){
-
-    }
-
-	// updates the stamp, start, and end times of the corresponding elements in map
-	function updateTimes(data, map){
-		if(!data.actions) {
-			return;
-		}
-
-		for (var x = 0; x < data.actions.length; x++) {
-			var currAction = data.actions[x];
-
-			if(map[currAction.context.id]) {
-				map[currAction.context.id][currAction.phase] = currAction.ts;
-			}
-		}
-	}
-
-	// Creates a new data entry in the map with specified context of the actionData
-	function insertNewActionData(actionData, map){
-		var insert = {};
-		insert.id = actionData.context.id;
-
-		if(actionData.context.def){
-			insert.context = actionData.context.def;
-		}
-
-		map[insert.id] = insert;
-	}
-
-	// Sorts the graphData by its "stamp" timestamp attribute
-	// Takes in a map and returns a sorted array of all the objects
-	function sortGraphData(map){
-		var array = [];
-
-		for(var dataPoint in map){
-			array.push(JSON.parse(JSON.stringify(map[dataPoint])));
-		}
-
-		array.sort(function(dataPointA, dataPointB){
-			if(dataPointA.stamp > dataPointB.stamp){
-				return 1;
-			} else if (dataPointA.stamp == dataPointB.stamp) {
-				return 0;
-			} else {
-				return -1;
-			}
-		});
-		return array;
-	}
-
-	function sortCustomTransGraphDataByName(indices){
-		indices.sort(function (a, b) {
-			return a.toLowerCase().localeCompare(b.toLowerCase());
-		});
-	}
-
-	// Input: an object created by $A.metricsService.onTransactionEnd()
-	//        We will use object.ts to sort
-	function sortCustomTransDataByTime(array){
-		array.sort(function(dataPointA, dataPointB){
-			if(dataPointA.ts > dataPointB.ts){
-				return 1;
-			} else if (dataPointA.stamp == dataPointB.stamp) {
-				return 0;
-			} else {
-				return -1;
-			}
-		});
-	}
-
-	// Sets timestamp of the latest time to be used proportionally with drawn timelines
-	function setLatestEndTime(sortedGraphData){
-		for(var x = 0; x < sortedGraphData.length; x++){
-			if(sortedGraphData[x].end && sortedGraphData[x].stamp && sortedGraphData[x].start
-				&& sortedGraphData[x].end > latestEndTime){
-
-				latestEndTime = sortedGraphData[x].end;
-			}
-		}
-	}
-
-	// Finds and sets the latest end time of all transactions for graphing
-	function transposeTimesForLiveView(dataArray, recordStartTime){
-		var transposeTime = recordStartTime - _bootstrapMetrics.pageStartTime;
-		for(var x = 0; x < dataArray.length; x++){
-			currMark = dataArray[x];
-
-			if(currMark.stamp){
-				currMark.stamp = currMark.stamp - transposeTime;
-			}
-
-			if(currMark.start){
-				currMark.start = currMark.start - transposeTime;
-			}
-
-			if(currMark.end){
-				currMark.end = currMark.end - transposeTime;
-			}
-
-		}
-	}
-
-	// Checks if this time is a point that is within the "live data" range
-	function isLiveData(timestamp){
-		return timestamp > 0;
-	}
-
-	// Given 2 maps, if the newMap contains data not already in storedMap, copy the data
-	// over from newMap to storedMap.
-	// Return: true if newData is found and copied into storedMap, otherwise false
-	function retrieveNewData(storedMap, newMap){
-		var newDataBool = false;
-		var dataPoint;
-
-		for(var index in newMap) {
-			if (newMap.hasOwnProperty(index)) {
-				dataPoint = newMap[index];
-
-				// New datapoint!
-				if(dataPoint.id && dataPoint.context && !storedMap[dataPoint.id]){
-					storedMap[dataPoint.id] = JSON.parse(JSON.stringify(dataPoint));
-					newDataBool = true;
-				}
-
-				// or update times (if they don't exist)
-				if(storedMap[dataPoint.id]){
-					if(!storedMap[dataPoint.id].start && dataPoint.start){
-						storedMap[dataPoint.id].start = dataPoint.start;
-						newDataBool = true;
-					}
-					if(!storedMap[dataPoint.id].stamp && dataPoint.stamp){
-						storedMap[dataPoint.id].stamp = dataPoint.stamp;
-						newDataBool = true;
-					}
-					if(!storedMap[dataPoint.id].end && dataPoint.end){
-						storedMap[dataPoint.id].end = dataPoint.end;
-						newDataBool = true;
-					}
-				}
-			}
-		}
-
-		return newDataBool;
 	}
 
     function outputActionServerData(action) {
@@ -488,7 +213,7 @@ function AuraInspectorTransactionView() {
 
     }
 
-    function MetricsServiceDataProcessor() {
+    function MetricsServiceDataProcessor(context) {
     	var _transports = new Map();
     	var _actions = new Map();
     	var _serverData = new Map();
@@ -513,7 +238,11 @@ function AuraInspectorTransactionView() {
     	};
 
     	this.addTransaction = function(transaction) {
-    		_transactions.push(new TransactionDataRow(transaction));
+    		var transactionDataRow = new TransactionDataRow(transaction, context.pageStartTime);
+    		_transactions.push(transactionDataRow);
+
+    		_startRange = Math.min(transactionDataRow.getStartTime(), _startRange);
+			_endRange = Math.max(transactionDataRow.getEndTime(), _endRange);
     	};
 
     	this.addMarksData = function(data) {
@@ -530,6 +259,9 @@ function AuraInspectorTransactionView() {
 	    	if(Array.isArray(data.actions)) {
 	    		parseActions(data.actions);
 	    	}
+
+	    	// TEMP:
+	    	return;
 
 	    	if(Array.isArray(data.server)) {
 	    		parseServerData(data.server);
@@ -561,6 +293,7 @@ function AuraInspectorTransactionView() {
     	};
 
     	this.getActions = function(transportId) {
+    		
     		var transport = getTransportById(transportId);
 
     		if(!transport) {
@@ -589,7 +322,7 @@ function AuraInspectorTransactionView() {
     	};
 
     	this.getTimelineRange = function() {
-    		return [_startRange, _endRange];
+    		return [context.pageStartTime, _startRange, _endRange];
     	};
 
     	this.getUid = function(prefix) {
@@ -625,14 +358,14 @@ function AuraInspectorTransactionView() {
     			id = transportMarks[c].context.auraXHRId;
     			transport = getTransportById(id);
     			if(!transport) {
-    				transport = new TransportDataRow({ "id": id, "name": "http-request {" + id + "}" });
+    				transport = new TransportDataRow({ "id": id, "name": "http-request {" + id + "}" }, _bootstrapMetrics.pageStartTime);
     				setTransportById(id, transport);
     			}
 
     			transport.mergeData(current);
 
     			_startRange = Math.min(transport.getStartTime(), _startRange);
-    			_endRange = Math.max(transport.getStartTime(), _endRange);
+    			_endRange = Math.max(transport.getEndTime(), _endRange);
     		}
     	}
 
@@ -647,14 +380,14 @@ function AuraInspectorTransactionView() {
     			action = getActionById(id);
 
     			if(!action) {
-    				action = new ActionsDataRow({ "id": id });
+    				action = new ActionsDataRow({ "id": id }, _bootstrapMetrics.pageStartTime);
     				setActionById(id, action);
     			}
 
     			action.mergeData(current);
 
     			_startRange = Math.min(action.getStartTime(), _startRange);
-    			_endRange = Math.max(action.getStartTime(), _endRange);
+    			_endRange = Math.max(action.getEndTime(), _endRange);
     		}
     	}
 
@@ -705,12 +438,20 @@ function AuraInspectorTransactionView() {
 		}
 
 		return null;
-	}
+	}   
+ // Custom Transactions
 
-    function TransactionDataRow(transaction) {
-    	this.columns = [transaction.id, "", transaction.duration, transaction.ts + "ms"];
+    // Custom Transactions
+    function TransactionDataRow(transaction, pageStartTime) {
+
+    	var duration = transaction.duration || 0;
+    	var startTimeRelative = transaction.ts;
+    	var startTimeAbsolute = (transaction.pageStartTime || pageStartTime) + startTimeRelative;
+    	var endTimeAbsolute = startTimeAbsolute + duration;
+
+    	this.columns = [transaction.id, "", duration + "ms", startTimeRelative + "ms"];
     	this.id = _processor.getUid(transaction.id);
-    	this.timeline = [transaction.start, transaction.start + transaction.duration];
+    	this.timeline = [startTimeAbsolute, endTimeAbsolute];
     	this.styles = {
     		"timeline": "transaction",
     		"row": "transaction"
@@ -718,8 +459,13 @@ function AuraInspectorTransactionView() {
 
     	this.mergeData = function() {};
 
+    	this.getEndTime = function() {
+    		return endTimeAbsolute;
+    	};
+
     	this.getStartTime = function() {
-    		return transaction.ts;
+    		//return transaction.ts;
+    		return startTimeAbsolute;
     	};
 
     	// Used in temporary console.log
@@ -729,7 +475,8 @@ function AuraInspectorTransactionView() {
     }
 
     // Transforms PROCESSED marks to a row that the grid expects.
-    function TransportDataRow(marks) {
+    // XHR calls
+    function TransportDataRow(marks, pageStartTime) {
     	this.columns = [marks.name, marks.id];
     	this.id = marks.id;
     	this.timeline = [];
@@ -774,14 +521,21 @@ function AuraInspectorTransactionView() {
    			}
 
 			if(marks.start) {
-	    		this.timeline.push(marks.start.ts);
+	    		this.timeline[0] = this.getStartTime();
 
 	    		// Start Time Column
 	    		this.columns[3] = Math.round(marks.start.ts) + "ms";
 	    	}
 
 	    	if(marks.end && marks.start) {
-	    		this.timeline.push(marks.end.ts);
+	    		// Hydrated actions don't go through stamp or send phases, just 
+	    		// end, which screws up durations. If this was pre-send, just abandon it.
+	    		// we'll eventually get the right end marks.
+	    		if((marks.end.ts - marks.start.ts) < 0) {
+	    			marks.end = null;
+	    			return;
+	    		}
+	    		this.timeline[1] = this.getEndTime();
 
 	    		// Duration Column
 	    		this.columns[2] = Math.round(marks.end.ts - marks.start.ts) + "ms";
@@ -797,13 +551,25 @@ function AuraInspectorTransactionView() {
     	};
 
     	this.getStartTime = function() {
-    		return marks.start && marks.start.ts || 0;
+    		var start = marks.start && marks.start.ts;
+    		if(start) {
+    			return pageStartTime + start;
+    		}
+    		return Infinity;
+    	};
+
+    	this.getEndTime = function() {
+    		var end = marks.end && marks.end.ts;
+    		if(end) {
+    			return pageStartTime + end;
+    		}
+    		return 0;
     	};
 
     	this.mergeData(marks);
     }
 
-    function ActionsDataRow(marks) {
+    function ActionsDataRow(marks, pageStartTime) {
     	this.columns = ["unknown action", marks.id];
     	this.id = marks.id;
     	this.timeline = [];
@@ -823,11 +589,11 @@ function AuraInspectorTransactionView() {
 
 	    	if(marks.stamp) {
 	    		this.columns[0] = marks.stamp.context.def;
-	    		this.timeline[0] = marks.stamp.ts;
+	    		this.timeline[0] = this.getStartTime();
 	    	}
 
 	    	if(marks.start) {
-	    		this.timeline[1] = marks.start.ts;
+	    		this.timeline[1] = pageStartTime + marks.start.ts;
 	    		this.columns[3] = Math.round(marks.start.ts) + "ms";
 
 	    		if(marks.end) {
@@ -836,7 +602,7 @@ function AuraInspectorTransactionView() {
 	    	}
 
 	    	if(marks.end) {
-	    		this.timeline[2] = marks.end.ts;
+	    		this.timeline[2] = this.getEndTime();
 	    		if(marks.start) {
 	    			this.columns[2] = Math.round(marks.end.ts - marks.start.ts) + "ms";
 	    		}
@@ -845,7 +611,19 @@ function AuraInspectorTransactionView() {
 		};
 
 		this.getStartTime = function() {
-			return marks.start && marks.start.ts || 0;
+			var stamp = marks.stamp && marks.stamp.ts;
+    		if(stamp) {
+    			return pageStartTime + stamp;
+    		}
+    		return Infinity;
+		};
+
+		this.getEndTime = function() {
+			var end = marks.end && marks.end.ts;
+    		if(end) {
+    			return pageStartTime + end;
+    		}
+    		return 0;
 		};
 
     	this.mergeData(marks);

@@ -54,22 +54,12 @@ function AuraInspectorTransactionPanel(devtoolsPanel) {
             transactionView.setBootstrapMetrics(metrics);
         });
 
-
-        // TODO: Event Handlers, name appropriately.
-        //transactionView.attach("inspect", this.printToConsole.bind(this));
-        //transactionView.attach("onSubscribeToTransactionEnd", this.subscribeToOnTransactionEnd.bind(this));
-        //transactionView.attach("getCurrentMarks", this.getCurrentMarks.bind(this));
-
-        // Starts listening for custom transactions
-        //transactionView.notify("initEventHandlers");
-
         // When we OnPanelConnect, enable the plugins again. 
         // This is if we reload the page while the devtools are open.
         devtoolsPanel.subscribe("AuraInspector:OnBootstrapEnd", AuraInspector_OnBootstrapEnd);
-
         devtoolsPanel.subscribe("AuraInspector:OnActionStateChange", AuraInspector_OnActionStateChange.bind(this));
-
-        devtoolsPanel.subscribe("AuraInspector:OnTransactionEnd", AuraInspector_OnTransactionEnd.bind(this))
+        devtoolsPanel.subscribe("AuraInspector:OnTransactionEnd", AuraInspector_OnTransactionEnd.bind(this));
+        devtoolsPanel.subscribe("AuraInspector:OnAuraInitialized", AuraInspector_OnAuraInitialized.bind(this));
         
         _tabBody = tabBody;
     };
@@ -114,6 +104,10 @@ function AuraInspectorTransactionPanel(devtoolsPanel) {
     };
 
     /* ------------------- Event related functions ---------------------*/
+
+    function AuraInspector_OnAuraInitialized(event) {
+        transactionView.clear();
+    }
 
     function AuraInspector_OnActionStateChange(event) {
         if(!_recording) {

@@ -839,6 +839,13 @@ button.transaction-tabs-button.selected{
   text-transform: none;
 }
 
+/* Individual Row styles in the Transactions Grid */
+/*
+.trans-panel .transport,
+.trans-panel .transaction {
+  opacity: .3;
+}
+*/
 /* Transaction Timeline styles */
 .trans-graph-side {
     position: relative;
@@ -895,6 +902,10 @@ button.transaction-tabs-button.selected{
 
 .transactions-graph-row.transport .transactions-graph-row-block:nth-child(1) {
     background-color: #f0c457;
+}
+
+.transactions-graph-row.transaction .transactions-graph-row-block:nth-child(1) {
+    background-color: #d296ce;
 }
 
 .transactions-graph-row .transactions-graph-row-block:nth-child(1) {
@@ -977,7 +988,6 @@ button.transaction-tabs-button.selected{
     position: absolute;
     top: 6px;
     height: 100%;
-    left: 10px;
     width: 1px;
     border-left: 1px dotted;
 }
