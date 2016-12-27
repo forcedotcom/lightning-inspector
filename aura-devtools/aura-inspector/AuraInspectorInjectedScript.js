@@ -530,11 +530,6 @@
             this.currentChaosRunSteps = [];
             sessionStorage.removeItem("chaosRunToReplay");
         }
-
-        this.saveChaosRunToserver = function(data) {
-            //this will call AuraInspectorChaosView_OnSaveChaosRunToServer in InspectorPanelSfdcChaos.js
-            $Aura.Inspector.publish("AuraInspector:OnSaveChaosRunToServer", this.currentChaosRun);
-        }
     }
 
     
@@ -607,30 +602,16 @@
         data: {'samplingInterval': number like 4000, 'actionDropPercentage': number between 0 and 100, 'actionErrorPercentage': number between 0 and 100}
     */
     ChaosManager.prototype.saveChaosRun = function(data) {
-            var d = new Date();
-            var timeStamp = (d.getMonth()+1)+"_"+d.getDate()+"_"+d.getHours()+"_"+d.getMinutes()+"_"+d.getSeconds();
-
-            this.currentChaosRun = Object.assign(this.currentChaosRun, data);
-            this.currentChaosRun["currentChaosRunSteps"] = this.currentChaosRunSteps;
-            this.currentChaosRun["stressRunId"] = timeStamp;//time stamp is not really unique, but should work for now
-
-            //this will call AuraInspectorChaosView_OnChaosRunSaved in InspectorPanelSfdcChaos.js, just to clear out chaos cards
-            $Aura.Inspector.publish("AuraInspector:OnChaosRunSaved", {});
-
-            //save the current run locally
-            var json = JSON.stringify(this.currentChaosRun);
-            var blob = new Blob([json], {type: "application/json"});
-            var url  = URL.createObjectURL(blob);
-
-            var ele = document.createElement('a');
-            ele.download    = "chaosRun_"+timeStamp+".json";
-            ele.href        = url;
-            ele.click();
-
             //this will call AuraInspectorChaosView_OnSaveChaosRunToServer in InspectorPanelSfdcChaos.js, to save current run to server
-            this.saveChaosRunToserver(this.currentChaosRun);
+            //this.saveChaosRunToserver(this.currentChaosRun);
 
             //console.log("ChaosRun Saved", currentChaosRun);
+            this.currentChaosRun = Object.assign(this.currentChaosRun, data);
+            this.currentChaosRun["currentChaosRunSteps"] = this.currentChaosRunSteps;
+            //this.currentChaosRun["stressRunId"] = timeStamp;//time stamp is not really unique, but should work for now
+
+            //this will call AuraInspectorChaosView_OnChaosRunSaved in InspectorPanelSfdcChaos.js
+            $Aura.Inspector.publish("AuraInspector:OnChaosRunSaved", this.currentChaosRun);
 
             //clear up
             this.currentChaosRunTimeMachine = {};
