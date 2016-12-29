@@ -26,9 +26,13 @@
      * AuraInspector:StorageData                    Aura Storage Service has async fetched data to show in the storage panel.
      * AuraInspector:RemoveStorageData              Remove stored response for the action we would like to drop next time we see it
      * AuraInspector:ShowComponentInTree            Indicates you want to show the specified globalID in the component tree.
-     * AuraInspector:OnClientActionStart
-     * AuraInspector:OnClientActionEnd              TODO: Kris, Is this the same as OnEventEnd?
+     * AuraInspector:OnClientActionStart            We started executing the handler for a controller action.
+     * AuraInspector:OnClientActionEnd              Controller Action finished execution.
      * AuraInspector:OnDescriptorSelect             A descriptor was clicked on, we may want to take some action here such as showing a panel that has more information.
+     * AuraInspector:OnInjectionScriptInitialized   The AuraInspectorInjectionScript has been injected and initialized. (Usable by external plugins to know when they can wire into the script on the hosted page.)
+     * AuraInspector:OnActionStateChange            When an action is enqueued, fired, running we fire this message with the current status of the action. Includes just changed data on the action that we care about.
+
+     // ChaosManager stuff, move to SfdcInspector:
      * AuraInspector:OnStartChaosRun                User has click button "Start Chaos Run" in chaos tab, let's start randomly clicking through the app
      * AuraInspector:OnStopChaosRun                 User has click button "Stop the Run", we are done with current new chaos run
      * AuraInspector:OnSaveChaosRun                 User has click button "Save the Run", we will save the chaos run into local file
@@ -37,7 +41,6 @@
      * AuraInspector:OnContinueChaosRun             We might need to refresh during a replay, this will continue the ongoing replay.
      * AuraInspector:OnStopAllChaosRun              User has click the panic button, let's stop all chaos run, and clear up everything
      * AuraInspector:OnSomeActionGetDropped         We just drop some action during a replay
-     * AuraInspector:OnActionStateChange            TODO: Document
      */
 
     var panel = new AuraInspectorDevtoolsPanel();

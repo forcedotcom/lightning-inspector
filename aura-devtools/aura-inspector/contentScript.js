@@ -92,7 +92,7 @@
                     }
 
                     // Since we were injected, Aura could already be available. If so, let the devtools know.
-                    if(!global.$A || !global.$A.getContext()) {
+                    if(!global.$A || !(global.$A.getContext && global.$A.getContext())) {
                         var _Aura;
                         Object.defineProperty(window, "Aura", {
                             enumerable: true,
