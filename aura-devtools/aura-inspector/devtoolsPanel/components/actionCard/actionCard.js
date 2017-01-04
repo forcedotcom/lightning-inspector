@@ -13,7 +13,6 @@
 	 */
 
 	actionCard.attachedCallback = function() {
-		//console.log("----------->",(this.getAttribute("isStorable") === "true" ? this.getAttribute("storageKey"):"-") );
 		var model = {
 			id: 			this.getAttribute("actionId"),
 			actionName: 	this.getAttribute("name"),
@@ -34,126 +33,147 @@
 			callingComponent: this.getAttribute("callingComponent")
 		};
 
-		// I'm still working on what the best pattern is here
-		// This seems sloppy
-    	this.shadowRoot.querySelector("#div_actionName").textContent 		= model.actionName;
-    	this.shadowRoot.querySelector(".parameters").textContent 	= model.parameters;
-    	this.shadowRoot.querySelector(".storageKey").textContent = model.storageKey;
-    	this.shadowRoot.querySelector("#actionId").textContent 		= model.id;
-    	this.shadowRoot.querySelector("#actionState").textContent 	= model.state;
-    	this.shadowRoot.querySelector("#actionIsAbortable").textContent = model.isAbortable;
-    	this.shadowRoot.querySelector("#actionIsBackground").textContent = model.isBackground;
-    	this.shadowRoot.querySelector("#actionIsStorable").textContent 	= model.isStorable;
-    	this.shadowRoot.querySelector("#actionStorableSize").textContent = model.storableSize;
-    	this.shadowRoot.querySelector("#actionIsRefresh").textContent 	= model.isRefresh;
-    	this.shadowRoot.querySelector("#actionFromStorage").textContent = model.fromStorage;
+        const shadowRoot = this;
 
-    	var callingComponentCol = this.shadowRoot.querySelector("#callingComponent");
+        const actionName = shadowRoot.querySelector("#action-name");
+        actionName.innerHTML = "";
+        actionName.appendChild(formatActionName(model.actionName));
+
+    	shadowRoot.querySelector(".parameters").textContent 	= model.parameters;
+    	shadowRoot.querySelector(".storageKey").textContent = model.storageKey;
+    	shadowRoot.querySelector("#actionId").textContent 		= model.id;
+    	shadowRoot.querySelector("#actionState").textContent 	= model.state;
+    	shadowRoot.querySelector("#actionIsAbortable").textContent = model.isAbortable;
+    	shadowRoot.querySelector("#actionIsBackground").textContent = model.isBackground;
+    	shadowRoot.querySelector("#actionIsStorable").textContent 	= model.isStorable;
+    	shadowRoot.querySelector("#actionStorableSize").textContent = model.storableSize;
+    	shadowRoot.querySelector("#actionIsRefresh").textContent 	= model.isRefresh;
+    	shadowRoot.querySelector("#actionFromStorage").textContent = model.fromStorage;
+
+    	var callingComponentCol = shadowRoot.querySelector("#callingComponent");
     	if(!callingComponentCol.hasChildNodes()) {
     		if(model.callingComponent) {
 	    		var auracomponent = document.createElement("aurainspector-auracomponent");
 				auracomponent.setAttribute("globalId", model.callingComponent);
+                auracomponent.setAttribute("summarize", "true");
 	    		callingComponentCol.appendChild(auracomponent);
 	    	} else {
-	    		this.shadowRoot.querySelector(".calling-component-container").classList.add("hidden");
+	    		shadowRoot.querySelector(".calling-component-container").classList.add("slds-hide");
 	    	}
     	}
 
     	if(model.returnError != undefined || model.returnError != null) {//when there is error, we don't show action result.
-    		this.shadowRoot.querySelector("#actionError").textContent = model.returnError;
-    		this.shadowRoot.querySelector("#div_actionResponse").classList.add("hidden");
-    		this.shadowRoot.querySelector("#div_actionError").classList.remove("hidden");
+            this.classList.add("has-error");
+    		shadowRoot.querySelector("#actionError").textContent = model.returnError;
+    		shadowRoot.querySelector("#action-response-container").classList.add("slds-hide");
+    		shadowRoot.querySelector("#action-error-container").classList.remove("slds-hide");
     	} else {
-    		this.shadowRoot.querySelector("#actionResult").textContent = model.returnValue;
-    		this.shadowRoot.querySelector("#div_actionResponse").classList.remove("hidden");
-    		this.shadowRoot.querySelector("#div_actionError").classList.add("hidden");    		
+            this.classList.remove("has-error");
+    		shadowRoot.querySelector("#actionResult").textContent = model.returnValue;
+
+    		shadowRoot.querySelector("#action-response-container").classList.remove("slds-hide");
+    		shadowRoot.querySelector("#action-error-container").classList.add("slds-hide");    		
     	}
     	if(this.hasAttribute("stats")) {
     		var statsInfo = JSON.parse(this.getAttribute("stats"));
 
-    		this.shadowRoot.querySelector("#statsCreated").textContent = statsInfo.created;
+    		shadowRoot.querySelector("#statsCreated").textContent = statsInfo.created;
     	}
 
     	if(model.isStorable === "false" || model.isStorable === false) {
     		// Hide the storable sub info columns
-    		this.shadowRoot.querySelector(".attributes").classList.add("storable-false");
+    		shadowRoot.querySelector(".attributes").classList.add("storable-false");
     	}
 
     	if(this.getAttribute("toWatch") === "true") {
     		//let people decide what they would like to do once the actionCard is created inside watch list    	
-    		this.shadowRoot.querySelector(".span_removeActionCard").style.display = "inline-block";
-    		this.shadowRoot.querySelector(".dropOrModify").style.display = "block";
-			this.shadowRoot.querySelector(".card").classList.add("watch");
-			//
-    		this.shadowRoot.querySelector("#select_dropOrModify").options[0].text = chrome.i18n.getMessage("actioncard_dropaction");
-    		this.shadowRoot.querySelector("#select_dropOrModify").options[1].text = chrome.i18n.getMessage("actioncard_overrideresult");
-    		this.shadowRoot.querySelector("#select_dropOrModify").options[2].text = chrome.i18n.getMessage("actioncard_errorresponse");
-
-    		this.shadowRoot.querySelector("#select_dropOrModify").addEventListener('change', dropOrModifyChanged.bind(this));
-    	    this.shadowRoot.querySelector("#span_removeActionCard").addEventListener('click', removeActionCard.bind(this));
+    		shadowRoot.querySelector(".remove-card").classList.remove("slds-hide");
+    		//shadowRoot.querySelector(".dropOrModify").style.display = "block";
+			shadowRoot.querySelector(".action-card-wrapper").classList.add("watch");
+			
     	
     		if(this.getAttribute("dropOrModify") === "modifyResponse") {//non-error response next time
-    			this.shadowRoot.querySelector(".div_editActionResult").style.display = "block";
-				this.shadowRoot.querySelector(".div_errorResponse").style.display = "none";
+    			show(shadowRoot.querySelector(".div_editActionResult"));//.style.display = "block";
+				hide(shadowRoot.querySelector(".div_errorResponse"));//.style.display = "none";
     		} else if(this.getAttribute("dropOrModify") === "errorResponseNextTime"){//error response next time
-				this.shadowRoot.querySelector(".div_editActionResult").style.display = "none";
-				this.shadowRoot.querySelector(".div_errorResponse").style.display = "block";	
+				hide(shadowRoot.querySelector(".div_editActionResult"));//.style.display = "none";
+				show(shadowRoot.querySelector(".div_errorResponse"));//.style.display = "block";	
     		} else {//drop action
-    			this.shadowRoot.querySelector(".div_errorResponse").style.display = "none";	
-				this.shadowRoot.querySelector(".div_editActionResult").style.display = "none";
+    			hide(shadowRoot.querySelector(".div_errorResponse"));//.style.display = "none";	
+				hide(shadowRoot.querySelector(".div_editActionResult"));//.style.display = "none";
     		}
-    	} else {
-    		//action card on the left side. 
-    		this.shadowRoot.querySelector(".div_editActionResult").style.display = "none";
-			this.shadowRoot.querySelector(".div_errorResponse").style.display = "none";	
-    		this.shadowRoot.querySelector(".dropOrModify").style.display = "none";
     	}
-
-
-    	//Edit action parameter is not working yet, hide it
-    	//this.shadowRoot.querySelector("#button_editActionParameter").style.display = "none";
-		//this.shadowRoot.querySelector(".matchActionParameter").style.display = "none";
-		//this.shadowRoot.querySelector(".div_editActionParameter").style.display = "none";
-		//this.shadowRoot.querySelector(".textarea_ActionParameter").style.display = "none";
 	};
 
 	/*
 		New Action Card created, update it's body
 	 */
 	actionCard.createdCallback = function(){
-    	var template = ownerDocument.querySelector("template");
+    	const template = ownerDocument.querySelector("template");
+    	const clone = document.importNode(template.content, true);
+    	//const shadowRoot = this.createShadowRoot();
+        const shadowRoot = this;
+    	
+        shadowRoot.appendChild(clone);
 
-    	var clone = document.importNode(template.content, true);
+        shadowRoot.querySelector(".action-toggle").addEventListener("click", ToggleActionCard_OnClick.bind(this));
+        shadowRoot.querySelector("#select_dropOrModify").addEventListener('change', DropOrModify_OnChange.bind(this));
+        shadowRoot.querySelector(".remove-card").addEventListener('click', RemoveCard_OnClick.bind(this));
 
-    	var shadowRoot = this.createShadowRoot();
-    		shadowRoot.appendChild(clone);    	
+        const overridesSelect = shadowRoot.querySelector("#select_dropOrModify");
+        overridesSelect.options[0].text = chrome.i18n.getMessage("actioncard_dropaction");
+        overridesSelect.options[1].text = chrome.i18n.getMessage("actioncard_overrideresult");
+        overridesSelect.options[2].text = chrome.i18n.getMessage("actioncard_errorresponse");
+
+
+        shadowRoot.querySelector("#button_saveActionResult").addEventListener('click',  SaveActionResult_OnClick.bind(this));
+        shadowRoot.querySelector("#button_cancelChangeActionResult").addEventListener('click',  CancelChangeActionResult_OnClick.bind(this));
+        shadowRoot.querySelector("#button_editActionResult").addEventListener('click',  EditActionResult_OnClick.bind(this));
+        shadowRoot.querySelector("#button_saveError").addEventListener('click',  SaveError_OnClick.bind(this));
+        shadowRoot.querySelector("#button_cancelError").addEventListener('click',  CancelError_OnClick.bind(this));
+        shadowRoot.querySelector("#button_editError").addEventListener('click',  EditError_OnClick.bind(this));
+
+        if(this.getAttribute("collapsible")==="false") {
+            const container = shadowRoot.querySelector("div.action-card-wrapper");
+            container.classList.remove("is-collapsible");
+        }
 	};
 
 	actionCard.attributeChangedCallback = function(attrName, oldVal, newVal) {
 		//console.log("The attribute %s changed from %s to %s", attrName, oldVal, newVal);
+
+        if(attrName==="collapsible") {
+            const container = shadowRoot.querySelector("div.action-card-wrapper");
+            if(newVal == "false") {
+                container.classList.remove("is-collapsible");
+            } else {
+                container.classList.add("is-collapsible");
+            }
+        }
 	};
 
 	var actionCardConstructor = document.registerElement('aurainspector-actionCard', {
 		prototype: actionCard
 	});
 
+    function ToggleActionCard_OnClick(event) {
+        this.classList.toggle("is-collapsed");
+    }
+
 	//we don't want to watch this action any more, remove it from pendding overrides
-	function removeActionCard() {
+	function RemoveCard_OnClick() {
 		var actionId = this.getAttribute("id");
 		var actionName = this.getAttribute("name");
 		
 		if(actionId) {
 			//var actionParameter = JSON.parse(actionParameter);//obj
-			var dataToPublish = {
-							'actionName': actionName,//necessary, as we use this as key in actionsToWatch AuraInspectorInjectedScript.js
-							'actionId' : actionId,//like "action_card_1852;a", we need this to make actionCard on leftside draggable again
-							};
-            dataToPublish = JSON.stringify(dataToPublish);
-            //console.log('dropNextAction, dataToPublish = ', dataToPublish);
-            //call AuraInspectorActionsView_OnRemoveActionFromWatchList in AuraInspectorActionsView
+			var data = JSON.stringify({
+                            'actionName': actionName,//necessary, as we use this as key in actionsToWatch AuraInspectorInjectedScript.js
+                            'actionId' : actionId,//like "action_card_1852;a", we need this to make actionCard on leftside draggable again
+                            });
+            
             var command = `
-               window[Symbol.for('AuraDevTools')].Inspector.
-                	publish("AuraInspector:RemoveActionFromWatchList", '${dataToPublish}');
+               window[Symbol.for('AuraDevTools')].Inspector.publish("AuraInspector:RemoveActionFromWatchList", ${data});
             `;
             chrome.devtools.inspectedWindow.eval(command, function (response, exception) {
 	            if (exception) {
@@ -163,68 +183,25 @@
 		} else {
 			console.error("removeActionCard, couldn't find actionId");
 		}
-		var that = this;
-		this.parentNode.removeChild(that);
+		this.parentNode.removeChild(this);
 	}
 
-
-	//This return true if the object is an array, and it's not empty
-    function isNonEmptyArray(obj) {
-        if(obj && typeof obj === "object" && obj instanceof Array && obj.length && obj.length > 0) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-	//This return true if the object is with type Object, but not an array or null/undefined
-    function isTrueObject(obj) {
-        if(obj && typeof obj === "object" && !(obj instanceof Array)) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-	//given an object, go through each property (if it's an object itself, keep digging in), return an array of key --> value
-	function getArrayOfObject(obj, resultArray, nextKey) {
-		if(typeof obj === "string" || typeof obj === "boolean" || typeof obj === "number" || obj === null || obj === undefined) {
-			if(nextKey != null && nextKey != undefined) {
-				var tmpObj = {}; 
-				tmpObj[nextKey] = obj;
-				resultArray.push(tmpObj);
-				//console.log("push "+nextKey+" --> "+obj+" to arr", resultArray);
-			}
-		} else if (isTrueObject(obj)) {
-			for (var key in obj) {
-				var value = obj[key];
-				//console.log("call getArray with key:"+key,value,resultArray);
-				getArrayOfObject(value, resultArray, key);
-			}
-		} else if (isNonEmptyArray(obj)) {
-			for(var i = 0; i < obj.length; i ++) {
-                var obji = obj[i];
-                getArrayOfObject(obji, resultArray, null);
-            }
-		}
-	}
-
-	function dropOrModifyChanged() {
-		var dropOrModify = this.shadowRoot.querySelector("#select_dropOrModify").value;
+	function DropOrModify_OnChange() {
+		var dropOrModify = shadowRoot.querySelector("#select_dropOrModify").value;
 		this.setAttribute("dropOrModify", dropOrModify);
 		if(dropOrModify === "dropAction") {
-			this.shadowRoot.querySelector(".div_editActionResult").style.display = "none";
-			this.shadowRoot.querySelector(".div_errorResponse").style.display = "none";
+			hide(shadowRoot.querySelector(".div_editActionResult"));//.style.display = "none";
+			hide(shadowRoot.querySelector(".div_errorResponse"));//.style.display = "none";
 		} else if (dropOrModify === "modifyResponse") {
-			this.shadowRoot.querySelector(".div_editActionResult").style.display = "block";
-			this.shadowRoot.querySelector(".div_errorResponse").style.display = "none";
+			show(shadowRoot.querySelector(".div_editActionResult"));//.style.display = "block";
+			hide(shadowRoot.querySelector(".div_errorResponse"));//.style.display = "none";
 			//get an array of key->value from response, fill them into the picklist -- save this to actionCard itself?
 			var returnValue = this.getAttribute("returnValue");
 			returnValue = JSON.parse(returnValue);
 			var returnValueArray = [];
 			getArrayOfObject(returnValue, returnValueArray, null);
-			var select_actionResultKey = this.shadowRoot.querySelector("#select_actionResultKey");
-			for( i = 0; i < returnValueArray.length; i++) {
+			var select_actionResultKey = shadowRoot.querySelector("#select_actionResultKey");
+			for(var i = 0; i < returnValueArray.length; i++) {
 				returnValueArrayi = returnValueArray[i];
 		    	var key = Object.keys(returnValueArrayi)[0];
 		    	//var value = returnValueArrayi[key];
@@ -233,204 +210,235 @@
 		    	select_actionResultKey.add(option);
 			}
 			//show save/cancel button, and wire up logic
-			this.shadowRoot.querySelector(".div_editActionResult").style.display = "block";
-			this.shadowRoot.querySelector("#button_saveActionResult").
-			addEventListener('click',  saveNextResponse.bind(this));
-			this.shadowRoot.querySelector("#button_cancelChangeActionResult").
-			addEventListener('click',  cancelNextResponse.bind(this));
-			this.shadowRoot.querySelector("#button_editActionResult").
-			addEventListener('click',  editNextResponse.bind(this));
+			show(shadowRoot.querySelector(".div_editActionResult"));//.style.display = "block";
 		} else if (dropOrModify === "errorResponseNextTime") {
-			this.shadowRoot.querySelector(".div_editActionResult").style.display = "none";
-			this.shadowRoot.querySelector(".div_errorResponse").style.display = "block";
-			this.shadowRoot.querySelector("#button_saveError").
-			addEventListener('click',  saveErrorResponse.bind(this));
-			this.shadowRoot.querySelector("#button_cancelError").
-			addEventListener('click',  cancelErrorResponse.bind(this));
-			this.shadowRoot.querySelector("#button_editError").
-			addEventListener('click',  editErrorResponse.bind(this));
+            hide(shadowRoot.querySelector(".div_editActionResult"));//.style.display = "none";
+			show(shadowRoot.querySelector(".div_errorResponse"));//.style.display = "block";
 		} else {
 			console.log("unknown choice for dropOrModify, we need a handler for it !!!");
 		}
 	}
 
-	function saveErrorResponse() {
+	function SaveError_OnClick() {
 		var actionId = this.getAttribute("id");
 		if(actionId) {
-			var nextErrorMsg = this.shadowRoot.querySelector("#textarea_actionErrorMessage").value;
-			nextErrorMsg = nextErrorMsg.trim();
-			var nextErrorStack = this.shadowRoot.querySelector("#textarea_actionErrorStack").value;
-			nextErrorStack = nextErrorStack.trim();
-			var nextError = {};
-			nextError["message"] = nextErrorMsg;
-			nextError["stack"] = nextErrorStack;
-			if(nextErrorMsg && nextErrorMsg.length && nextErrorMsg.length > 0) {
-				var dataToPublish = {
-					'actionName': this.getAttribute("name"),//necessary, as we use this as key in actionsToWatch AuraInspectorInjectedScript.js
-					'actionId': actionId.substring(12, actionId.length), //action_card_713;a --> 713;a
-					'nextResponse': undefined,
-					'nextError': nextError
-				};
-				dataToPublish = JSON.stringify(dataToPublish);
-	            //console.log('saveNextResponse, dataToPublish = ', dataToPublish);
+			var nextErrorMsg = shadowRoot.querySelector("#textarea_actionErrorMessage").value.trim();
+			var nextErrorStack = shadowRoot.querySelector("#textarea_actionErrorStack").value.trim();
+			var nextError = {
+                "message": nextErrorMsg,
+                "stack": nextErrorStack
+            };
+			
+			if(nextErrorMsg && nextErrorMsg.length) {
+				var data = JSON.stringify({
+                    'actionName': this.getAttribute("name"),//necessary, as we use this as key in actionsToWatch AuraInspectorInjectedScript.js
+                    'actionId': actionId.substring(12, actionId.length), //action_card_713;a --> 713;a
+                    'nextResponse': undefined,
+                    'nextError': nextError
+                });
+	            //console.log('SaveActionResult_OnClick, dataToPublish = ', dataToPublish);
 	            //call AuraInspectorActionsView_OnEnqueueNextErrorForAction in AuraInspectorActionsView
 	            var command = `
-	               window[Symbol.for('AuraDevTools')].Inspector.
-	                	publish("AuraInspector:EnqueueNextErrorForAction", '${dataToPublish}');
+	               window[Symbol.for('AuraDevTools')].Inspector.publish("AuraInspector:EnqueueNextErrorForAction", ${data});
 	            `;
 	            chrome.devtools.inspectedWindow.eval(command, function (response, exception) {
 		            if (exception) {
-		            	console.log('ERROR from saveNextResponse, CMD:', command, exception);
+		            	console.log('ERROR from SaveActionResult_OnClick, CMD:', command, exception);
 		            }
 		        });
 		        //make the textara readonly
-		        this.shadowRoot.querySelector("#textarea_actionErrorMessage").setAttribute('readonly','readonly');
-		        this.shadowRoot.querySelector("#textarea_actionErrorStack").setAttribute('readonly','readonly');
-		        //hide save/cancel button
-		        this.shadowRoot.querySelector("#button_saveError").classList.add("hidden");
-		        this.shadowRoot.querySelector("#button_cancelError").classList.add("hidden");
+		        shadowRoot.querySelector("#textarea_actionErrorMessage").setAttribute('readonly','readonly');
+		        shadowRoot.querySelector("#textarea_actionErrorStack").setAttribute('readonly','readonly');
+		        
+                //hide save/cancel button
+		        hide(shadowRoot.querySelector("#button_saveError"));
+		        hide(shadowRoot.querySelector("#button_cancelError"));
+
 		        //display the edit button
-		        this.shadowRoot.querySelector("#button_editError").classList.remove("hidden");
+		        show(shadowRoot.querySelector("#button_editError"));
 			} else {
 				console.log("nextErrorMsg cannot be empty");
 			}
 		}
 	}
 
-	function editErrorResponse() {
+	function EditError_OnClick() {
 		var actionId = this.getAttribute("id");
 		if(actionId) {
 			//make the textara readonly
-		    this.shadowRoot.querySelector("#textarea_actionErrorMessage").removeAttribute('readonly');
-		    this.shadowRoot.querySelector("#textarea_actionErrorStack").removeAttribute('readonly');
+		    shadowRoot.querySelector("#textarea_actionErrorMessage").removeAttribute('readonly');
+		    shadowRoot.querySelector("#textarea_actionErrorStack").removeAttribute('readonly');
+
 		    //show save/cancel button
-		    this.shadowRoot.querySelector("#button_saveError").classList.remove("hidden");
-		    this.shadowRoot.querySelector("#button_cancelError").classList.remove("hidden");
+		    show(shadowRoot.querySelector("#button_saveError"));
+		    show(shadowRoot.querySelector("#button_cancelError"));
+
 		    //hide the edit button
-		    this.shadowRoot.querySelector("#button_editError").classList.add("hidden");
+		    hide(shadowRoot.querySelector("#button_editError"));
 		}
 	}
 
-	function cancelErrorResponse() {
+	function CancelError_OnClick() {
 		//hide next error response area
-		var div_errorResponse = this.shadowRoot.querySelector(".div_errorResponse");
-		div_errorResponse.style.display = "none";
+        hide(shadowRoot.querySelector(".div_errorResponse"));
+		// var div_errorResponse = shadowRoot.querySelector(".div_errorResponse");
+		// div_errorResponse.style.display = "none";
 		//change select back to default, which is drop action
-		this.shadowRoot.querySelector("#select_dropOrModify").value = "dropAction";
+		shadowRoot.querySelector("#select_dropOrModify").value = "dropAction";
 	}
 
-	function cancelNextResponse() {
+	function CancelChangeActionResult_OnClick() {
 		//hide next response area
-		var div_editActionResult = this.shadowRoot.querySelector(".div_editActionResult");
-		div_editActionResult.style.display = "none";
+        hide(shadowRoot.querySelector(".div_editActionResult"));
+		// var div_editActionResult = shadowRoot.querySelector(".div_editActionResult");
+		// div_editActionResult.style.display = "none";
+
 		//change select back to default, which is drop action
-		this.shadowRoot.querySelector("#select_dropOrModify").value = "dropAction";
+		shadowRoot.querySelector("#select_dropOrModify").value = "dropAction";
 	}
 
-	function editNextResponse() {
+	function EditActionResult_OnClick() {
 		//make the textara writable
-	    this.shadowRoot.querySelector("#textarea_actionResultValue").removeAttribute('readonly');
+	    shadowRoot.querySelector("#textarea_actionResultValue").removeAttribute('readonly');
+
 	    //show save/cancel button
-	    this.shadowRoot.querySelector("#button_saveActionResult").classList.remove("hidden");
-	    this.shadowRoot.querySelector("#button_cancelChangeActionResult").classList.remove("hidden");
+	    show(shadowRoot.querySelector("#button_saveActionResult"));
+	    show(shadowRoot.querySelector("#button_cancelChangeActionResult"));
+
 	    //hide edit button
-	    this.shadowRoot.querySelector("#button_editActionResult").classList.add("hidden");
+	    hide(shadowRoot.querySelector("#button_editActionResult"));
 	}
 
-	function saveNextResponse() {
-		var actionId = this.getAttribute("id");//necessary
-		var actionName = this.getAttribute("name");//necessary, as we use this as key in actionsToWatch AuraInspectorInjectedScript.js
+	function SaveActionResult_OnClick() {
+		var actionId = this.getAttribute("id");
+		var actionName = this.getAttribute("name");
 		var actionParameter = this.getAttribute("parameters");
-		var actionIsStorable = this.getAttribute("isStorable");//to remove
+		var actionIsStorable = this.getAttribute("isStorable");
 
 		//for now, let's only allow modify one set of key->value in response, and key has to be an string
-		var nextResponseKey = this.shadowRoot.querySelector("#select_actionResultKey").value;
-		if(nextResponseKey) {
-			nextResponseKey = nextResponseKey.trim();
-		} else {
-			nextResponseKey = undefined;
-		}
-		var nextResponseValue = this.shadowRoot.querySelector("#textarea_actionResultValue").value;
+		var nextResponseKey = shadowRoot.querySelector("#select_actionResultKey").value;
+		nextResponseKey = nextResponseKey ? nextResponseKey.trim() : undefined;
+		
+		var nextResponseValue = shadowRoot.querySelector("#textarea_actionResultValue").value;
 		var nextResponse = {};
-		if(actionId && nextResponseKey && nextResponseKey.length && nextResponseKey.length > 0 && nextResponseValue) {
+		if(actionId && nextResponseKey && nextResponseKey.length && nextResponseValue) {
 			try { //see if we can parse it to Json
-				var nextResponseValueObj = JSON.parse(nextResponseValue);
-				nextResponseValue = nextResponseValueObj;
+				nextResponseValue = JSON.parse(nextResponseValue);
 			} catch(e) {
 				//nothing, if we cannot, just trim it.
 				nextResponseValue = nextResponseValue.trim();
 			}
 			nextResponse[nextResponseKey] = nextResponseValue;
-			//console.log("nextActionResponse:", nextResponse);
+
 			//publish data to AuraInspectorActionsView
-			var actionParameter = JSON.parse(actionParameter);
-			var dataToPublish = { 
+			var data = JSON.stringify({
 							'actionName': actionName, 
-							'actionParameter':actionParameter, 
+							'actionParameter': JSON.parse(actionParameter), 
 							'actionId': actionId.substring(12, actionId.length), //action_card_713;a --> 713;a
 							//'actionIsStorable': actionIsStorable, no need
 							'nextResponse': nextResponse,
-							'nextErrorMsg': undefined};
-            dataToPublish = JSON.stringify(dataToPublish);
-            console.log('saveNextResponse, dataToPublish = ', dataToPublish);
+							'nextErrorMsg': undefined
+                        });
+
             //call AuraInspectorActionsView_OnEnqueueNextResponseForAction in AuraInspectorActionsView
             var command = `
-               window[Symbol.for('AuraDevTools')].Inspector.
-                	publish("AuraInspector:EnqueueNextResponseForAction", '${dataToPublish}');
+               window[Symbol.for('AuraDevTools')].Inspector.publish("AuraInspector:EnqueueNextResponseForAction", ${data});
             `;
             chrome.devtools.inspectedWindow.eval(command, function (response, exception) {
 	            if (exception) {
-	            	console.log('ERROR from saveNextResponse, CMD:', command, exception);
+	            	console.log('ERROR from SaveActionResult_OnClick, CMD:', command, exception);
 	            }
 	        });
 	        //make the textara readonly
-	        this.shadowRoot.querySelector("#textarea_actionResultValue").setAttribute('readonly','readonly');
+	        shadowRoot.querySelector("#textarea_actionResultValue").setAttribute('readonly','readonly');
+
 	        //hide save/cancel button
-	        this.shadowRoot.querySelector("#button_saveActionResult").classList.add("hidden");
-	        this.shadowRoot.querySelector("#button_cancelChangeActionResult").classList.add("hidden");
+	        hide(shadowRoot.querySelector("#button_saveActionResult"));
+	        hide(shadowRoot.querySelector("#button_cancelChangeActionResult"));
+
 	        //show edit button
-	        this.shadowRoot.querySelector("#button_editActionResult").classList.remove("hidden");
+	        show(shadowRoot.querySelector("#button_editActionResult"))
 		} else {
-			console.log("saveNextResponse, either actionId is bogus, or bad value of key/value in nextResponse", 
+			console.log("SaveActionResult_OnClick, either actionId is bogus, or bad value of key/value in nextResponse", 
 				actionId, nextResponseKey, nextResponseValue);
 		}
 	}
 
-	/*function editActionParameter() {
-		toggleActionParameter.call(this);
-		this.shadowRoot.querySelector("#textarea_ActionParameter").value =
-			JSON.stringify(JSON.parse( this.shadowRoot.querySelector(".parameters").textContent ), undefined, 2);
-		this.shadowRoot.querySelector(".div_actionButtons").style.display = "block";
-		this.shadowRoot.querySelector(".div_actionParameter").style.display = "none";
-		//bind save button
-		var dropOrModify = this.shadowRoot.querySelector("#select_dropOrModify").value;
-		if(dropOrModify === "dropAction") {
-			this.shadowRoot.querySelector("#button_saveActionParameter").
-			addEventListener('click',  dropNextAction.bind(this));
-		} else if (dropOrModify == "modifyResponse") {
-			this.shadowRoot.querySelector("#button_saveActionParameter").
-			addEventListener('click',  saveNextResponse.bind(this));
-		} else {
-			console.log("unknown choice for dropOrModify, we need a handler for it !!!");
-		}
-		//bind cancel button
-		this.shadowRoot.querySelector("#button_cancelChangeActionParameter").
-		addEventListener('click',  function(){
-			//Remove the action from the watch list. OR reset inputs to their original values.
-		});
-	}
+    function show(element) {
+        if(!element) {
+            return;
+        }
+        element.classList.remove("slds-hide");
+    }
 
-	function toggleActionParameter() {
-		var button_editActionParameter = this.shadowRoot.querySelector(".button_editActionParameter");
-		var div_editActionParameter = this.shadowRoot.querySelector(".div_editActionParameter");
-		if( button_editActionParameter.classList.contains("expanded") ){
-			button_editActionParameter.classList.remove("expanded");
-			div_editActionParameter.style.display = "none";
-		} else {
-			button_editActionParameter.classList.add("expanded");
-			div_editActionParameter.style.display = "block";
-		}
-	}*/
+    function hide(element) {
+        if(!element) {
+            return;
+        }
+        element.classList.add("slds-hide");
 
+    }
+
+    function formatActionName(actionName) {
+        const fragment = document.createDocumentFragment();
+        const pair = actionName.split("$");
+
+        const controller = document.createElement("span");
+        controller.className = "action-name-controller";
+        controller.textContent = pair[0];
+
+        const method = document.createElement("span");
+        method.className = "action-name-method";
+        method.textContent = pair[1];
+
+        const delimiter = document.createElement("span");
+        delimiter.className = "action-name-delimiter";
+        delimiter.textContent="$";
+
+        fragment.appendChild(controller);
+        fragment.appendChild(delimiter);
+        fragment.appendChild(method);
+
+        return fragment;
+    }
+
+    //This return true if the object is an array, and it's not empty
+    function isNonEmptyArray(obj) {
+        if(obj && typeof obj === "object" && obj instanceof Array && obj.length && obj.length > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    //This return true if the object is with type Object, but not an array or null/undefined
+    function isTrueObject(obj) {
+        if(obj && typeof obj === "object" && !(obj instanceof Array)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    //given an object, go through each property (if it's an object itself, keep digging in), return an array of key --> value
+    function getArrayOfObject(obj, resultArray, nextKey) {
+        if(typeof obj === "string" || typeof obj === "boolean" || typeof obj === "number" || obj === null || obj === undefined) {
+            if(nextKey != null && nextKey != undefined && nextKey !== "$serId$") {
+                var tmpObj = {}; 
+                tmpObj[nextKey] = obj;
+                resultArray.push(tmpObj);
+            }
+        } else if (isTrueObject(obj)) {
+            for (var key in obj) {
+                var value = obj[key];
+                getArrayOfObject(value, resultArray, key);
+            }
+        } else if (isNonEmptyArray(obj)) {
+            for(var i = 0; i < obj.length; i ++) {
+                var obji = obj[i];
+                getArrayOfObject(obji, resultArray, null);
+            }
+        }
+    }
 
 })();

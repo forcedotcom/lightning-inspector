@@ -187,6 +187,10 @@ function AuraInspectorTransactionGrid() {
     
     // Updates the number markers on the timeline ruler
     this.updateTimeMarkers = function(){
+        if(!_container) {
+            return;
+        }
+        
         //latestEndTime = endTime;
         var marker1 = _container.querySelector(".timeline-number-text-1");
         var marker2 = _container.querySelector(".timeline-number-text-2");
