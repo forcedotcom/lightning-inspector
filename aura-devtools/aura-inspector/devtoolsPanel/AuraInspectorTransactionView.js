@@ -107,12 +107,12 @@ function AuraInspectorTransactionView() {
 		// Add a row for each Transport
 		for(var c=0;c<items.length;c++) {
 			 if(items[c] instanceof TransportDataRow) {
-				// transactionGrid.addRow(items[c]);
-				// children = _processor.getActions(items[c].id);
+				transactionGrid.addRow(items[c]);
+				children = _processor.getActions(items[c].id);
 
-				// for(var d=0;d<children.length;d++) {
-				// 	transactionGrid.addRow(children[d]);
-				// }
+				for(var d=0;d<children.length;d++) {
+					transactionGrid.addRow(children[d]);
+				}
 			} else {
 				transactionGrid.addRow(items[c]);
 			}
