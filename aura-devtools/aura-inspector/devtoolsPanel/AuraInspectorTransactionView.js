@@ -107,12 +107,12 @@ function AuraInspectorTransactionView() {
 		// Add a row for each Transport
 		for(var c=0;c<items.length;c++) {
 			 if(items[c] instanceof TransportDataRow) {
-				transactionGrid.addRow(items[c]);
-				children = _processor.getActions(items[c].id);
+				// transactionGrid.addRow(items[c]);
+				// children = _processor.getActions(items[c].id);
 
-				for(var d=0;d<children.length;d++) {
-					transactionGrid.addRow(children[d]);
-				}
+				// for(var d=0;d<children.length;d++) {
+				// 	transactionGrid.addRow(children[d]);
+				// }
 			} else {
 				transactionGrid.addRow(items[c]);
 			}
@@ -457,6 +457,9 @@ function AuraInspectorTransactionView() {
     		"row": "transaction"
     	};
 
+        // Special formatting, Needs to be moved out of here into its own format classes
+        this.columns[0] = formatTitle(this.columns[0]);
+
     	this.mergeData = function() {};
 
     	this.getEndTime = function() {
@@ -472,6 +475,19 @@ function AuraInspectorTransactionView() {
     	this.getData = function() {
     		return transaction;
     	};
+
+
+        function formatTitle(currentTitle) {
+            switch(currentTitle) {
+                case "ltng:performance":
+                    return `ltng:performance [${transaction.eventSource}]`;
+                case "ltng:interaction":
+                    return `ltng:interaction [${transaction.eventSource}:${transaction.locator.target}]`;
+                case "ltng:pageView":
+                    return `ltng:pageView [${transaction.page.context}]`;
+            }
+            return currentTitle;
+        }
     }
 
     // Transforms PROCESSED marks to a row that the grid expects.
