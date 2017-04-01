@@ -2,6 +2,8 @@
 // This is injected in the DOM directly via <script> injection
 (function(global){
     var $Aura = {};
+
+    // Do NOT use this pattern, it's tech-debt and should be removed. Add all logic to AuraInspector.
     $Aura.actions = {
         "AuraDevToolService.HighlightElement": function(globalId) {
             // Ensure the classes are present that HighlightElement depends on.
@@ -84,85 +86,8 @@
                 element.classList.remove(removeClassName);
                 element.classList.remove(addClassName);
             });
-        },
-        /**
-         * Is called after $A is loaded via aura_*.js, but before we run initAsync()
-         */
-        "AuraDevToolService.Bootstrap": function() {
-            if (typeof $A !== "undefined" && $A.initAsync) {
-                // Try catches for branches that don't have the overrides
-                // This instrument is where we add the methods _$getRawValue$() and _$getSelfGlobalId$() to the
-                // component prototype. This allowed us to move to outputing the component from injected code, vs code in the framework.
-                // Would be nice to get rid of needing this.
-                try {
-                    $A.installOverride("outputComponent", function(){});
-                } catch(e){}
-
-                try {
-                    // Counts how many times various things have happened.
-                    bootstrapCounters();
-                } catch(e){}
-
-                try {
-                    // Actions Tab
-                    bootstrapActionsInstrumentation();
-                 } catch(e){
-                 }
-                 try {
-                    // Perf Tab
-                    bootstrapPerfDevTools();
-                 } catch(e){
-
-                 }
-                 try {
-                    // Events Tab
-                    bootstrapEventInstrumentation();
-                } catch(e){}
-
-                try {
-                    bootstrapTransactionReporting();
-                } catch(e){}
-
-                // Currently in progress to get this going. Its work to be able to show the URL for the XHR in the transactions panel.
-                // try {
-                //     $A.installOverride("ClientService.decode", function(config, oldResponse, noStrip,timedOut){
-                //         var transport = $A.metricsService.getCurrentMarks().transport;
-                //         // get last
-                //         var latest = transport[transport.length-1];
-                //         latest[Symbol.for("url")] = oldReponse.responseUrl;
-
-                //         var ret = config["fn"].call(config["scope"], oldResponse, noStrip, timedOut);
-
-                //         return ret;
-                //     });
-                // }catch(e) {}
-
-                // Need a way to conditionally do this based on a user setting.
-                $A.PerfDevTools.init();
-
-                window.postMessage({
-                    "action": "AuraInspector:bootstrap",
-                    "key":"AuraInspector:bootstrap",
-                    "data": "InjectedScript: AuraDevToolService.Bootstrap()"
-                }, window.location.origin);
-
-                // Only do once, we wouldn't want to instrument twice, that would give us double listeners.
-                this["AuraDevToolService.Bootstrap"] = function(){
-                    // If you close the panel, then reopen it, the bootstrap will have already happened
-                    // on the page. But the inspector doesn't know that, we still need to communicate
-                    // to it that we're done. So we always post the bootstrap back.
-                    window.postMessage({
-                        "action": "AuraInspector:bootstrap",
-                        "key": "AuraInspector:bootstrap",
-                        "data": "InjectedScript: Aura is already present at initialization, calling bootstrap."
-                    }, window.location.origin);
-                };
-            } else {
-                console.warn('Could not attach AuraDevTools Extension.');
-            }
         }
-
-    };//end of $Aura.actions
+    };
 
     var $Symbol = Symbol.for("AuraDevTools");
 
@@ -173,10 +98,6 @@
     // Attach to the global object so our integrations can access it, but
     // use a symbol so it doesn't create a global property.
     global[$Symbol] = $Aura;
-
-    // Subscribes!
-    $Aura.Inspector.subscribe("AuraInspector:OnHighlightComponent", $Aura.actions["AuraDevToolService.HighlightElement"]);
-    $Aura.Inspector.subscribe("AuraInspector:OnHighlightComponentEnd", $Aura.actions["AuraDevToolService.RemoveHighlightElement"]);
 
     function AuraInspector() {
         var subscribers = {};
@@ -191,6 +112,14 @@
         var increment = 0;
         var lastItemInspected;
         var countMap = {};
+        var instrumented = {
+            "actions": false,
+            "all": false
+        };
+
+        // For dropping actions
+        var actionsWatched = {};
+        var actionsToWatch = {};
 
         this.init = function() {
             // Add Rightclick handler. Just track what we rightclicked on.
@@ -204,13 +133,22 @@
 
             // Aura's present, our script is present, bootstrap!
             this.subscribe("AuraInspector:OnAuraInitialized", () => {
-                this.bootstrap();
+                this.instrument();
                 this.subscribe("AuraInspector:OnPanelConnect", AuraInspector_OnPanelLoad.bind(this));
             });
 
+            // Component tree hovering to show the element in the dom.
+            this.subscribe("AuraInspector:OnHighlightComponent", $Aura.actions["AuraDevToolService.HighlightElement"]);
+            this.subscribe("AuraInspector:OnHighlightComponentEnd", $Aura.actions["AuraDevToolService.RemoveHighlightElement"]);
+
+            // Action dropping and modifying
+            this.subscribe("AuraInspector:OnActionToWatchEnqueue", AuraInspector_OnActionToWatchEnqueue.bind(this));
+            this.subscribe("AuraInspector:OnActionToRemoveFromWatchEnqueue", AuraInspector_RemoveActionFromWatch.bind(this));
+            this.subscribe("AuraInspector:OnActionToWatchClear", AuraInspector_RemoveActionsFromWatch.bind(this));
+
             // Aura is present and the root has already been initialized.
             if(window.$A && window.$A.getContext && !!window.$A.getContext()) {
-                this.bootstrap();
+                this.instrument();
                 this.publish("AuraInspector:OnAuraInitialized", "InjectedScript: Aura Present already during load." );
             }
 
@@ -229,8 +167,382 @@
             this.publish("AuraInspector:OnInjectionScriptInitialized")
         };
 
-        this.bootstrap = function() {
-            $Aura.actions["AuraDevToolService.Bootstrap"]();
+        this.instrument = function() {
+            if(instrumented.all) {
+                // If you close the panel, then reopen it, the bootstrap will have already happened
+                // on the page. But the inspector doesn't know that, we still need to communicate
+                // to it that we're done. So we always post the bootstrap back.
+                window.postMessage({
+                    "action": "AuraInspector:bootstrap",
+                    "key": "AuraInspector:bootstrap",
+                    "data": "InjectedScript: Aura is already present at initialization, calling bootstrap."
+                }, window.location.origin);
+                return;
+            }
+
+            if (typeof $A === "undefined" || !($A.getContext && $A.getContext())) {
+                // Aura isn't ready yet.
+                return;
+            }
+
+            // Try catches for branches that don't have the overrides
+            // This instrument is where we add the methods _$getRawValue$() and _$getSelfGlobalId$() to the
+            // component prototype. This allowed us to move to outputing the component from injected code, vs code in the framework.
+            // Would be nice to get rid of needing this.
+            try {
+                $A.installOverride("outputComponent", function(){});
+            } catch(e){}
+
+            try {
+                // Counts how many times various things have happened.
+                bootstrapCounters();
+            } catch(e){}
+
+            try {
+                // Actions Tab
+                this.instrumentActions();
+             } catch(e){
+             }
+             try {
+                // Perf Tab
+                bootstrapPerfDevTools();
+             } catch(e){
+
+             }
+             try {
+                // Events Tab
+                bootstrapEventInstrumentation();
+            } catch(e){}
+
+            try {
+                bootstrapTransactionReporting();
+            } catch(e){}
+
+            // Need a way to conditionally do this based on a user setting.
+            $A.PerfDevTools.init();
+
+            window.postMessage({
+                "action": "AuraInspector:bootstrap",
+                "key":"AuraInspector:bootstrap",
+                "data": "InjectedScript: $Aura.Inspector.instrument()"
+            }, window.location.origin);
+
+            instrumented.all = true;
+        };
+
+        // Just incase for legacy, remove say 210
+        this.bootstrap = this.instrument;
+
+        this.instrumentActions = function() {
+            if(instrumented.actions) {
+                return;
+            }
+
+            $A.installOverride("enqueueAction", OnEnqueueAction);
+            //$A.installOverride("Action.finishAction", OnFinishAction);
+            $A.installOverride("Action.abort", OnAbortAction);
+            $A.installOverride("Action.runDeprecated", OnActionRunDeprecated);
+            $A.installOverride("Action.finishAction", Action_OnFinishAction.bind(this));
+            $A.installOverride("ClientService.send", ClientService_OnSend.bind(this));
+            $A.installOverride("ClientService.decode", ClientService_OnDecode.bind(this));
+
+            instrumented.actions = true;
+
+            //oldResponse: XMLHttpRequest
+            //actionsFromAuraXHR: AuraXHR keep an object called actions, it has all actions client side are waiting for response, a map between actionId and action.
+            function ClientService_OnDecode(config, oldResponse, noStrip) {
+                //var response = oldResponse["response"];
+                if(!oldResponse["response"] || oldResponse["response"].length == 0) {
+                    console.warn("AuraInspectorInjectedScript.onDecode received a bad response.");
+                    return config["fn"].call(config["scope"], oldResponse, noStrip);
+                }
+
+                //modify response if we find the action we are watching
+                var response = oldResponse["response"];
+                var oldResponseText = oldResponse["responseText"];
+                var newResponseText = oldResponseText;
+                // var responseModified = false;//if we modify the response, set this to true
+                // var responseWithError = false;//if we send back error response, set this to true
+                // var responseWithIncomplete = false;//if we want to kill the action, set this to true
+
+                if(this.hasWatchedActions()) {
+                    try {
+                        for(var actionId in actionsWatched) {
+                            if(!oldResponseText.includes(actionId) || !oldResponseText.startsWith("while(1);")) {
+                                continue;
+                            }
+
+                            var actionWatched = actionsWatched[actionId];
+                            var actionsObj = getActionsFromResponseText(oldResponseText);
+                            var responseActions = actionsObj && actionsObj.actions || [];
+                            
+                            var action = responseActions.find((current) => {
+                                return current.id === actionId;
+                            });
+
+                            // We have not yet found an action in the existing set we want to modify
+                            if(!action) {
+                                continue;
+                            }
+
+                            //we would like to return error response
+                            if(actionWatched.nextError) {
+                                action.state = "ERROR";
+                                //when action return with error, returnValue should be null
+                                action.returnValue = null;
+                                action.error = [actionWatched.nextError];
+                                
+                                //newResponseText = addMessageAndStackToResponse(oldResponseText, actionWatched.nextError.message, actionWatched.nextError.stack);
+                                newResponseText = setActionsToResponseText(oldResponseText, responseActions);
+
+                                $Aura.Inspector.publish("AuraInspector:OnActionStateChange", {
+                                        "id": actionId,
+                                        "idtoWatch": actionWatched.idtoWatch,
+                                        "state": "RESPONSEMODIFIED",
+                                        "sentTime": performance.now()//do we need this?
+                                });
+
+                                const newHttpRequest = {
+                                    "status": 500, // As long as it's not 200
+                                    "response": newResponseText,
+                                    "responseText": newResponseText,
+                                    "$hasError": true
+                                };
+                                
+                                return config["fn"].call(config["scope"], newHttpRequest, noStrip);
+                            } 
+                            //we would like to return non-error response
+                            else if(actionWatched.nextResponse) {
+                                var returnValue = action.returnValue;
+                                var responseModified = replaceValueInObj(returnValue, actionWatched.nextResponse);
+                                if(responseModified) {
+                                    action.returnValue = returnValue;
+                                    var actionsEndIdx = oldResponseText.indexOf("context");
+                                    newResponseText = "while(1);\n"+ "{"+"\"actions\":"+JSON.stringify(responseActions)+",\""+oldResponseText.substring(actionsEndIdx,oldResponseText.length);
+
+                                    //move the actionCard from watch list to Processed
+                                    //this will call AuraInspectorActionsView_OnActionStateChange in AuraInspectorActionsView.js
+                                    $Aura.Inspector.publish("AuraInspector:OnActionStateChange", {
+                                            "id": actionId,
+                                            "idtoWatch": actionWatched.idtoWatch,
+                                            "state": "RESPONSEMODIFIED",
+                                            "sentTime": performance.now()//do we need this?
+                                    });
+                                    
+                                    const newHttpRequest = Object.assign($A.util.apply({}, oldResponse), {
+                                        "response": newResponseText,
+                                        "responseText": newResponseText,
+                                        "$isModified": true
+                                    });
+
+                                    return config["fn"].call(config["scope"], newHttpRequest, noStrip);
+                                }
+                            } 
+                            //we would like to kill action, return incomplete
+                            else {
+                                //responseWithIncomplete = true;
+                                //move the actionCard from watch list to Processed
+                                //this will call AuraInspectorActionsView_OnActionStateChange in AuraInspectorActionsView.js
+                                $Aura.Inspector.publish("AuraInspector:OnActionStateChange", {
+                                        "id": actionId,
+                                        "idtoWatch": actionWatched.idtoWatch,
+                                        "state": "RESPONSEMODIFIED",
+                                        "sentTime": performance.now(),//do we need this?
+                                        "byChaosRun": actionWatched.byChaosRun
+                                });
+                                if(actionWatched.byChaosRun) {
+                                    $Aura.Inspector.publish("AuraInspector:OnCreateChaosCard", {"message": "Drop action "+actionWatched.id + ", the old actionId from replay: "+actionWatched.idtoWatch} );
+                                    if(actionWatched.id === actionWatched.idtoWatch) {
+                                        console.warn("The action in your replay has the same id as the action being dropped, this will confuse ActionTab, as it use actionId to find and move actionCard around. Please change action id in your replay file to something else, like 9999 :-) ");
+                                    }
+                                }
+
+                                const newHttpRequest = {
+                                    "status": 0,
+                                    "$isIncomplete": true
+                                };
+                                
+                                return config["fn"].call(config["scope"], newHttpRequest, noStrip);
+                            }
+                        
+                        }
+                    } catch(e) {
+                        console.warn("get response we cannot parse with JSON.parse, skip", oldResponse);
+                        return config["fn"].call(config["scope"], oldResponse, noStrip);
+                    }
+                }
+
+                /** CHAOS **/
+                // if($Sfdc.chaos.shouldWeDropAction()) {
+                //     //if we are in a new chaos run and user would like to drop action randomly
+                //     responseWithIncomplete = $Sfdc.chaos.randomlyDropAction(responseWithIncomplete, oldResponseText); 
+                // }
+
+                // if($Sfdc.chaos.shouldWeErrorResponseAction()) {
+                //     //if we are in a new chaos run and we would like to return error response randomly
+                //     const resObj = $Sfdc.chaos.randomlyReturnErrorResponseForAction(responseWithIncomplete, oldResponseText);
+                //     responseWithError = resObj.responseWithError;
+                //     newResponseText = resObj.newResponseText;
+                // }
+                /** End Chaos **/
+                
+                // if(responseWithIncomplete) {
+                //     const newHttpRequest = {
+                //         "status": 0,
+                //         "$isIncomplete": true
+                //     };
+                    
+                //     return config["fn"].call(config["scope"], newHttpRequest, noStrip);
+                // }
+                // else if(responseModified === true) {
+                //     const newHttpRequest = Object.assign({}, oldResponse, {
+                //         "response": newResponseText,
+                //         "responseText": newResponseText,
+                //         "$isModified": true
+                //     });
+                //     newHttpRequest["response"] = newResponseText;
+                //     newHttpRequest["responseText"] = newResponseText;
+
+                //     return config["fn"].call(config["scope"], newHttpRequest, noStrip);
+                // } else if (responseWithError === true) {
+                //     const newHttpRequest = {
+                //         "status": 500, // As long as it's not 200
+                //         "response": newResponseText,
+                //         "responseText": newResponseText,
+                //         "$hasError": true
+                //     };
+                    
+                //     return config["fn"].call(config["scope"], newHttpRequest, noStrip);
+                // } else {
+                //     //nothing happended, just send back oldResponse
+                //     return config["fn"].call(config["scope"], oldResponse, noStrip);
+                // }
+
+                //nothing happended, just send back oldResponse
+                return config["fn"].call(config["scope"], oldResponse, noStrip);
+            }
+
+            function addMessageAndStackToResponse(response, message, stack) {
+                var actionsStartIdx = response.indexOf("actions");
+                if(actionsStartIdx>0) {
+                    return response.substring(0, actionsStartIdx-1)+"\"message\":\""+message+"\",\"stack\":\""+stack+"\"," + response.substring(actionsStartIdx-1, response.length);
+                } else {
+                    return response;
+                }
+            }
+
+            //go through returnValue object, replace the value if nextResponse[key] exist
+            function replaceValueInObj (returnValue, nextResponse) {
+                if(Array.isArray(returnValue) && returnValue.length) {
+                    for(var i = 0; i < returnValue.length; i ++) {
+                        var returnValuei = returnValue[i];
+                        return replaceValueInObj(returnValuei, nextResponse);
+                    }
+                }  else if (typeof(returnValue) === "object" && !Array.isArray(returnValue)) {
+                    for(var key in returnValue) {
+                        if(nextResponse && nextResponse.hasOwnProperty(key)) {
+                            returnValue[key] = nextResponse[key];
+                            //console.log("found a match, update response for "+key);
+                            return true;
+                        } else {
+                            return replaceValueInObj(returnValue[key], nextResponse);
+                        }
+                    }
+                }
+                return false;
+            }
+
+            function getActionsFromResponseText(response) {
+                var actionsStartIdx = response.indexOf("actions");
+                var actionsEndIdx = response.indexOf("context");
+                if(actionsStartIdx>=0 && actionsEndIdx >=0 ) {
+                    var actionsStrInResponse = response.substring(actionsStartIdx, actionsEndIdx-1).replace(/\s/g, "");//we don't want '"' right before the 'context'
+                    if(actionsStrInResponse.lastIndexOf(",") == actionsStrInResponse.length -1) {//get rid of ','
+                        actionsStrInResponse = actionsStrInResponse.substring(0, actionsStrInResponse.length-1);
+                    } 
+                    return JSON.parse("{\""+actionsStrInResponse+"}");
+                }
+            }
+
+            function setActionsToResponseText(response, actions) {
+                var startString = '"actions":';
+                var startIndex = response.indexOf(startString) + startString.length;
+                var start = response.substring(0, startIndex);
+
+                var endString = '"context":';
+                var endIndex = response.indexOf(endString);
+                var end = response.substring(endIndex);
+
+                return start + JSON.stringify(actions) + "," + end;
+
+                // if(actionsStartIdx>=0 && actionsEndIdx >=0 ) {
+                //     var actionsStrInResponse = response.substring(actionsStartIdx, actionsEndIdx-1).replace(/\s/g, "");//we don't want '"' right before the 'context'
+                //     if(actionsStrInResponse.lastIndexOf(",") == actionsStrInResponse.length -1) {//get rid of ','
+                //         actionsStrInResponse = actionsStrInResponse.substring(0, actionsStrInResponse.length-1);
+                //     } 
+                //     return JSON.parse("{\""+actionsStrInResponse+"}");
+                // }
+            }
+        }
+
+        this.getWatchedAction = function(id) {
+            return actionsWatched[id];
+        };
+
+        this.isWatchingForAction = function(reference) {
+            if(typeof reference === "string") {
+                return actionsToWatch[reference];
+            }
+            var name = reference.actionName;
+            if($A.util.isAction(reference)) {
+                name = reference.getDef().toString();
+            }
+
+            for(var actionName in actionsToWatch) {
+                if(actionName.includes(name)) {
+                    return actionsToWatch[actionName];
+                }
+            }
+            return null;
+        };
+
+        this.hasWatchedActions = function() {
+            return Object.getOwnPropertyNames(actionsWatched).length > 0;
+        };
+
+        this.isWatchingForActions = function() {
+            return Object.getOwnPropertyNames(actionsToWatch).length > 0;
+        };
+
+        this.setWatchedActionAsProcessed = function(actionId) {
+            delete actionsWatched[actionId];
+
+            // what about actionsToWatch?
+        };
+
+        this.setWatchAsProcessed = function(actionName) {
+            delete actionsToWatch[actionName];
+        };
+
+        this.setWatchedAction = function(action) {
+            actionsWatched[action.getId()] = action;
+        };
+
+        //this.setWatchedAction = function() {};
+        this.watchAction = function(action){
+            actionsToWatch[action.actionName] = action;
+        };
+
+        this.cancelWatchOfAction  = function(actionName) {
+            if(!actionName) { return; }
+
+            if(actionsToWatch.hasOwnProperty(actionName)) {
+                delete actionsToWatch[actionName];
+            }
+        };
+
+        this.cancelWatchOfAllActions = function() {
+            actionsToWatch = {};
         };
 
         this.publish = function(key, data) {
@@ -343,7 +655,8 @@
                     // This api is added by us in an override. If it's not there when we try to serialize a component we'll have issues.
                     // So if its not there, just run the bootstrap code.
                     if(!("_$getSelfGlobalId$" in component)){
-                        $Aura.actions["AuraDevToolService.Bootstrap"]();
+                        //$Aura.actions["AuraDevToolService.Bootstrap"]();
+                        this.instrument();
                     }
                     var output = {
                         "descriptor": component.getDef().getDescriptor().toString(),
@@ -531,6 +844,10 @@
                         return ESCAPE_CHAR + escape(value);
                     }
 
+                    if(value instanceof Error) {
+                        return value+"";
+                    }
+
                     if(value instanceof HTMLElement) {
                         var attributes = value.attributes;
                         var domOutput = [];
@@ -582,6 +899,10 @@
                             visited.add(value);
                             value.$serId$ = increment++;
                         }
+                    }
+
+                    if(typeof value === "function") {
+                        return value.toString();
                     }
 
                     return value;
@@ -778,6 +1099,237 @@
         };
     }
 
+    function Action_OnFinishAction(config, context) {
+        var startCounts = {
+            "created": $Aura.Inspector.getCount("component_created")
+        };
+
+        var ret = config["fn"].call(config["scope"], context);
+
+        var action = config["self"];
+
+        var data = {
+            "id": action.getId(),
+            "state": action.getState(),
+            "fromStorage": action.isFromStorage(),
+            "returnValue": $Aura.Inspector.safeStringify(action.getReturnValue()),
+            "error": $Aura.Inspector.safeStringify(action.getError()),
+            "finishTime": performance.now(),
+            "stats": {
+                "created": $Aura.Inspector.getCount("component_created") - startCounts.created
+            }
+        };
+
+        var actionWatched = this.getWatchedAction(action.getId());
+        if(actionWatched) {
+
+            
+            if(actionWatched.nextError != undefined) {
+                data.howDidWeModifyResponse = "responseModified_error";
+            } else if (actionWatched.nextResponse != undefined) {
+                data.howDidWeModifyResponse = "responseModified_modify";
+            } else {
+                data.howDidWeModifyResponse = "responseModified_drop";
+            }
+
+            this.setWatchedActionAsProcessed(action.getId());
+        }
+
+        this.publish("AuraInspector:OnActionStateChange", data);
+
+        return ret;
+    }
+
+    function AuraInspector_OnActionToWatchEnqueue(data) {
+        if(!data) {
+            console.error("AuraDevToolService.AddActionToWatch receive no data from publisher");
+        }
+        //check if we already has the action in actionsToWatch, if so replace it with the new one
+        var alreadyAdded = this.isWatchingForAction(data);
+
+        if(alreadyAdded) {
+            this.cancelWatchOfAction(data.actionName);
+        } else {
+            //remove the stored response from action storage -- if there is any
+            if(data.actionIsStorable && data.actionIsStorable === true) {
+                var actionsStorage = $A.storageService.getStorage("actions");
+                var actionStorageKey = data.actionStorageKey;//data.actionName+JSON.stringify(data.actionParameter);//
+                if(actionsStorage && actionStorageKey && actionStorageKey.length) {
+                    actionsStorage.get(actionStorageKey)
+                    .then(
+                        function() {
+                            //console.log("find storage item for action:", data);
+                            actionsStorage.remove(actionStorageKey)
+                            .then(function () {
+                                $Aura.Inspector.publish("AuraInspector:RemoveStorageData", {'storageKey': actionStorageKey});
+                            });
+                        },
+                        function(e) {
+                            console.warn("cannot find storage item for action:", data);
+                        }
+                    );
+                }
+            }
+        }
+
+        this.watchAction(data);
+
+        //ask chaos view to create a chaos card
+        /** MOVE:Chaos */
+        if(data.byChaosRun) {
+            var actionName = data.actionName;
+            if (actionName.indexOf("ACTION$") >= 0) {//action could be long, make it more readable
+                actionName = actionName.substr(actionName.indexOf("ACTION$") + 7, actionName.length - 1);
+            }
+            $Aura.Inspector.publish("AuraInspector:OnCreateChaosCard", {"message": "add action "+actionName+" to watch list"} );
+        }
+    }
+
+    function AuraInspector_RemoveActionFromWatch(data) {
+        if(!data) {
+            console.error("AuraDevToolService.RemoveActionFromWatch receive no data from publisher");
+        }
+
+        this.cancelWatchOfAction(data.actionName);
+    }
+
+    /*
+    handler for AuraInspector:OnActionToWatchClear, this will clear up all actions from watch list
+    */
+    function AuraInspector_RemoveActionsFromWatch() {
+        this.cancelWatchOfAllActions();
+    }
+
+    /**
+     * Go through actionToWatch, if we run into an action we are watching, either drop it
+     * or register with actionsWatched, so we can modify response later in onDecode 
+     */
+    function ClientService_OnSend(config, auraXHR, actions, method, options) {
+        if (actions) {
+            for(var c=0;c<actions.length;c++) {
+                if(this.isWatchingForActions()) {
+                    var action = actions[c];
+                    var actionToWatch = this.isWatchingForAction(action);
+                    if(actionToWatch) {
+                        //udpate the record of what we are watching, this is mainly for action we want to modify response
+                        if(this.getWatchedAction(action.getId())) {
+                            console.warn("Error: we already watching this action:", action);
+                        } else {
+                            //copy nextResponse to actionWatched
+                            action['nextError'] = actionToWatch.nextError;
+                            action['nextResponse'] = actionToWatch.nextResponse;
+                            action['idtoWatch'] = actionToWatch.actionId;
+                            if(actionToWatch.byChaosRun) {
+                                action['byChaosRun'] = actionToWatch.byChaosRun;
+                            }
+
+                            this.setWatchedAction(action);
+                        }
+
+                        this.setWatchAsProcessed(actionToWatch.actionName);
+                    }
+                }
+
+
+                $Aura.Inspector.publish("AuraInspector:OnActionStateChange", {
+                    "id": actions[c].getId(),
+                    "state": "RUNNING",
+                    "sentTime": performance.now()
+                });
+            }
+        }
+
+        var ret = config["fn"].call(config["scope"], auraXHR, actions, method, options);
+
+        return ret;
+    }
+
+    function OnEnqueueAction(config, action, scope) {
+        var ret = config["fn"].call(config["scope"], action, scope);
+
+        var cmp = action.getComponent();
+        var data =  {
+            "id"         : action.getId(),
+            "params"     : $Aura.Inspector.safeStringify(action.getParams()),
+            "abortable"  : action.isAbortable(),
+            "storable"   : action.isStorable(),
+            "background" : action.isBackground(),
+            "state"      : action.getState(),
+            "isRefresh"  : action.isRefreshAction(),
+            "defName"    : action.getDef()+"",
+            "fromStorage": action.isFromStorage(),
+            "enqueueTime": performance.now(),
+            "storageKey" : action.getStorageKey(),
+            "callingCmp" : cmp && cmp.getGlobalId()
+        };
+
+        $Aura.Inspector.publish("AuraInspector:OnActionEnqueue", data);
+
+        return ret;
+    }
+
+    // function OnFinishAction(config, context) {
+    //     var startCounts = {
+    //         "created": $Aura.Inspector.getCount("component_created")
+    //     };
+
+    //     var ret = config["fn"].call(config["scope"], context);
+
+    //     var action = config["self"];
+
+    //     var data = {
+    //         "id": action.getId(),
+    //         "state": action.getState(),
+    //         "fromStorage": action.isFromStorage(),
+    //         "returnValue": $Aura.Inspector.safeStringify(action.getReturnValue()),
+    //         "error": $Aura.Inspector.safeStringify(action.getError()),
+    //         "finishTime": performance.now(),
+    //         "stats": {
+    //             "created": $Aura.Inspector.getCount("component_created") - startCounts.created
+    //         }
+    //     };
+
+    //     $Aura.Inspector.publish("AuraInspector:OnActionStateChange", data);
+
+    //     return ret;
+    // }
+
+    function OnAbortAction(config, context) {
+        var ret = config["fn"].call(config["scope"], context);
+
+        var action = config["self"];
+
+        var data = {
+            "id": action.getId(),
+            "state": action.getState(),
+            "finishTime": performance.now()
+        };
+
+        $Aura.Inspector.publish("AuraInspector:OnActionStateChange", data);
+
+        return ret;
+    }
+
+    function OnActionRunDeprecated(config, event) {
+        var action = config["self"];
+        var startTime = performance.now();
+        var data = {
+            "actionId": action.getId()
+        };
+
+        $Aura.Inspector.publish("AuraInspector:OnClientActionStart", data);
+
+        var ret = config["fn"].call(config["scope"], event);
+
+        data = {
+            "actionId": action.getId(),
+            "name": action.getDef().getName(),
+            "scope": action.getComponent().getGlobalId()
+        };
+
+        $Aura.Inspector.publish("AuraInspector:OnClientActionEnd", data);
+    }
+
     function bootstrapCounters() {
         // Count how many components are being created.
         $A.installOverride("ComponentService.createComponentPriv", function(){
@@ -882,124 +1434,6 @@
         }
     }
 
-
-
-    function bootstrapActionsInstrumentation() {
-
-        $A.installOverride("enqueueAction", OnEnqueueAction);
-        $A.installOverride("Action.finishAction", OnFinishAction);
-        $A.installOverride("Action.abort", OnAbortAction);
-        $A.installOverride("ClientService.send", OnSendAction);
-        $A.installOverride("Action.runDeprecated", OnActionRunDeprecated);
-
-        function OnEnqueueAction(config, action, scope) {
-            var ret = config["fn"].call(config["scope"], action, scope);
-
-            var cmp = action.getComponent();
-            var data =  {
-                "id"         : action.getId(),
-                "params"     : $Aura.Inspector.safeStringify(action.getParams()),
-                "abortable"  : action.isAbortable(),
-                "storable"   : action.isStorable(),
-                "background" : action.isBackground(),
-                "state"      : action.getState(),
-                "isRefresh"  : action.isRefreshAction(),
-                "defName"    : action.getDef()+"",
-                "fromStorage": action.isFromStorage(),
-                "enqueueTime": performance.now(),
-                "storageKey" : action.getStorageKey(),
-                "callingCmp" : cmp && cmp.getGlobalId()
-            };
-
-            $Aura.Inspector.publish("AuraInspector:OnActionEnqueue", data);
-
-            return ret;
-        }
-
-        function OnSendAction(config, auraXHR, actions, method, options) {
-                if (actions) {
-                    for(var c=0;c<actions.length;c++) {
-                        //udpate action card on the left side anyway
-                        $Aura.Inspector.publish("AuraInspector:OnActionStateChange", {
-                            "id": actions[c].getId(),
-                            "state": "RUNNING",
-                            "sentTime": performance.now()
-                        });
-                    }
-                }
-
-                var ret = config["fn"].call(config["scope"], auraXHR, actions, method, options);
-
-                return ret;
-        }
-
-
-        function OnFinishAction(config, context) {
-            var startCounts = {
-                "created": $Aura.Inspector.getCount("component_created")
-            };
-
-            var ret = config["fn"].call(config["scope"], context);
-
-            var action = config["self"];
-
-            var data = {
-                "id": action.getId(),
-                "state": action.getState(),
-                "fromStorage": action.isFromStorage(),
-                "returnValue": $Aura.Inspector.safeStringify(action.getReturnValue()),
-                "error": $Aura.Inspector.safeStringify(action.getError()),
-                "finishTime": performance.now(),
-                "stats": {
-                    "created": $Aura.Inspector.getCount("component_created") - startCounts.created
-                }
-            };
-
-            $Aura.Inspector.publish("AuraInspector:OnActionStateChange", data);
-
-            return ret;
-        }
-
-        function OnAbortAction(config, context) {
-            var ret = config["fn"].call(config["scope"], context);
-
-            var action = config["self"];
-
-            var data = {
-                "id": action.getId(),
-                "state": action.getState(),
-                "finishTime": performance.now()
-            };
-
-            $Aura.Inspector.publish("AuraInspector:OnActionStateChange", data);
-
-            return ret;
-        }
-
-
-
-        function OnActionRunDeprecated(config, event) {
-            var action = config["self"];
-            var startTime = performance.now();
-            var data = {
-                "actionId": action.getId()
-            };
-
-            $Aura.Inspector.publish("AuraInspector:OnClientActionStart", data);
-
-            var ret = config["fn"].call(config["scope"], event);
-
-            data = {
-                "actionId": action.getId(),
-                "name": action.getDef().getName(),
-                "scope": action.getComponent().getGlobalId()
-            };
-
-            $Aura.Inspector.publish("AuraInspector:OnClientActionEnd", data);
-        }
-    }
-
-
     function bootstrapTransactionReporting() {
         $A.metricsService.enablePlugins();
 
@@ -1100,6 +1534,8 @@
                     collector.push(this._createNode(descriptor, mark + START_SUFIX));
 
                     var ret = config["fn"].apply(config["scope"], arguments);
+
+                    if(ret === undefined) { return ret; }
 
                     var id = ret.getGlobalId && ret.getGlobalId() || "([ids])";
                     collector.push(this._createNode(descriptor, mark + END_SUFIX, id));

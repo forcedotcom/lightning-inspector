@@ -1,3 +1,8 @@
+/**
+ * Ideally we would be entirely based on SLDS.
+ * Investigate what would be required for that to happen. 
+ */
+
 html {
   color: rgb(22, 50, 92);
   font-family: 'Lucida Grande', sans-serif;
@@ -1138,18 +1143,20 @@ table.trans-graph-bar-info-table{
     margin: .5rem;
     min-height: 1rem;
 }
-.drop-zone.allow-drop{
-  border: 1px solid #0070D2;
-}
-.drop-zone.allow-drop::after{
+.drop-zone::after{
   content:" ";
   height:.25rem;
   width:calc(100% - 1rem);
   display:block;
-  background-color: #0070D2;
   margin:.5rem;
   border-radius:.125rem;
 }
+.drop-zone.allow-drop{
+  border: 1px solid #0070D2;
+}
+.drop-zone.allow-drop::after{
+  background-color: #0070D2;
+ }
 .actions-tab{
   height: 100%;
   /* .slds-grid  { */
@@ -1250,7 +1257,10 @@ table.trans-graph-bar-info-table{
   border-radius: 4px;
   display: block;
   margin: .5rem;
-  padding-bottom: .5rem;
+}
+.actions-list .action-card.has-error {
+  border: 1px solid #ea8288;
+
 }
 .action-card.draggable:hover {
   background: #f4f6f9;
@@ -1305,6 +1315,48 @@ table.trans-graph-bar-info-table{
 #loading .dots:after { animation-delay: 416.66667ms; }
 #loading .a:after { animation-delay: 583.33333ms; }
 #loading .b:after { animation-delay: 750.0ms; }
+
+/*** ACTION CARD ***/
+/* Last of the cruft */
+aurainspector-actioncard .action-card-wrapper dl { display: flex; flex-wrap: wrap; margin: 0; }
+aurainspector-actioncard .action-card-wrapper th, dt, h3 { font-weight: normal; text-align: left; font-size: 0.75rem; line-height: 1.25; letter-spacing: 0.0625em; color: #54698d; }
+aurainspector-actioncard .action-card-wrapper td, dd { color: #16325c; font-size: .75rem; padding: 0 1rem 0 0; margin: 0; }
+/* End last of the cruft */
+
+aurainspector-actioncard .action-card-wrapper dd { word-wrap: break-word; }
+aurainspector-actioncard .action-card-wrapper code { margin: 5px; display: block; white-space: pre; }
+aurainspector-actioncard .action-card-wrapper aurainspector-json { font-family: Menlo, monospace; display: flex; }
+
+aurainspector-actioncard .action-card-wrapper .attributes.storable-false .storable-info { display:none; }
+
+aurainspector-actioncard .action-card-wrapper .action-details .action-parameters aurainspector-label { display:inline-block; width:100px; color: #54698d; }
+aurainspector-actioncard .action-card-wrapper .action-header h2 { overflow: hidden; overflow-wrap: break-word; }
+
+aurainspector-actioncard .action-card-wrapper:focus .action-header .watch-icon,
+aurainspector-actioncard .action-card-wrapper:hover .action-header .watch-icon { opacity: .6; }
+aurainspector-actioncard .action-card-wrapper .action-header .watch-icon { opacity: 0; }
+aurainspector-actioncard .action-card-wrapper .remove-card { display: none; }
+aurainspector-actioncard .action-card-wrapper .action-name-method { color: #005fb2; }
+aurainspector-actioncard .action-card-wrapper .action-modify { display:none; }
+
+/** Expand Collapse */
+aurainspector-actioncard .action-card-wrapper  .expand-icon {  display:none; }
+aurainspector-actioncard .action-card-wrapper  .action-toggle { display:none; }
+aurainspector-actioncard .action-card-wrapper.is-collapsible .action-toggle { display: block; }
+aurainspector-actioncard.is-collapsed .collapse-icon,
+aurainspector-actioncard.is-collapsed .action-body { display:none; }
+aurainspector-actioncard.is-collapsed .expand-icon { display: block; }
+
+/** If the aurainspector-actoncard has .has-error applied, style it red. Though the consumer can change this color by providing their own border color */
+aurainspector-actioncard.has-error { border: 1px solid #ea8288; }
+
+/** Pending Overrides Stylings */
+aurainspector-actioncard .action-card-wrapper.watch .action-details,
+aurainspector-actioncard .action-card-wrapper.watch .watch-icon { display: none; }
+
+aurainspector-actioncard .action-card-wrapper.watch .action-modify,
+aurainspector-actioncard .action-card-wrapper.watch .remove-card { display: block; }
+/*** ACTION CARD ***/
 
 /* No Aura Available */
 #no-aura-available-container .slds-icon_container {

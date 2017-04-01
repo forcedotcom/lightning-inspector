@@ -1,6 +1,10 @@
 <!--
 	Renders a colorized version of the aura component with handlers for click (populate $auraTemp) and double click (navigate to the component tree).
-	<aurainspector-auracomponent globalId='{globalId}'/>
+
+	Attributes
+		globalId : the global id of the component you want to display. Gets the data and configures itself.
+		summarize : Defaults false. If true will only show minimal information for the component.
+	<aurainspector-auracomponent globalId='{globalId}' summarize="true|false"/>
 -->
 <template>
 	<style>

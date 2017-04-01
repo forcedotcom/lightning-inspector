@@ -81,7 +81,7 @@
                     function notifyDevTools() {
                         if(initialized) { return; }
                         // Try to bootstrap, this way all the actions get caught as postMessage is async.
-                        window[injectedScript].Inspector.bootstrap();
+                        window[injectedScript].Inspector.instrument();
                         window.postMessage({
                             action  : "AuraInspector:publish",
                             key: "AuraInspector:OnAuraInitialized",
@@ -93,8 +93,8 @@
 
                     // Since we were injected, Aura could already be available. If so, let the devtools know.
                     if(!global.$A || !(global.$A.getContext && global.$A.getContext())) {
-                        var _Aura;
-                        Object.defineProperty(window, "Aura", {
+                        var _Aura = global.Aura;
+                        Object.defineProperty(global, "Aura", {
                             enumerable: true,
                             configurable: true,
                             get: function() { return _Aura; },
@@ -104,8 +104,8 @@
                                 _Aura = val;
                             }
                         });
-                        var _$A;
-                        Object.defineProperty(window, "$A", {/*from 204 and beyond, we no longer need this set*/
+                        var _$A = global.$A;
+                        Object.defineProperty(global, "$A", {/*from 204 and beyond, we no longer need this set*/
                             enumerable: true,
                             configurable: true,
                             get: function() { return _$A; },

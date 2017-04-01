@@ -1,5 +1,6 @@
 /* Listens for actions and shows them in the actions tab */
 function AuraInspectorActionsView(devtoolsPanel) {
+    var _rendered = false;
     var _list;
 
     var _pending;
@@ -96,6 +97,7 @@ function AuraInspectorActionsView(devtoolsPanel) {
     this.init = function(tabBody) {
         tabBody.innerHTML = markup;
 
+
         _list = tabBody.querySelector("#actions-list");
         _pending = tabBody.querySelector("#actions-pending");
         _running = tabBody.querySelector("#actions-running");
@@ -116,22 +118,12 @@ function AuraInspectorActionsView(devtoolsPanel) {
 
         devtoolsPanel.subscribe("AuraInspector:ActionOperationInChaosRun", AuraInspectorActionsView_OnActionOperationInChaosRun.bind(this));
         devtoolsPanel.subscribe("AuraInspector:EnqueueNextDropForChaosReplay", AuraInspectorActionsView_OnEnqueueNextDropForChaosReplay.bind(this));
-        
-
-
-
 
         // Attach event handlers
-        var div_actionsToWatch = tabBody.querySelector("#actionsToWatch-list");
-        if(div_actionsToWatch) {
-            div_actionsToWatch.addEventListener("dragover", allowDrop.bind(this));
-            div_actionsToWatch.addEventListener("dragleave", noDrop.bind(this));
-            div_actionsToWatch.addEventListener("dragend", noDrop.bind(this));
-            div_actionsToWatch.addEventListener("drop", drop.bind(this));
-        } else {
-            var command = "console.error('div_actionsToWatch cannot be found');";
-            chrome.devtools.inspectedWindow.eval(command);
-        }
+        _watchList.addEventListener("dragover", ActionsToWatch_OnDragOver);
+        _watchList.addEventListener("dragleave", ActionsToWatch_OnDragLeave);
+        _watchList.addEventListener("dragend", ActionsToWatch_OnDragEnd);
+        _watchList.addEventListener("drop", ActionsToWatch_OnDrop.bind(this));
 
         var menu = tabBody.querySelector("menu");
         menu.addEventListener("click", Menu_OnClick.bind(this));
@@ -142,18 +134,18 @@ function AuraInspectorActionsView(devtoolsPanel) {
         var filterText = tabBody.querySelector("#filter-text");
         filterText.addEventListener("change", FilterText_OnChange.bind(this));
         filterText.addEventListener("keyup", debounce(FilterText_OnChange.bind(this), 200));
-
     };
 
     this.render = function() {
+        if(_rendered) { return; }
 
+        devtoolsPanel.publish("AuraInspector:OnActionToWatchClear", {});
     };
 
     this.refresh = function() {
         removeAllCards();
-        if(_watchList) {
-            devtoolsPanel.publish("AuraInspector:OnActiontoWatchClear", {});
-        }
+        
+        devtoolsPanel.publish("AuraInspector:OnActionToWatchClear", {});
 
         actions.forEach(function(action){
             upsertCard(action);
@@ -285,6 +277,7 @@ function AuraInspectorActionsView(devtoolsPanel) {
             card.classList.remove("actionsToWatch-list");
             card.addEventListener("dragstart", drag.bind(this) );
             card.addEventListener("dragend", endDrag.bind(this) );
+            card.setAttribute("collapsible", "false");
         } else { //card on the left side
             if(!isAllowed(action)) {
                 return;
@@ -365,7 +358,7 @@ function AuraInspectorActionsView(devtoolsPanel) {
 
         var card = document.createElement("aurainspector-actionCard");
             card.id = "action_card_" + action.id;
-            card.className = "action-card action-card-state-" + action.state;
+            card.className = "action-card is-collapsed action-card-state-" + action.state;
             card.setAttribute("actionId", action.id);
             card.setAttribute("name", action.defName);
             card.setAttribute("parameters", params);
@@ -385,6 +378,7 @@ function AuraInspectorActionsView(devtoolsPanel) {
             //if card is on the watch list, it's not draggable, we need to remember that in the actionCard itself.
             if(toWatch === true) {
                 card.setAttribute("toWatch", true);
+                card.setAttribute("collapsible", "false");
             } else {
                 //we allow people to drag the card when the card is on the left side
                 card.setAttribute("draggable","true");
@@ -420,19 +414,22 @@ function AuraInspectorActionsView(devtoolsPanel) {
         }
     }
 
-    function allowDrop (event) {
+    function ActionsToWatch_OnDragOver (event) {
         event.preventDefault();
         _toWatch.className = "drop-zone allow-drop";
     }
 
-    function noDrop (event) {
+    function ActionsToWatch_OnDragLeave(event) {
+        _toWatch.className = "drop-zone";
+    }
+
+    function ActionsToWatch_OnDragEnd(event) {
         _toWatch.className = "drop-zone";
     }
 
     function endDrag (event) {
       event.target.classList.remove("dragging");
-      if(event.dataTransfer.dropEffect == "none"){
-      } else {
+      if(event.dataTransfer.dropEffect != "none"){
         event.target.classList.add("dropped");
         event.target.setAttribute("draggable","false");
         event.target.classList.remove("draggable");
@@ -452,6 +449,7 @@ function AuraInspectorActionsView(devtoolsPanel) {
                 var command = "console.log('_toWatch missing');";
                 chrome.devtools.inspectedWindow.eval(command);
         }
+        actionCard.classList.remove("is-collapsed");
         _toWatch.appendChild(actionCard);
     }
 
@@ -462,12 +460,11 @@ function AuraInspectorActionsView(devtoolsPanel) {
     //                       };
     function AuraInspectorActionsView_OnRemoveActionFromWatchList(actionInfo) {
         //console.log("AuraInspectorActionsView_OnRemoveActionFromWatchingList:", actionInfo);
-        var actionInfoObj = JSON.parse(actionInfo);
-        if( actionInfoObj && actionInfoObj.actionName) {
+        if( actionInfo && actionInfo.actionName) {
             //call AuraInspectorInjectedScript.RemoveActionFromWatch
-            devtoolsPanel.publish("AuraInspector:OnActionToRemoveFromWatchEnqueue", actionInfoObj);
+            devtoolsPanel.publish("AuraInspector:OnActionToRemoveFromWatchEnqueue", actionInfo);
             //make actionCard on the leftside draggable again
-            var card = document.getElementById(actionInfoObj.actionId);
+            var card = document.getElementById(actionInfo.actionId);
             if(card) {
                 card.setAttribute("draggable","true");
                 card.classList.remove("dropped");
@@ -491,15 +488,13 @@ function AuraInspectorActionsView(devtoolsPanel) {
                             //}};
     //then call AuraInspectorInjectedScript.AddActionToWatch
     function AuraInspectorActionsView_OnEnqueueNextResponseForAction(actionInfo) {
-        //console.log("AuraInspectorActionsView_OnEnqueueNextResponseForAction:", actionInfo);
-        var actionInfoObj = JSON.parse(actionInfo);
-        if( actionInfoObj && actionInfoObj.actionId && actionInfoObj.nextResponse ) {
-            var action = actions.get(actionInfoObj.actionId);
+        if( actionInfo && actionInfo.actionId && actionInfo.nextResponse ) {
+            var action = actions.get(actionInfo.actionId);
             //fill in action info from original action
-            actionInfoObj.actionIsStorable = action.storable;
-            actionInfoObj.actionStorageKey = action.storageKey;
+            actionInfo.actionIsStorable = action.storable;
+            actionInfo.actionStorageKey = action.storageKey;
             //call AuraInspectorInjectedScript.AddActionToWatch
-            devtoolsPanel.publish("AuraInspector:OnActionToWatchEnqueue", actionInfoObj);
+            devtoolsPanel.publish("AuraInspector:OnActionToWatchEnqueue", actionInfo);
         }
     }
 
@@ -513,18 +508,18 @@ function AuraInspectorActionsView(devtoolsPanel) {
         }
     */
     function AuraInspectorActionsView_OnEnqueueNextErrorForAction(actionInfo) {
-        //console.log("AuraInspectorActionsView_OnEnqueueNextErrorForAction:", actionInfo);
-        var actionInfoObj = JSON.parse(actionInfo);
-        if(actionInfoObj && actionInfoObj.actionId && actionInfoObj.nextError) {
-            var action = actions.get(actionInfoObj.actionId);
+        if(actionInfo && actionInfo.actionId && actionInfo.nextError) {
+            var action = actions.get(actionInfo.actionId);
             //call AuraInspectorInjectedScript.AddActionToWatch
-            devtoolsPanel.publish("AuraInspector:OnActionToWatchEnqueue", actionInfoObj);
+            devtoolsPanel.publish("AuraInspector:OnActionToWatchEnqueue", actionInfo);
         }
     }
 
-    function drop (event) {
+    function ActionsToWatch_OnDrop(event) {
         event.preventDefault();
-        noDrop(event);
+
+        _toWatch.className = "drop-zone";
+
         if(event && event.dataTransfer) {
             var data = event.dataTransfer.getData("text");//data is actionId : "123;a"
             if(!data) {
