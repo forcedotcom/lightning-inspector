@@ -1,0 +1,26 @@
+{
+    "plugins": [
+        "transform-class-properties",
+        "babel-plugin-lodash"
+    ],
+    "presets": [
+        "latest",
+        [
+          "es2015",
+          {
+            "loose": true
+          }
+        ],
+        "react",
+        "stage-0"
+    ],
+
+    "ignore": [
+        "./src/aura/LightningInspectorInjectedScript.js",
+        "./src/aura/gatherer/unStrictApis.js",
+        "./src/devtoolsPanel/perfpanel/js/AuraPerfPanel.js",
+        "./src/devtoolsPanel/perfpanel/js/Main.js",
+        "./src/devtoolsPanel/perfpanel/js/ProfilesPanel.js",
+        "./src/devtoolsPanel/perfpanel/js/init.js"
+    ]
+}

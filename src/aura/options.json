@@ -1,0 +1,39 @@
+{
+  "advanced": {
+    "autoCollection": false,
+    "captureComponentDefinitions": false,
+    "logToConsole": false,
+    "showActionsInTimeline": true,
+    "showTransactionsInTimeine": true,
+    "showMarksInTimeline": true,
+    "showComponentLifeCycleInTimeline": true,
+    "showEventsInTimeline": false,
+    "showAuraCyclesInTimeline": false,
+    "collectComponentLifeCycleData": true,
+    "collectTransactionData": true,
+    "collectAuraCycleData": true,
+    "collectTransactionMetrics": true,
+    "stopUnloadEvents": false,
+    "filterActions": false,
+    "timelineMode": "external",
+    "managePageView": true
+  },
+  "simple": {
+    "autoCollection": true,
+    "captureComponentDefinitions": true,
+    "logToConsole": false,
+    "showActionsInTimeline": false,
+    "showTransactionsInTimeine": true,
+    "showMarksInTimeline": true,
+    "showComponentLifeCycleInTimeline": true,
+    "showEventsInTimeline": true,
+    "showAuraCyclesInTimeline": true,
+    "collectComponentLifeCycleData": true,
+    "collectTransactionData": true,
+    "collectTransactionMetrics": true,
+    "stopUnloadEvents": true,
+    "filterActions": false,
+    "timelineMode": "external",
+    "managePageView": true
+  }
+}

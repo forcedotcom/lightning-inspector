@@ -1,0 +1,50 @@
+.banner-message {
+  padding: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  position: relative;
+
+  &.warn {
+    border-top: 1px solid #eae3c0;
+    border-bottom: 1px solid #eae3c0;
+    background-color: hsl(50, 100%, 95%);
+    color: hsl(39, 100%, 18%);
+
+    .dark & {
+      border-top-color: rgb(102, 85, 0);
+      border-bottom: 1px solid rgb(102, 85, 0);
+      background-color: hsl(50, 100%, 10%);
+      color: rgb(255, 220, 158);
+    }
+  }
+
+  &.error {
+    border-top: 1px solid hsl(0, 100%, 92%);
+    border-bottom: 1px solid hsl(0, 100%, 92%);
+    color: red !important;
+    background-color: hsl(0, 100%, 97%);
+
+    .dark & {
+      background-color: hsl(0, 100%, 8%);
+      border-top-color: rgb(91, 0, 0);
+      border-bottom-color: rgb(91, 0, 0);
+      color: hsl(0, 100%, 75%) !important;
+    }
+  }
+}
+
+.alertify-logs {
+  z-index: 999;
+}
+
+.alertify {
+  z-index: 9999 !important;
+}
+
+.loader {
+  border: 1px solid #AAA;
+
+  .dark & {
+    border-color: #555;
+  }
+}

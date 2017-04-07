@@ -25,3 +25,11 @@ node_modules
 build/*.crx
 build/*.zip
 build/*.pem
+.idea/
+key.pem
+dist/
+*.worker.js
+*.log
+.web-extension-id
+updates.temp
+updates.json

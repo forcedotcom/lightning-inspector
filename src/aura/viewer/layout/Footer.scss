@@ -1,0 +1,96 @@
+.footer {
+  width: 100%;
+  background: #DDD;
+  border-top: 1px solid #CCC;
+
+  .dark & {
+    background: #333;
+    border-color: #444;
+  }
+}
+
+.footer .bar {
+  background: #DDD;
+  border-top: 1px solid #CCC;
+
+  .dark & {
+    background: #333;
+    border-color: #444;
+  }
+}
+
+.footer > .bar > div {
+  display: inline-block;
+  vertical-align: top;
+}
+
+.mode {
+  font-size: 9px;
+  font-weight: bold;
+  padding: 2px 4px;
+
+  &.warning {
+    color: #FFF;
+    background: red;
+  }
+}
+
+.time {
+  float: right;
+  padding: 2px;
+  font-size: 9px;
+}
+
+.footer-wireframe {
+  position: relative;
+  width: 80px;
+  height: 40px;
+  display: inline-block;
+  vertical-align: top;
+  transition: border-color, box-shadow 300ms;
+  cursor: pointer;
+  background: #FFF;
+  margin: 1px 0 1px 1px;
+  border: 1px solid #777;
+
+  .dark & {
+    background: #000;
+    border-color: #777;
+  }
+
+  &:hover, &.selected {
+    border-color: #AAA;
+    z-index: 100;
+    .footer-wireframe-name {
+      opacity: 1;
+    }
+  }
+}
+
+.footer-wireframe-name {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  text-align: center;
+  width: 100%;
+  font-size: 25px;
+  left: 0;
+  opacity: 0.2;
+  font-weight: bold;
+  transition: opacity 300ms;
+  pointer-events: none;
+}
+
+.footer-wireframes {
+  background: #EEE;
+
+  .dark & {
+    background: #333;
+  }
+}
+
+.release-version {
+  margin-left: 5px;
+  font-size: 9px;
+  padding: 2px;
+}

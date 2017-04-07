@@ -1,0 +1,185 @@
+.details-panel {
+  border-left: 1px solid #DDD;
+  background: #FFF;
+  height: 100%;
+
+  .dark & {
+    border-color: #444;
+    background: transparent;
+  }
+
+  .flex {
+    display: flex;
+  }
+
+  .box {
+    flex: auto;
+  }
+
+  .tabs {
+    height: 25px;
+    max-height: 25px;
+    min-height: 25px;
+    background: #333;
+    border-bottom: 1px solid #444;
+    padding-top: 2px;
+
+    .light & {
+      background: #EEE;
+      border-bottom: 1px solid #DDD;
+    }
+  }
+
+  .tabs .tab {
+    line-height: 22px !important;
+    display: inline-block;
+    padding: 0 10px;
+    margin-left: 5px;
+    text-transform: uppercase;
+    font-size: 9px;
+    text-align: center;
+    color: #888;
+    letter-spacing: 1px;
+    cursor: pointer;
+    vertical-align: top;
+    transition: background 250ms, border-color 250ms;
+    border: 1px solid transparent;
+    border-bottom: none;
+
+    .light & {
+      color: #888;
+      border-color: rgba(255, 255, 255, 0);
+    }
+  }
+
+  .tabs .tab.selected {
+    line-height: 20px !important;
+    display: inline-block;
+    padding: 0 10px;
+    margin-left: 5px;
+    margin-top: 0px;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 9px;
+    text-align: center;
+    color: #fff;
+    background: #222;
+    border: 1px solid #444;
+    border-bottom: none;
+    top: 1px;
+    position: relative;
+
+    .light & {
+      color: #444;
+      background: #fff;
+      border-color: #DDD;
+    }
+  }
+
+  .tabs.spread {
+    height: 30px !important;
+    min-height: 30px !important;
+    padding: 0;
+    margin: 0;
+    max-height: 30px !important;
+  }
+
+  .tabs.spread .tab {
+    height: 100%;
+    border: none;
+    line-height: 30px !important;
+    margin: 0;
+    left: 0;
+    top: 0;
+    border-right: 1px solid #444;
+
+    .light & {
+      border-color: #DDD;
+    }
+  }
+
+  .tab-close {
+    width: 25px;
+    margin-left: 0 !important;
+    padding: 0 0 !important;
+    margin-right: -5px;
+  }
+
+  .tabs.spread .tab.selected {
+    box-shadow: inset 0 -2px 0 #0972d3;
+    line-height: 30px !important;
+    margin: 0;
+    top: 0;
+    left: 0;
+  }
+
+  .flex.vertical {
+    box-orient: vertical;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .full {
+    width: 100%;
+    height: 100%;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: 0;
+    position: relative;
+  }
+
+  .full-abs {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: auto;
+    width: auto;
+  }
+
+  .timing {
+    padding: 10px 20px 0px;
+  }
+
+  .timing-title {
+    opacity: 0.5;
+    height: 40px;
+    line-height: 40px;
+    white-space: nowrap;
+  }
+
+  .timing-item {
+    height: 15px;
+    line-height: 15px;
+    margin-bottom: 3px;
+    width: 100%;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+
+    .dark & {
+      color: #FFF;
+    }
+  }
+
+  .timing-bar {
+    position: relative;
+    height: 15px;
+    background: red;
+    min-width: 5px;
+    margin-bottom: 3px;
+    transition: all 1000ms;
+  }
+
+  .timing-bar.no-bar {
+    min-width: 0;
+    width: 0;
+  }
+
+  .timing-right {
+    text-align: right;
+  }
+}
