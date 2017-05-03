@@ -317,7 +317,7 @@
                                 var responseModified = replaceValueInObj(returnValue, actionWatched.nextResponse);
                                 if(responseModified) {
                                     action.returnValue = returnValue;
-                                    var actionsEndIdx = oldResponseText.indexOf("context");
+                                    var actionsEndIdx = oldResponseText.indexOf("context\"");
                                     newResponseText = "while(1);\n"+ "{"+"\"actions\":"+JSON.stringify(responseActions)+",\""+oldResponseText.substring(actionsEndIdx,oldResponseText.length);
 
                                     //move the actionCard from watch list to Processed
@@ -434,20 +434,26 @@
             //go through returnValue object, replace the value if nextResponse[key] exist
             function replaceValueInObj (returnValue, nextResponse) {
                 if(Array.isArray(returnValue) && returnValue.length) {
+                    let res = false;
                     for(var i = 0; i < returnValue.length; i ++) {
                         var returnValuei = returnValue[i];
-                        return replaceValueInObj(returnValuei, nextResponse);
+                        res = replaceValueInObj(returnValuei, nextResponse);
+                        if(res) { break; }
                     }
+                    return res;
                 }  else if (typeof(returnValue) === "object" && !Array.isArray(returnValue)) {
+                    let res = false;
                     for(var key in returnValue) {
                         if(nextResponse && nextResponse.hasOwnProperty(key)) {
                             returnValue[key] = nextResponse[key];
-                            //console.log("found a match, update response for "+key);
-                            return true;
+                            res = true;
+                            break;
                         } else {
-                            return replaceValueInObj(returnValue[key], nextResponse);
+                            res = replaceValueInObj(returnValue[key], nextResponse);
+                            if(res) { break; }
                         }
                     }
+                    return res;
                 }
                 return false;
             }
