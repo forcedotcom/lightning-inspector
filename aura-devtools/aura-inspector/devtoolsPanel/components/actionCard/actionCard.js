@@ -141,7 +141,7 @@
 
 	actionCard.attributeChangedCallback = function(attrName, oldVal, newVal) {
 		//console.log("The attribute %s changed from %s to %s", attrName, oldVal, newVal);
-
+		const shadowRoot = this;
         if(attrName==="collapsible") {
             const container = shadowRoot.querySelector("div.action-card-wrapper");
             if(newVal == "false") {
@@ -187,6 +187,7 @@
 	}
 
 	function DropOrModify_OnChange() {
+		const shadowRoot = this;
 		var dropOrModify = shadowRoot.querySelector("#select_dropOrModify").value;
 		this.setAttribute("dropOrModify", dropOrModify);
 		if(dropOrModify === "dropAction") {
@@ -220,6 +221,7 @@
 	}
 
 	function SaveError_OnClick() {
+		const shadowRoot = this;
 		var actionId = this.getAttribute("id");
 		if(actionId) {
 			var nextErrorMsg = shadowRoot.querySelector("#textarea_actionErrorMessage").value.trim();
@@ -263,6 +265,7 @@
 	}
 
 	function EditError_OnClick() {
+		const shadowRoot = this;
 		var actionId = this.getAttribute("id");
 		if(actionId) {
 			//make the textara readonly
@@ -279,6 +282,7 @@
 	}
 
 	function CancelError_OnClick() {
+		const shadowRoot = this;
 		//hide next error response area
         hide(shadowRoot.querySelector(".div_errorResponse"));
 		// var div_errorResponse = shadowRoot.querySelector(".div_errorResponse");
@@ -288,6 +292,7 @@
 	}
 
 	function CancelChangeActionResult_OnClick() {
+		const shadowRoot = this;
 		//hide next response area
         hide(shadowRoot.querySelector(".div_editActionResult"));
 		// var div_editActionResult = shadowRoot.querySelector(".div_editActionResult");
@@ -298,6 +303,7 @@
 	}
 
 	function EditActionResult_OnClick() {
+		const shadowRoot = this;
 		//make the textara writable
 	    shadowRoot.querySelector("#textarea_actionResultValue").removeAttribute('readonly');
 
@@ -310,6 +316,7 @@
 	}
 
 	function SaveActionResult_OnClick() {
+		const shadowRoot = this;
 		var actionId = this.getAttribute("id");
 		var actionName = this.getAttribute("name");
 		var actionParameter = this.getAttribute("parameters");

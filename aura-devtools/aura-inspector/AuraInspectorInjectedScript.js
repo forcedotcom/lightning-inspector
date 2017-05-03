@@ -454,9 +454,9 @@
 
             function getActionsFromResponseText(response) {
                 var actionsStartIdx = response.indexOf("actions");
-                var actionsEndIdx = response.indexOf("context");
+                var actionsEndIdx = response.indexOf("\"context\":");
                 if(actionsStartIdx>=0 && actionsEndIdx >=0 ) {
-                    var actionsStrInResponse = response.substring(actionsStartIdx, actionsEndIdx-1).replace(/\s/g, "");//we don't want '"' right before the 'context'
+                    var actionsStrInResponse = response.substring(actionsStartIdx, actionsEndIdx).replace(/\s/g, "");//we don't want '"' right before the 'context'
                     if(actionsStrInResponse.lastIndexOf(",") == actionsStrInResponse.length -1) {//get rid of ','
                         actionsStrInResponse = actionsStrInResponse.substring(0, actionsStrInResponse.length-1);
                     } 
