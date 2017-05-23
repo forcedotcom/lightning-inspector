@@ -1,0 +1,161 @@
+.workspace {
+  background: #FFF;
+}
+
+.dark .workspace {
+  background: #222;
+}
+
+.workspace-full {
+  width: 100%;
+  height: 100%;
+}
+
+.workspace-flex-vertical {
+  display: flex;
+  flex-direction: column;
+}
+
+.workspace-filename-bulb {
+  height: 8px;
+  width: 8px;
+  display: inline-block;
+  vertical-align: middle;
+  border-radius: 100%;
+  background: black;
+  margin-right: 5px;
+}
+
+.workspace-filename-bulb-gray {
+  background: gray;
+}
+
+.workspace-filename-bulb-green {
+  background: #59d063;
+}
+
+.workspace-filename-bulb-red {
+  background: red;
+}
+
+.workspace-filename-bulb-blue {
+  background: #3b77ff;
+}
+
+.workspace-filename-bulb-orange {
+  background: #ff8800;
+}
+
+.workspace-filename-bulb-purple {
+  background: #9C27B0;
+}
+
+.workspace-filename {
+  box-sizing: border-box;
+  border-bottom: 1px solid #EEE;
+  background: #FFF;
+  font-size: 10px;
+  white-space: nowrap;
+  cursor: pointer;
+  padding-left: 5px;
+  opacity: 0.8;
+}
+
+.dark .workspace-filename {
+  background: #333;
+  border-color: #444;
+}
+
+.workspace-filename-selected {
+  background: #ddd;
+  cursor: default;
+  font-weight: bold;
+  opacity: 1;
+}
+
+.dark .workspace-filename-selected {
+  background: #444;
+}
+
+.workspace-filename-text {
+  display: inline-block;
+  vertical-align: top;
+  width: 100%;
+  padding: 3px 0 5px;
+}
+
+.workspace-filename .rc-checkbox {
+  margin-top: 4px;
+  margin-right: 5px;
+}
+
+.ace_editor {
+  font-size: 9px !important;
+}
+
+.workspace-header {
+  height: 22px;
+  line-height: 22px;
+  font-weight: bold;
+  font-size: 10px;
+  border-bottom: 1px solid #DDD;
+  padding-left: 6px;
+  padding-right: 4px;
+
+  &.workspace-small {
+    height: 14px;
+    line-height: 14px;
+    max-height: 14px;
+    min-height: 14px;
+    font-size: 8px;
+    opacity: 0.5;
+    text-align: right;
+  }
+}
+
+.dark .workspace-header {
+  border-color: #333;
+}
+
+.workspace-toolbar {
+  border-bottom: 1px solid #DDD;
+  width: 100%;
+  height: 22px;
+  padding-left: 6px;
+  padding-right: 4px;
+}
+
+.dark .workspace-toolbar {
+  border-color: #333;
+}
+
+.workspace-toolbar + div {
+  width: 100%;
+  height: calc(100% - 22px);
+  position: relative;
+}
+
+.workspace-overview {
+  line-height: 22px;
+  font-size: 9px;
+}
+
+.workspace-overview-filename {
+  display: inline-block;
+  vertical-align: top;
+  margin-left: 5px;
+}
+
+.workspace-overview-mode {
+  font-weight: bold;
+  text-transform: uppercase;
+  display: inline-block;
+  vertical-align: top;
+}
+
+.workspace-overview-status {
+  opacity: 0.5;
+  display: inline-block;
+  vertical-align: top;
+  margin-left: 5px;
+}

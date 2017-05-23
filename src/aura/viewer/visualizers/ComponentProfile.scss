@@ -1,0 +1,24 @@
+.component-toolbar {
+  border-bottom: 1px solid #DDD;
+  position: relative;
+  width: 100%;
+  display: flex;
+  padding: 3px 3px 3px 0;
+
+  .dark & {
+    border-color: #444;
+  }
+
+  .component-toolbar {
+    border: none !important;
+  }
+
+  .Select, button.generic {
+    margin-left: 3px !important;
+  }
+}
+
+.component-toolbar button {
+  margin: 0 !important;
+  height: 24px !important;
+}

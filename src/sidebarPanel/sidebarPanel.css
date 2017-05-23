@@ -1,0 +1,15 @@
+BODY { background:pink!important; }
+BODY .sidebar { display: block; }
+BODY .component-view {
+    width: 100%;
+    left: 0;
+}
+BODY .hidden,
+#sidebarContainer .hidden {
+    display: none;
+}
+
+#empty {
+    text-align: center;
+    padding: 2em;
+}
