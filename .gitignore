@@ -22,12 +22,9 @@ aura-impl/src/test/eslint/
 node
 node_modules
 .tx
-build/*.crx
-build/*.zip
-build/*.pem
 .idea/
 key.pem
-dist/
+/dist/
 *.worker.js
 *.log
 .web-extension-id
