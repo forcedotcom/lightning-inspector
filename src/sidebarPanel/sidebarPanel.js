@@ -51,6 +51,21 @@ function AuraInspectorSideBarPanel() {
         _runtime.InjectedScript.getComponent(globalId, callback, configuration);
     };
 
+    this.getCount = function(key, callback) {
+        if(typeof callback !== "function") { throw new Error("callback is required for - getCount(key, callback)"); }
+        const command = `window[Symbol.for('AuraDevTools')].Inspector.getCount('${key}');`;
+
+        chrome.devtools.inspectedWindow.eval(command, function(response, exceptionInfo) {
+            if(exceptionInfo) {
+                console.error(command, " resulted in ", exceptionInfo);
+            }
+
+            const count = parseInt(response, 10);
+
+            callback(count);
+        });
+    };
+
     /**
      * Broadcast a message to a listener at any level in the inspector. Including, the InjectedScript, the ContentScript or the DevToolsPanel object.
      *

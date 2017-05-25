@@ -14,6 +14,9 @@ module.exports = function (grunt) {
         entry: {
           "content": './src/contentScript.js',
           "background": './src/background.js',
+          "devtools_tab": [
+            "./src/devtools.js"
+          ],
           "viewerPanel": [
             "./src/devtoolsPanel/devtoolsPanel.js"
           ],
