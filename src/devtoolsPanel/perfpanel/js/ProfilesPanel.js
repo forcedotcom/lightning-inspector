@@ -1685,6 +1685,11 @@ WebInspector.CPUProfileView.prototype = {
         calculateTimesForNode(profile.head);
     },
     _assignParentsInProfile: function () {
+        if(!this.profileHead) { 
+            console.error("Unexpected entry into _assignParentsInProfile when we have no profileHead");
+            return;
+        }
+
         var head = this.profileHead;
         head.parent = null;
         head.head = null;
