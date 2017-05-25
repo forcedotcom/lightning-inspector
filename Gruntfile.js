@@ -12,7 +12,7 @@ module.exports = function (grunt) {
     webpack: {
       options: {
         entry: {
-          "content": './src/contentScript.js',
+          "contentScript": './src/contentScript.js',
           "background": './src/background.js',
           "devtools_tab": [
             "./src/devtools.js"
@@ -124,6 +124,8 @@ module.exports = function (grunt) {
                       "*.html",
                       "dist/**",
                       "src/devtoolsPanel/external/**",
+                      "src/devtoolsPanel/components/**",
+                      "src/devtoolsPanel/perfpanel/**",
                       "images/**",
                       "_locales/**",
                       "manifest.json",
@@ -150,7 +152,11 @@ module.exports = function (grunt) {
     },
 
     zip: {
-        "builds/<%=buildVersion%>/lightning-inspector.zip": [ "builds/<%=buildVersion%>/**/*" ]
+        build: {
+            cwd: "builds/<%=buildVersion%>",
+            src: [ "builds/<%=buildVersion%>/**" ],
+            dest: "builds/lightning-inspector-<%=buildVersion%>.zip"
+        }
     }
 
   });
@@ -161,7 +167,8 @@ module.exports = function (grunt) {
     // Minimize our JS
     // Generate the right directories to be checked in.
     // Should also generate CRX files.
-    grunt.registerTask('build', ['webpack:dist', 'uglify:dist', "buildLatestVersion", "buildSpecificVersion"]);
+    grunt.registerTask('build', ['webpack:dist', "uglify:dist", "buildLatestVersion", "buildSpecificVersion"]);
+    
 
     /**
      * Remove development only properties from manifest, and store the version to 
@@ -204,7 +211,7 @@ module.exports = function (grunt) {
          *  - Strip all the json comments from manifest.json (its not valid and chrome won't allow it in prod builds of the inspector)
          *  - Remove the dev only "key" property from the manifest. 
          */
-        grunt.task.run(["copy:build", "stripJsonComments:build", "clean_manifest", "zip"]);
+        grunt.task.run(["copy:build", "stripJsonComments:build", "clean_manifest"]);
     });
 
     /**

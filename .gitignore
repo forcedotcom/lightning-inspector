@@ -30,3 +30,4 @@ key.pem
 .web-extension-id
 updates.temp
 updates.json
+builds/lightning-inspector-*.zip

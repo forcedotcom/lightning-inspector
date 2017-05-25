@@ -1129,20 +1129,34 @@ import UnStrictApis from "./aura/gatherer/unStrictApis.js";
             _hookOverride: function(key, mark) {
                 $A.installOverride(key, function(){
                     var config = Array.prototype.shift.apply(arguments);
+                    var args = Array.prototype.slice.apply(arguments);
                     var cmpConfig = arguments[0];
+                    var callback = arguments[1];
                     var descriptor = $A.util.isString(cmpConfig) ? cmpConfig : (cmpConfig["componentDef"]["descriptor"] || cmpConfig["componentDef"]) + '';
 
                     var collector = this.collector[mark];
                     collector.push(this._createNode(descriptor, mark + START_SUFIX));
 
-                    var ret = config["fn"].apply(config["scope"], arguments);
+                    // When there is a callback, no return value is provided.
+                    // The return value is passed to the callback in this case. 
+                    if(typeof callback === "function") {
+                        args[1] = (newCmp, status, message) => {
+                            if(newCmp) {
+                                var id = newCmp.getGlobalId && newCmp.getGlobalId() || "([ids])";
+                                collector.push(this._createNode(descriptor, mark + END_SUFIX, id));
+                            }
+                            callback(newCmp, status, message);
+                        };
+                    }
 
-                    if(ret === undefined) { return ret; }
+                    var ret = config["fn"].apply(config["scope"], args);
 
-                    var id = ret.getGlobalId && ret.getGlobalId() || "([ids])";
-                    collector.push(this._createNode(descriptor, mark + END_SUFIX, id));
-
+                    if(ret !== undefined) { 
+                        var id = ret.getGlobalId && ret.getGlobalId() || "([ids])";
+                        collector.push(this._createNode(descriptor, mark + END_SUFIX, id));
+                    }
                     return ret;
+
                 }.bind(this), this);
             },
             _hookMethod: function (host, methodName, mark) {
@@ -1266,9 +1280,9 @@ import UnStrictApis from "./aura/gatherer/unStrictApis.js";
 
                 logTree(stack.length - 1, 'open: ' + marks[0].name);
                 for (var i = 1; i < markLength; i++) {
-                    tmp = marks[i];
+                    var tmp = marks[i];
                     if (stack[0].functionName === tmp.name && tmp.mark === endText) {
-                        tmpNode = stack.shift();
+                        var tmpNode = stack.shift();
                         tmpNode._endTime = tmp.timestamp;
                         tmpNode._totalTime = tmpNode._endTime - tmpNode._startTime;
                         tmpNode._childrenTime = tmpNode.children.reduce(function (p, c) {return p + c._totalTime;}, 0);

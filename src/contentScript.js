@@ -1,15 +1,10 @@
-(function(global){
-
-    if(global.AuraInspector) {
-        return;
-    }
-
+if(!window.AuraInspector) {
     // Initialize
     var inspector = new AuraInspectorContentScript();
         inspector.init();
 
-    global.AuraInspector = global.AuraInspector || {};
-    global.AuraInspector.ContentScript = inspector;
+    window.AuraInspector = window.AuraInspector || {};
+    window.AuraInspector.ContentScript = inspector;
 
 
     function AuraInspectorContentScript(){
@@ -31,7 +26,7 @@
             runtime.onDisconnect.addListener(this.disconnect.bind(this));
 
             // Inject the script that will talk with the $A services.
-            var scriptElement = global.document.createElement("script");
+            var scriptElement = window.document.createElement("script");
             //scriptElement.src = chrome.extension.getURL('src/AuraInspectorInjectedScript.js');
             scriptElement.src = chrome.extension.getURL('/dist/LightningInspectorInjectedScript.js');
             scriptElement.async = scriptElement.defer = false;
@@ -151,4 +146,4 @@
         }
 
     }
-})(this);
+}
