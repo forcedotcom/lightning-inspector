@@ -252,7 +252,7 @@ import UnStrictApis from "./aura/gatherer/unStrictApis.js";
             function ClientService_OnDecode(config, oldResponse, noStrip) {
                 //var response = oldResponse["response"];
                 if(!oldResponse["response"] || oldResponse["response"].length == 0) {
-                    console.warn("AuraInspectorInjectedScript.onDecode received a bad response.");
+                    console.warn("AuraInspectorInjectedScript.onDecode received a bad response.", oldResponse);
                     return config["fn"].call(config["scope"], oldResponse, noStrip);
                 }
 
@@ -275,25 +275,29 @@ import UnStrictApis from "./aura/gatherer/unStrictApis.js";
                             var actionsObj = getActionsFromResponseText(oldResponseText);
                             var responseActions = actionsObj && actionsObj.actions || [];
                             
-                            var action = responseActions.find((current) => {
-                                return current.id === actionId;
+                            var actionFound;
+                            var restOfActions = responseActions.filter((current) => {
+                                if(current.id === actionId) {
+                                    actionFound = current; 
+                                    return false;
+                                } else {
+                                    return true;
+                                }
                             });
-
+                            
                             // We have not yet found an action in the existing set we want to modify
-                            if(!action) {
+                            if(!actionFound) {
                                 continue;
                             }
-
                             //we would like to return error response
                             if(actionWatched.nextError) {
-                                action.state = "ERROR";
-                                //when action return with error, returnValue should be null
-                                action.returnValue = null;
-                                action.error = [actionWatched.nextError];
-                                
-                                //newResponseText = addMessageAndStackToResponse(oldResponseText, actionWatched.nextError.message, actionWatched.nextError.stack);
-                                newResponseText = setActionsToResponseText(oldResponseText, responseActions);
-
+                                actionFound.state = "ERROR";
+                                actionFound.error = [actionWatched.nextError];
+                                actionFound.returnValue = null;
+                                var actionsEndIndex = oldResponseText.indexOf("context\"");
+                                newResponseText = "while(1);\n{\"actions\":"+JSON.stringify(restOfActions.concat(actionFound))+",\""+oldResponseText.substring(actionsEndIndex,oldResponseText.length);
+                                //move the actionCard from watch list to Processed
+                                //this will call AuraInspectorActionsView_OnActionStateChange in AuraInspectorActionsView.js
                                 $Aura.Inspector.publish("AuraInspector:OnActionStateChange", {
                                         "id": actionId,
                                         "idtoWatch": actionWatched.idtoWatch,
@@ -302,7 +306,7 @@ import UnStrictApis from "./aura/gatherer/unStrictApis.js";
                                 });
 
                                 const newHttpRequest = {
-                                    "status": 500, // As long as it's not 200
+                                    "status": 200,
                                     "response": newResponseText,
                                     "responseText": newResponseText,
                                     "$hasError": true
@@ -312,12 +316,11 @@ import UnStrictApis from "./aura/gatherer/unStrictApis.js";
                             } 
                             //we would like to return non-error response
                             else if(actionWatched.nextResponse) {
-                                var returnValue = action.returnValue;
-                                var responseModified = replaceValueInObj(returnValue, actionWatched.nextResponse);
+                                var responseModified = Object.assign(actionFound.returnValue, actionWatched.nextResponse);
                                 if(responseModified) {
-                                    action.returnValue = returnValue;
-                                    var actionsEndIdx = oldResponseText.indexOf("context\"");
-                                    newResponseText = "while(1);\n"+ "{"+"\"actions\":"+JSON.stringify(responseActions)+",\""+oldResponseText.substring(actionsEndIdx,oldResponseText.length);
+                                    actionFound.returnValue = responseModified;
+                                    var actionsEndIndex = oldResponseText.indexOf("context\"");
+                                    newResponseText = "while(1);\n{\"actions\":"+JSON.stringify(restOfActions.concat(actionFound))+",\""+oldResponseText.substring(actionsEndIndex,oldResponseText.length);
 
                                     //move the actionCard from watch list to Processed
                                     //this will call AuraInspectorActionsView_OnActionStateChange in AuraInspectorActionsView.js
@@ -366,7 +369,7 @@ import UnStrictApis from "./aura/gatherer/unStrictApis.js";
                         
                         }
                     } catch(e) {
-                        console.warn("get response we cannot parse with JSON.parse, skip", oldResponse);
+                        console.warn("get response we cannot parse with JSON.parse, skip", oldResponse, e);
                         return config["fn"].call(config["scope"], oldResponse, noStrip);
                     }
                 }
@@ -430,63 +433,16 @@ import UnStrictApis from "./aura/gatherer/unStrictApis.js";
                 }
             }
 
-            //go through returnValue object, replace the value if nextResponse[key] exist
-            function replaceValueInObj (returnValue, nextResponse) {
-                if(Array.isArray(returnValue) && returnValue.length) {
-                    let res = false;
-                    for(var i = 0; i < returnValue.length; i ++) {
-                        var returnValuei = returnValue[i];
-                        res = replaceValueInObj(returnValuei, nextResponse);
-                        if(res) { break; }
-                    }
-                    return res;
-                }  else if (typeof(returnValue) === "object" && !Array.isArray(returnValue)) {
-                    let res = false;
-                    for(var key in returnValue) {
-                        if(nextResponse && nextResponse.hasOwnProperty(key)) {
-                            returnValue[key] = nextResponse[key];
-                            res = true;
-                            break;
-                        } else {
-                            res = replaceValueInObj(returnValue[key], nextResponse);
-                            if(res) { break; }
-                        }
-                    }
-                    return res;
-                }
-                return false;
-            }
-
             function getActionsFromResponseText(response) {
                 var actionsStartIdx = response.indexOf("actions");
-                var actionsEndIdx = response.indexOf("\"context\":");
-                if(actionsStartIdx>=0 && actionsEndIdx >=0 ) {
-                    var actionsStrInResponse = response.substring(actionsStartIdx, actionsEndIdx).replace(/\s/g, "");//we don't want '"' right before the 'context'
+                var actionsEndIndex = response.indexOf("\"context\":");
+                if(actionsStartIdx>=0 && actionsEndIndex >=0 ) {
+                    var actionsStrInResponse = response.substring(actionsStartIdx, actionsEndIndex).replace(/\s/g, "");//we don't want '"' right before the 'context'
                     if(actionsStrInResponse.lastIndexOf(",") == actionsStrInResponse.length -1) {//get rid of ','
                         actionsStrInResponse = actionsStrInResponse.substring(0, actionsStrInResponse.length-1);
                     } 
                     return JSON.parse("{\""+actionsStrInResponse+"}");
                 }
-            }
-
-            function setActionsToResponseText(response, actions) {
-                var startString = '"actions":';
-                var startIndex = response.indexOf(startString) + startString.length;
-                var start = response.substring(0, startIndex);
-
-                var endString = '"context":';
-                var endIndex = response.indexOf(endString);
-                var end = response.substring(endIndex);
-
-                return start + JSON.stringify(actions) + "," + end;
-
-                // if(actionsStartIdx>=0 && actionsEndIdx >=0 ) {
-                //     var actionsStrInResponse = response.substring(actionsStartIdx, actionsEndIdx-1).replace(/\s/g, "");//we don't want '"' right before the 'context'
-                //     if(actionsStrInResponse.lastIndexOf(",") == actionsStrInResponse.length -1) {//get rid of ','
-                //         actionsStrInResponse = actionsStrInResponse.substring(0, actionsStrInResponse.length-1);
-                //     } 
-                //     return JSON.parse("{\""+actionsStrInResponse+"}");
-                // }
             }
         }
 
@@ -754,8 +710,6 @@ import UnStrictApis from "./aura/gatherer/unStrictApis.js";
 
         var actionWatched = this.getWatchedAction(action.getId());
         if(actionWatched) {
-
-            
             if(actionWatched.nextError != undefined) {
                 data.howDidWeModifyResponse = "responseModified_error";
             } else if (actionWatched.nextResponse != undefined) {

@@ -371,6 +371,7 @@ export default function AuraInspectorActionsView(devtoolsPanel) {
             card.setAttribute("isFromStorage", action.fromStorage);
             card.setAttribute("storageKey", action.storageKey);
             card.setAttribute("dropOrModify", "dropAction");
+            card.setAttribute("errorResponseType", "exceptionEvent");
             card.setAttribute("callingComponent", action.callingCmp || "");
             if(action.stats) {
                 card.setAttribute("stats", JSON.stringify(action.stats));
