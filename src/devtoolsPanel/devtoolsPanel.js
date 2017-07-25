@@ -11,7 +11,7 @@ import AuraInspectorTransactionPanel from "./AuraInspectorTransactionPanel.js";
 import AuraInspectorTransactionView from "./AuraInspectorTransactionView.js";
 import DevToolsEncodedId from "./DevToolsEncodedId.js";
 import AuraInspectorOptions from "./optionsProxy.js";
-import Serializer from "../aura/Serializer.js";
+import JsonSerializer from "../aura/JsonSerializer.js";
 
 /**
  * You can use the publish and subscribe methods to broadcast messages through to the end points of the architecture.
@@ -73,24 +73,25 @@ panel.init(function(){
     });
 });
 
-function AuraInspectorDevtoolsPanel() {
-    //var EXTENSIONID = "mhfgenmncdnmcoonglmkepfdnjjjcpla";
-    var PUBLISH_KEY = "AuraInspector:publish";
-    var PUBLISH_BATCH_KEY = "AuraInspector:publishbatch";
-    var BOOTSTRAP_KEY = "AuraInspector:bootstrap";
-    var runtime = null;
-    var actions = new Map();
-    // For Drawing the Tree, eventually to be moved into it's own component
-    var nodeId = 0;
-    var events = new Map();
-    var panels = new Map();
-    var _name = "AuraInspectorDevtoolsPanel";
-    var _onReadyQueue = [];
-    var _isReady = false;
-    var _initialized = false;
-    var _subscribers = new Map();
-    var tabId;
-    var currentPanel;
+    function AuraInspectorDevtoolsPanel() {
+        //var EXTENSIONID = "mhfgenmncdnmcoonglmkepfdnjjjcpla";
+        var PUBLISH_KEY = "AuraInspector:publish";
+        var PUBLISH_BATCH_KEY = "AuraInspector:publishbatch";
+        var BOOTSTRAP_KEY = "AuraInspector:bootstrap";
+        var runtime = null;
+        var actions = new Map();
+        // For Drawing the Tree, eventually to be moved into it's own component
+        var nodeId = 0;
+        var events = new Map();
+        var panels = new Map();
+        const renderedPanels = new Set();
+        var _name = "AuraInspectorDevtoolsPanel";
+        var _onReadyQueue = [];
+        var _isReady = false;
+        var _initialized = false;
+        var _subscribers = new Map();
+        var tabId;
+        var currentPanel;
 
 
     this.connect = function(){
@@ -217,6 +218,7 @@ function AuraInspectorDevtoolsPanel() {
         var panelKey = key.indexOf("tabs-")==0?key.substring(5):key;
         var buttonKey = "tabs-"+panelKey;
         var current = panels.get(panelKey);
+        const isPanelRendered = renderedPanels.has(panelKey);
 
         // When you try to show the panel that already is shown, we don't want to refire render.
         // That does setup stuff and that shouldn't happen while you are using a panel.
@@ -244,6 +246,24 @@ function AuraInspectorDevtoolsPanel() {
             AuraInspectorOptions.set("activePanel", panelKey);
         }
 
+        // Render the output. Panel is responsible for not redrawing if necessary.
+        if(current) {
+            this.hideLoading();
+            if(!isPanelRendered) {
+                renderedPanels.add(panelKey);
+                current.render(options);
+            }
+
+            if(!current.onShowPanel && isPanelRendered) {
+                current.render(options);
+            }
+
+            if(current.onShowPanel) {
+                current.onShowPanel(options);
+            }
+            
+            AuraInspectorOptions.set("activePanel", panelKey);
+        }
     };
 
     /**
@@ -375,7 +395,7 @@ function AuraInspectorDevtoolsPanel() {
             }
             if(!response) { return; }
 
-            const component = Serializer.parse(response);
+            const component = JsonSerializer.parse(response);
 
             callback(component);
         });
@@ -404,7 +424,7 @@ function AuraInspectorDevtoolsPanel() {
                 console.error(exceptionInfo);
             }
             if(!rootNodes) { return; }
-            const component = Serializer.parse(rootNodes);
+            const component = JsonSerializer.parse(rootNodes);
             callback(component);
         });
 

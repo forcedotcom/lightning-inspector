@@ -25,9 +25,6 @@ The previous builds of the Lightning Inspector are pushed in the builds director
 * Select the [Lightning Inspector Directory]/builds/[version||latest]
 
 
-## Contribute
-Clone source code from this repo.
-
 ### Environment
 ```sh
 nvm install 5.0.0       # >= 5.0.0 is ok (don't install anything with sudo)
@@ -53,3 +50,24 @@ yarn build              # should output crx, xpi, zip files
 ## How to Use ##
 The google sites page and public documentation are still great resources.
 https://sites.google.com/a/salesforce.com/user-interface/aura/aura-dev-tools
+
+
+
+## Contribute
+Fork the repo and send the pull request. 
+
+Please add Kris Gray as the reviewer.
+
+
+## Backlog
+
+* Fix Slds being included in its entirety.
+ - Pull in just the bits that we need.
+* Convert the Component Tree to a React Component
+ - I wanted to rewrite the tree anyway. 
+ - This allows the UIPerf tool to leverage the Component Tree when they want.
+* Convert more of the plugin to use Slds 
+ - Fixes bugs in my css
+ - Unifies styles across the app.
+
+

@@ -81,7 +81,7 @@ module.exports = function (grunt) {
         context: __dirname,
         module: {
           loaders: [
-            { test: /.js?$/, loader: 'babel-loader', exclude: /node_modules|dist/ },
+            { test: /.js?$/, loader: 'babel-loader', exclude: /node_modules/ },
             { test: /\.less$/, loader: 'style-loader!css-loader!less-loader' },
             { test: /\.scss/, loader: 'style-loader!css-loader!sass-loader' },
             { test: /\.css$/, loader: 'style-loader!css-loader' },

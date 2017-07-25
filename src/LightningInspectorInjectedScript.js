@@ -1,5 +1,5 @@
-import ComponentTree from "./aura/ComponentTree.js";
-import Serializer from "./aura/Serializer.js";
+import ComponentSerializer from "./aura/gatherer/ComponentSerializer.js";
+import JsonSerializer from "./aura/JsonSerializer.js";
 import UnStrictApis from "./aura/gatherer/unStrictApis.js";
 
 //*** Used by Aura Inspector
@@ -555,11 +555,11 @@ import UnStrictApis from "./aura/gatherer/unStrictApis.js";
          * So we also include all the Disconnected components attached to dom elements.
          */
         this.getRootComponents = function() {
-            return ComponentTree.getRootComponents();
+            return ComponentSerializer.getRootComponents();
         };
 
         this.getComponent = function(componentId, options) {
-            return ComponentTree.getComponent(componentId, options);
+            return ComponentSerializer.getComponent(componentId, options);
         };
 
         /**
@@ -696,12 +696,17 @@ import UnStrictApis from "./aura/gatherer/unStrictApis.js";
 
         var action = config["self"];
 
+        // Only handle Server Actions, its entirely possible for you to $A.enqueueAction() something from the controller.
+        if(!action.getDef().isServerAction()) {
+            return ret;
+        }
+
         var data = {
             "id": action.getId(),
             "state": action.getState(),
             "fromStorage": action.isFromStorage(),
-            "returnValue": Serializer.stringify(action.getReturnValue()),
-            "error": Serializer.stringify(action.getError()),
+            "returnValue": JsonSerializer.stringify(action.getReturnValue()),
+            "error": JsonSerializer.stringify(action.getError()),
             "finishTime": performance.now(),
             "stats": {
                 "created": $Aura.Inspector.getCount("component_created") - startCounts.created
@@ -833,24 +838,25 @@ import UnStrictApis from "./aura/gatherer/unStrictApis.js";
     function OnEnqueueAction(config, action, scope) {
         var ret = config["fn"].call(config["scope"], action, scope);
 
-        var cmp = action.getComponent();
-        var data =  {
-            "id"         : action.getId(),
-            "params"     : Serializer.stringify(action.getParams()),
-            "abortable"  : action.isAbortable(),
-            "storable"   : action.isStorable(),
-            "background" : action.isBackground(),
-            "state"      : action.getState(),
-            "isRefresh"  : action.isRefreshAction(),
-            "defName"    : action.getDef()+"",
-            "fromStorage": action.isFromStorage(),
-            "enqueueTime": performance.now(),
-            "storageKey" : action.getStorageKey(),
-            "callingCmp" : cmp && cmp.getGlobalId()
-        };
+        if(action.getDef().isServerAction()) {
+            var cmp = action.getComponent();
+            var data =  {
+                "id"         : action.getId(),
+                "params"     : JsonSerializer.stringify(action.getParams()),
+                "abortable"  : action.isAbortable(),
+                "storable"   : action.isStorable(),
+                "background" : action.isBackground(),
+                "state"      : action.getState(),
+                "isRefresh"  : action.isRefreshAction(),
+                "defName"    : action.getDef()+"",
+                "fromStorage": action.isFromStorage(),
+                "enqueueTime": performance.now(),
+                "storageKey" : action.getStorageKey(),
+                "callingCmp" : cmp && cmp.getGlobalId()
+            };
 
-        $Aura.Inspector.publish("AuraInspector:OnActionEnqueue", data);
-
+            $Aura.Inspector.publish("AuraInspector:OnActionEnqueue", data);
+        }
         return ret;
     }
 
@@ -885,13 +891,15 @@ import UnStrictApis from "./aura/gatherer/unStrictApis.js";
 
         var action = config["self"];
 
-        var data = {
-            "id": action.getId(),
-            "state": action.getState(),
-            "finishTime": performance.now()
-        };
+        if(action.getDef().isServerAction()) {
+            var data = {
+                "id": action.getId(),
+                "state": action.getState(),
+                "finishTime": performance.now()
+            };
 
-        $Aura.Inspector.publish("AuraInspector:OnActionStateChange", data);
+            $Aura.Inspector.publish("AuraInspector:OnActionStateChange", data);
+        }
 
         return ret;
     }
@@ -899,21 +907,25 @@ import UnStrictApis from "./aura/gatherer/unStrictApis.js";
     function OnActionRunDeprecated(config, event) {
         var action = config["self"];
         var startTime = performance.now();
-        var data = {
-            "actionId": action.getId()
-        };
+        if(action.getDef().isServerAction()) {
+            var data = {
+                "actionId": action.getId()
+            };
 
-        $Aura.Inspector.publish("AuraInspector:OnClientActionStart", data);
+            $Aura.Inspector.publish("AuraInspector:OnClientActionStart", data);
+        }
 
         var ret = config["fn"].call(config["scope"], event);
 
-        data = {
-            "actionId": action.getId(),
-            "name": action.getDef().getName(),
-            "scope": action.getComponent().getGlobalId()
-        };
+        if(action.getDef().isServerAction()) {
+            data = {
+                "actionId": action.getId(),
+                "name": action.getDef().getName(),
+                "scope": action.getComponent().getGlobalId()
+            };
 
-        $Aura.Inspector.publish("AuraInspector:OnClientActionEnd", data);
+            $Aura.Inspector.publish("AuraInspector:OnClientActionEnd", data);
+        }
     }
 
     function bootstrapCounters() {
@@ -975,7 +987,7 @@ import UnStrictApis from "./aura/gatherer/unStrictApis.js";
             var componentToJSON = $A.Component.prototype.toJSON;
             delete $A.Component.prototype.toJSON;
 
-            var json = Serializer.stringify(data, function(key, value){
+            var json = JsonSerializer.stringify(data, function(key, value){
                 if($A.util.isComponent(value)) {
                     return "[Component] {" + value.getGlobalId() + "}";
                 } else if(value instanceof Function) {

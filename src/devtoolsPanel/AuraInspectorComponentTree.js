@@ -1,7 +1,13 @@
+import ReactDOM from "react-dom";
+import React from "react";
+
+import ComponentTreeView from "./components/ComponentTreeView.js";
+
 import { AuraInspectorTreeView, TreeNode } from "./treeview";
 import AuraInspectorOptions from "./optionsProxy";
 import DevToolsEncodedId from "./DevToolsEncodedId";
-import Serializer from "../aura/Serializer.js";
+import JsonSerializer from "../aura/JsonSerializer.js";
+import ComponentTreeSerializer from "../aura/viewer/ComponentTreeSerializer.js";
 
 /**
  * Component Tree Panel. Delegates drawing of the tree to the TreeView component in the treeview.js file.
@@ -13,6 +19,8 @@ export default function AuraInspectorComponentTree(devtoolsPanel) {
     var isDirty = false;
     var initial = true;
     var selectedNodeId = null;
+    var newTreeContainer = null;
+    var tree;
 
     var labels = {
         refresh: chrome.i18n.getMessage("menu_refresh"),
@@ -38,6 +46,7 @@ export default function AuraInspectorComponentTree(devtoolsPanel) {
               <li><input type="checkbox" id="showglobalids-checkbox"><label for="showglobalids-checkbox">${labels.showids}</label></li>
           </menu>
           <div class="flex scroll">
+            <div class="component-tree source-code" id="tree-react"></div>
             <div class="component-tree source-code" id="tree"></div>
           </div>
         </di>
@@ -76,43 +85,53 @@ export default function AuraInspectorComponentTree(devtoolsPanel) {
                 selectedNodeId = id;
             }
         });
+
+        newTreeContainer = tabBody.querySelector("#tree-react");
     };
 
-    /**
-     * Possible to set the collection of items externally, but currently only done via this.refresh()
-     * Does not do a merge, does a complete replace.
-     */
-    this.setData = function(items) {
-        if(items != _items || JSON.stringify(items) != JSON.stringify(_items)) {
-            isDirty = true;
-            _items = items;
-            this.render();
-        }
+    this.onShowPanel = function(options) {
+        // When the user comes back, do nothing special.
     };
 
-    this.render = function() {
-        if(initial) {
-            initial = false;
-            return this.refresh();
-        }
-
-        if(!isDirty) {
-            return;
-        }
+    this.render = function(renderingConfig = {}) {
+        renderingConfig = Object.assign({
+            "expandAll": undefined,
+            "forcedUpdate": false
+        }, renderingConfig);
 
         try {
-            generateRootComponents(_items, function(treeNodes) {
-                treeComponent.clearChildren();
-                treeComponent.addChildren(treeNodes);
-                treeComponent.render({ "collapsable" : true, "selectedNodeId": selectedNodeId });
-                isDirty = false;
+            devtoolsPanel.showLoading();
 
-                if(selectedNodeId) {
-                    devtoolsPanel.updateComponentView(selectedNodeId);
-                    devtoolsPanel.showSidebar();
+            // TODO: Fix the options stuff.
+            AuraInspectorOptions.getAll({ "showGlobalIds": false }, function(options){
+                ComponentTreeSerializer.getRootComponents().then(function(rootNodes){
+                    tree = ReactDOM.render(<ComponentTreeView 
+                                                    rootComponents={rootNodes} 
+
+                                                    // Event Handlers
+                                                    onClick={ComponentTreeNode_OnClick}
+
+                                                    // Tree Configuration
+                                                    expandAll={renderingConfig.expandAll} 
+                                                    showGlobalIds={options.showGlobalIds}/>, newTreeContainer);
+                    devtoolsPanel.hideLoading();
+
+                    if(selectedNodeId) {
+                        tree.setSelectedId(selectedNodeId);
+                    }
+                });
+            });
+
+            devtoolsPanel.subscribe("AuraInspector:ShowComponentInTree", function(id) {
+                if(tree) {
+                    tree.setSelectedId(id);
+
                 }
+                
+                devtoolsPanel.updateComponentView(id);
+                devtoolsPanel.showSidebar();
 
-                devtoolsPanel.hideLoading();
+                selectedNodeId = id;
             });
           
         } catch(e) {
@@ -121,25 +140,31 @@ export default function AuraInspectorComponentTree(devtoolsPanel) {
 
     };
 
-    this.refresh = function() {
-        devtoolsPanel.showLoading();
-        devtoolsPanel.getRootComponents(function(components){
-            this.setData(components);
-        }.bind(this));
-    };
-
     function RefreshButton_OnClick(event) {
-        this.refresh();
+        if(tree){
+            tree.update();
+        }
     }
 
     function ExpandAllButton_OnClick(event) {
-        treeComponent.expandAll();
+        this.render({
+            expandAll: true
+        });
+    }
+
+    function ComponentTreeNode_OnClick(event) {
+        selectedNodeId = this.props.globalId;
+
+        tree.setSelectedId(selectedNodeId);
+
+        devtoolsPanel.updateComponentView(selectedNodeId);
+        devtoolsPanel.showSidebar();
     }
 
     function ShowGlobalIdsCheckBox_Change(event) {
         var showGlobalIds = event.srcElement.checked;
         AuraInspectorOptions.set("showGlobalIds", showGlobalIds, function(options) {
-            this.refresh();
+            this.render();
         }.bind(this));
     }
 
@@ -191,204 +216,4 @@ export default function AuraInspectorComponentTree(devtoolsPanel) {
         }
     }
 
-    function generateRootComponents(components, callback) {
-        let current;
-        const returnNodes = [];
-        const length = components.length;
-        let counter = length;
-
-        for(let c=0;c<length;c++) {
-            current = components[c];
-            if("dom" in current) {
-                let parentTreeNode = new TreeNode(current.dom, "");
-                generateTree(current.components.map(Serializer.parse), parentTreeNode, function(treeNode){
-                    returnNodes.push(treeNode);
-                    if(--counter === 0) {
-                        callback(returnNodes);
-                    }
-                });   
-            } else {
-                let parentTreeNode = new TreeNode();
-                generateTree(current.components.map(Serializer.parse), parentTreeNode, function(treeNode){
-                    returnNodes.push(treeNode.getChildren()[0]);
-                    if(--counter === 0) {
-                        callback(returnNodes);
-                    }
-                });   
-            }
-
-             
-        }
-    }
-
-    function generateTree(rootComponent, currentTreeNode, callback) {
-        var allnodes = new Set();
-
-        // Generates the whole tree
-        generateTreeRecusively(rootComponent, currentTreeNode, callback);
-
-        // Handles an array of components
-        function generateTreeRecusively(component, treeNode, callback) {
-            if(Array.isArray(component)) {
-                var count = component.length;
-                var processedcount = 0;
-
-                if(!count) {
-                    return callback(treeNode);
-                }
-
-                for(var c=0;c<count;c++) {
-                    generateTreeRecursivelyInternal(component[c], treeNode, function(result){
-                        if(++processedcount === count) {
-                            return callback(treeNode);
-                        }
-                    });
-                }
-            } else {
-                generateTreeRecursivelyInternal(component, treeNode, callback);
-            }
-
-
-            // Handles a single component
-            function generateTreeRecursivelyInternal(component, treeNode, callback) {
-                var globalId = component.globalId;
-                if(allnodes.has(globalId)) { return callback(treeNode); }
-
-                var newTreeNode = createTreeNodeForComponent(component);
-
-                // A ByValue: {#...} reference. We show the actual value, not the {#...} portion.
-                if(isExpression(component) && !component.expressions.value && isFacets(component.attributes.value)) {
-                    getBodyFromComponent(component, function(bodyComponents){
-                        generateTreeRecusively(bodyComponents, newTreeNode, function(facetTreeNode){
-                            // Not to newTreeNode, that gets discared in this code path.
-                            treeNode.addChild(newTreeNode.getChildren());
-                            
-                            callback(facetTreeNode)
-                        });
-                    });
-                    return;
-                }
-                
-                treeNode.addChild(newTreeNode);
-                allnodes.add(globalId);
-                
-                // Get Body ID's
-                getBodyFromComponent(component, function(bodyComponents){
-                    generateTreeRecusively(bodyComponents, newTreeNode, callback);
-                });
-            }
-        }
-
-        function getBodyFromComponent(component, callback) {
-            var body = component.attributes.body;
-            var globalId = component.globalId;
-            var returnValue = [];
-            callback = callback || function(){}; // able to specify defaults in ES6?
-            if(body) {
-                var count;
-                var processed = 0;
-                var id;
-
-                // Start body building at the base component level and work your way up to the concrete.
-                var currentId = component.supers ? component.supers.reverse()[0] : component.globalId;
-                var currentBody = body[currentId];
-
-                getBodyFromIds(currentBody, function(bodyNodes){
-                    callback(flattenArray(bodyNodes))
-                });
-            } else if(isExpression(component) && isFacets(component.attributes.value)) {
-                var facets = Array.isArray(component.attributes.value) ? component.attributes.value : [component.attributes.value];
-                // Is an expression and a facet.
-                getBodyFromIds(facets, function(bodyNodes){
-                    callback(flattenArray(bodyNodes));
-                });
-
-            } else  {
-                callback(returnValue);
-            }
-        }
-
-        function getBodyFromIds(ids, callback) {
-            var bodies = [];
-            var processed = 0;
-            var count = ids && ids.length;
-
-            if(!count) {
-                return callback([]);
-            }
-
-            devtoolsPanel.getComponents(ids, function(components){
-                for(var c=0;c<components.length;c++) {
-                    bodies[c] = components[c];
-                    if(++processed === count) {
-                        callback(bodies);
-                    }
-                }
-            });
-
-        }
-
-        function isFacets(value) {
-            if(!Array.isArray(value)) { 
-                return DevToolsEncodedId.isComponentId(value);
-            }
-            for(var c=0;c<value.length;c++) {
-                if(!DevToolsEncodedId.isComponentId(value[c])) { return false; }
-            }
-            return true;
-        }
-
-        function flattenArray(array) {
-            var returnValue = [];
-            for(var c=0,length=array.length;c<length;c++) {
-                if(Array.isArray(array[c])) {
-                    returnValue = returnValue.concat(flattenArray(array[c]));
-                } else {
-                    returnValue.push(array[c]);
-                }
-            }
-            return returnValue;
-        }
-
-        function isExpression(cmp) {
-            return cmp && cmp.descriptor === "markup://aura:expression";
-        }
-
-        function createTreeNodeForComponent(component) {
-            if(!component) { return null; }
-
-            var attributes = {
-                descriptor: component.descriptor,
-                globalId: component.globalId || "",
-                attributes: {}
-            };
-
-            if(component.localId) {
-                attributes.attributes["aura:id"] = component.localId;
-            }
-
-            var body = [];
-            if(component.attributes) {
-                for(var property in component.attributes) {
-                    if(!component.attributes.hasOwnProperty(property)) { continue; }
-
-                    if(property === "body") {}
-                    else if(component.expressions && component.expressions.hasOwnProperty(property)) {
-                        //attributes.attributes[property] = component.expressions[property];
-                        attributes.attributes[property] = component.expressions[property];
-                    }
-                    else {
-                        attributes.attributes[property] = component.attributes[property];
-                    }
-                }
-            }
-
-            if(isExpression(component)) {
-                attributes.attributes.expression = component.expressions.value;
-            }
-
-            return TreeNode.parse(attributes);
-        }
-
-    }
 }

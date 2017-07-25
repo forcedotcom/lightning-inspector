@@ -92,6 +92,7 @@
     "react-split-pane": "^0.1.57",
     "react-waterfall": "git+ssh://git@git.soma.salesforce.com/mkurian/Waterfall.js.git",
     "save-svg-as-png": "^1.0.3",
+    "scroll-into-view-if-needed": "^1.1.0",
     "selectn": "^1.1.2",
     "semver-compare": "^1.0.0",
     "showdown": "^1.6.0",

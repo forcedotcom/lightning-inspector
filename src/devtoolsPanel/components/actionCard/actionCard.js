@@ -62,7 +62,7 @@
 	    	}
     	}
 
-    	if(model.returnError != undefined || model.returnError != null) {//when there is error, we don't show action result.
+    	if(model.returnError !== undefined && model.returnError !== null && model.returnError !== "undefined") {//when there is error, we don't show action result.
             this.classList.add("has-error");
     		shadowRoot.querySelector("#actionError").textContent = model.returnError;
     		shadowRoot.querySelector("#action-response-container").classList.add("slds-hide");

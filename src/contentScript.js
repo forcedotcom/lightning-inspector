@@ -1,4 +1,5 @@
 if(!window.AuraInspector) {
+
     // Initialize
     var inspector = new AuraInspectorContentScript();
         inspector.init();
