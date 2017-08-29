@@ -5,6 +5,7 @@ import ComponentTreeView from "./components/ComponentTreeView.js";
 
 import { AuraInspectorTreeView, TreeNode } from "./treeview";
 import AuraInspectorOptions from "./optionsProxy";
+import BrowserApi from "../aura/viewer/BrowserApi.js";
 import DevToolsEncodedId from "./DevToolsEncodedId";
 import JsonSerializer from "../aura/JsonSerializer.js";
 import ComponentTreeSerializer from "../aura/viewer/ComponentTreeSerializer.js";
@@ -13,19 +14,20 @@ import ComponentTreeSerializer from "../aura/viewer/ComponentTreeSerializer.js";
  * Component Tree Panel. Delegates drawing of the tree to the TreeView component in the treeview.js file.
  */
 export default function AuraInspectorComponentTree(devtoolsPanel) {
-    var treeElement;
-    var treeComponent;
-    var _items = {};
-    var isDirty = false;
-    var initial = true;
-    var selectedNodeId = null;
-    var newTreeContainer = null;
-    var tree;
+    let treeElement;
+    let treeComponent;
+    let _items = {};
+    let isDirty = false;
+    let initial = true;
+    let selectedNodeId = null;
+    let newTreeContainer = null;
+    let tree;
 
-    var labels = {
+    let labels = {
         refresh: chrome.i18n.getMessage("menu_refresh"),
         expandall: chrome.i18n.getMessage("componenttree_menu_expandall"),
-        showids: chrome.i18n.getMessage("componenttree_menu_showids")
+        showids: chrome.i18n.getMessage("componenttree_menu_showids"),
+        updateonselect: chrome.i18n.getMessage("componenttree_menu_updateonselect")
     };
 
     var markup = `
@@ -44,6 +46,8 @@ export default function AuraInspectorComponentTree(devtoolsPanel) {
               </li>
               <li class="divider"></li>
               <li><input type="checkbox" id="showglobalids-checkbox"><label for="showglobalids-checkbox">${labels.showids}</label></li>
+              <li class="divider"></li>
+              <li><input type="checkbox" id="updateonselect-checkbox" checked="checked"><label for="updateonselect-checkbox">${labels.updateonselect}</label></li>
           </menu>
           <div class="flex scroll">
             <div class="component-tree source-code" id="tree-react"></div>
@@ -62,17 +66,21 @@ export default function AuraInspectorComponentTree(devtoolsPanel) {
         treeComponent.attach("onselect", TreeComponent_OnSelect.bind(this));
         treeComponent.attach("ondblselect", TreeComponent_OnDblSelect.bind(this));
 
-        var refreshButton = tabBody.querySelector("#refresh-button");
-            refreshButton.addEventListener("click", RefreshButton_OnClick.bind(this));
+        const refreshButton = tabBody.querySelector("#refresh-button");
+        refreshButton.addEventListener("click", RefreshButton_OnClick.bind(this));
 
-        var expandAllButton = tabBody.querySelector("#expandall-button");
-            expandAllButton.addEventListener("click", ExpandAllButton_OnClick.bind(this));
+        const expandAllButton = tabBody.querySelector("#expandall-button");
+        expandAllButton.addEventListener("click", ExpandAllButton_OnClick.bind(this));
 
-        var showglobalidsCheckbox = tabBody.querySelector("#showglobalids-checkbox");
-            showglobalidsCheckbox.addEventListener("change", ShowGlobalIdsCheckBox_Change.bind(this));
+        const showglobalidsCheckbox = tabBody.querySelector("#showglobalids-checkbox");
+        showglobalidsCheckbox.addEventListener("change", ShowGlobalIdsCheckBox_Change.bind(this));
 
-        AuraInspectorOptions.getAll({ "showGlobalIds": false }, function(options){
-            tabBody.querySelector("#showglobalids-checkbox").checked = options.showGlobalIds;
+        const updateonselectCheckbox = tabBody.querySelector("#updateonselect-checkbox");
+        updateonselectCheckbox.addEventListener("change", UpdateOnSelectCheckbox_Change.bind(this));
+
+        AuraInspectorOptions.getAll({ "showGlobalIds": false, "updateOnSelect": true }, function(options){
+            showglobalidsCheckbox.checked = options.showGlobalIds;
+            updateonselectCheckbox.checked = options.updateOnSelect;
         });
 
         devtoolsPanel.subscribe("AuraInspector:ShowComponentInTree", function(id) {
@@ -105,6 +113,10 @@ export default function AuraInspectorComponentTree(devtoolsPanel) {
             // TODO: Fix the options stuff.
             AuraInspectorOptions.getAll({ "showGlobalIds": false }, function(options){
                 ComponentTreeSerializer.getRootComponents().then(function(rootNodes){
+                    if(!rootNodes) {
+                        rootNodes = [];
+                    }
+
                     tree = ReactDOM.render(<ComponentTreeView 
                                                     rootComponents={rootNodes} 
 
@@ -114,6 +126,7 @@ export default function AuraInspectorComponentTree(devtoolsPanel) {
                                                     // Tree Configuration
                                                     expandAll={renderingConfig.expandAll} 
                                                     showGlobalIds={options.showGlobalIds}/>, newTreeContainer);
+
                     devtoolsPanel.hideLoading();
 
                     if(selectedNodeId) {
@@ -125,7 +138,6 @@ export default function AuraInspectorComponentTree(devtoolsPanel) {
             devtoolsPanel.subscribe("AuraInspector:ShowComponentInTree", function(id) {
                 if(tree) {
                     tree.setSelectedId(id);
-
                 }
                 
                 devtoolsPanel.updateComponentView(id);
@@ -141,9 +153,8 @@ export default function AuraInspectorComponentTree(devtoolsPanel) {
     };
 
     function RefreshButton_OnClick(event) {
-        if(tree){
-            tree.update();
-        }
+        this.render();
+        tree.update();
     }
 
     function ExpandAllButton_OnClick(event) {
@@ -157,15 +168,32 @@ export default function AuraInspectorComponentTree(devtoolsPanel) {
 
         tree.setSelectedId(selectedNodeId);
 
-        devtoolsPanel.updateComponentView(selectedNodeId);
-        devtoolsPanel.showSidebar();
+        if(selectedNodeId && selectedNodeId.startsWith("data-")) { 
+            devtoolsPanel.hideSidebar();
+        } else {
+            devtoolsPanel.updateComponentView(selectedNodeId);
+            devtoolsPanel.showSidebar();
+        }
+
+        BrowserApi.eval(`$auraTemp = $A.getCmp('${selectedNodeId}'); undefined;`);
+
+        AuraInspectorOptions.getAll({ "showGlobalIds": false, "updateOnSelect": true }, (options) => {
+            if(options.updateOnSelect && this.update) {
+                this.update();
+            }
+        });
     }
 
     function ShowGlobalIdsCheckBox_Change(event) {
-        var showGlobalIds = event.srcElement.checked;
+        const showGlobalIds = event.srcElement.checked;
         AuraInspectorOptions.set("showGlobalIds", showGlobalIds, function(options) {
             this.render();
         }.bind(this));
+    }
+
+    function UpdateOnSelectCheckbox_Change(event) {
+        const updateOnSelect = event.srcElement.checked;
+        AuraInspectorOptions.set("updateOnSelect", updateOnSelect);    
     }
 
     function TreeComponent_OnHoverOut(event) {

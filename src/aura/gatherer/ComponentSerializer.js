@@ -15,36 +15,27 @@ export default class ComponentSerializer {
         try {
             var app = $A.getRoot();
             rootNodes.push({
+                "id": app.getGlobalId(),
                 "components": [this.getComponent(app.getGlobalId())]
             });
 
             if(app.isInstanceOf("ltng:outApp")) {
-                topLevelDomNodes = $x("//*[@data-aura-rendered-by and not(ancestor::*[@data-aura-rendered-by])]");
+                topLevelDomNodes = document.querySelectorAll("[data-ltngout-rendered-by]");
 
                 var map = {};
                 var parentNodes = [];
 
-                // Do some fancy dancing to identify Root dom nodes
-                var parent;
-                var position;
-                for(let c=0,length=topLevelDomNodes.length;c<length;c++) {
-                    parent = topLevelDomNodes[c].parentNode;
-                    position = parentNodes.indexOf(parent);
-                    if(position === -1) {
-                        position = parentNodes.length;
-                        map[position] = [];
-                        parentNodes.push(parent);
-                    }
-                    map[position].push($A.getComponent(topLevelDomNodes[c].getAttribute("data-aura-rendered-by")));
-                }
+                topLevelDomNodes.forEach(node => {
+                    const id = node.getAttribute("data-ltngout-rendered-by");
+                    const component = $A.getComponent(id);
 
-                for(let key in map) {
                     rootNodes.push({
-                        "dom": parentNodes[key],
-                        "trace": getComponentForLtngOut(map[key]),
-                        "components": [this.getComponent(getComponentForLtngOut(map[key]))]
+                        "dom": node,
+                        "id": "data-ltngout-rendered-by$" + id,
+                        "components": [this.getComponent(id, {"body": false })]
                     });
-                }
+                });
+
             }
         } catch(e) {
         }
@@ -316,7 +307,13 @@ function getComponentForLtngOut(components) {
 }
 
 function isModule(component) {
-    return component != null && component.toString() === "InteropComponent";
+    if(!component) {
+        return false;
+    }
+
+    const toString = component.toString();
+
+    return toString === "InteropComponent" || toString.startsWith("InteropComponent:");
 }
 
 

@@ -48,7 +48,11 @@ export default class ComponentTreeView extends React.Component {
     }
 
     update() {
-        this.forceUpdate();
+        this.state.nodesMap.forEach(item => {
+            if(item.update) {
+                item.update();
+            }
+        });
     }
 
     // Manages if a node is collapsed or not.
@@ -74,9 +78,11 @@ export default class ComponentTreeView extends React.Component {
     render() {
         let nodes = [];
         for(let c=0;c<this.props.rootComponents.length;c++) {
+            let rootComponent = this.props.rootComponents[c];
+
             nodes.push(<ComponentTreeViewRootNode 
-                        key={c} 
-                        component={this.props.rootComponents[c]} 
+                        key={c}
+                        component={rootComponent} 
                         showGlobalId={this.props.showGlobalIds} 
                         collapsed={this.collapsed.bind(this)}
 
@@ -85,10 +91,13 @@ export default class ComponentTreeView extends React.Component {
                         onUnmount={this.handleNodeUnmounted}
                         onClick={this.props.onClick}/>);
         }
-        return (<div onClick={this.handleAllClickEvents}>{nodes}</div>);
+
+        return (<div>{nodes}</div>);
     }
 }
 
+
+// Half hearted attempt here, improve?
 ComponentTreeView.defaultProps = {
     rootComponents: [],
     selectedNodeId: null,
@@ -122,6 +131,7 @@ class ComponentTreeViewRootNode extends React.Component {
     render() {
         const components = this.props.component.components;
         const nodes = [];
+
         if(components && components.length) {
             for(var c=0;c<components.length;c++) {
                 let component = JsonSerializer.parse(components[c]);
@@ -139,6 +149,26 @@ class ComponentTreeViewRootNode extends React.Component {
             }
         }
 
+        if(this.props.component.dom) {
+            return (
+                <ul className="tree-view collapsable">
+                    <DomTreeViewNode
+                        key={this.props.component.id}
+                        globalId={this.props.component.id}
+                        label={this.props.component.dom}
+                        showGlobalId={this.props.showGlobalId} 
+                        collapsed={this.props.collapsed}
+                        childNodes={nodes}
+                        
+                        // Event handlers
+                        onClick={this.props.onClick}
+                        onMount={this.props.onMount}
+                        onUnmount={this.props.onUnmount}
+                        />
+                </ul>
+            );
+        } 
+
         return (
             <ul className="tree-view collapsable">
                 {nodes}
@@ -150,6 +180,95 @@ class ComponentTreeViewRootNode extends React.Component {
 ComponentTreeViewRootNode.defaultProps = {
     collapsed: false
 };
+
+class DomTreeViewNode extends React.Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            "childNodes": props.childNodes || [],
+            "collapsed": this.props.collapsed,
+            "selected": false
+        };
+
+        if(this.props.collapsed) {
+            this.state.collapsed = this.props.collapsed(this.props);
+        }
+
+        this.handleToggleCollapse = this.handleToggleCollapse.bind(this);
+        this.handleClickEvent = this.handleClickEvent.bind(this);
+
+    }
+
+    handleToggleCollapse(event) {
+        this.setState({
+            "collapsed": !this.state.collapsed
+        });
+    }
+
+    handleClickEvent(event) {
+        if(this.props.onClick) {
+            this.props.onClick.call(this, event);
+        }
+        
+        this.setSelected(true);
+    }
+
+    componentWillReceiveProps(newProperties) {
+
+        if(Array.isArray(newProperties.childNodes)) {
+            this.setState({
+                childNodes: newProperties.childNodes
+            });
+        }
+
+        if(this.props.collapsed) {
+            this.setState({
+                collapsed: this.props.collapsed(this.props, this.state.childNodes.length)
+            });
+        }
+    }
+
+    componentDidMount() {
+        if(this.props.onMount) {
+            this.props.onMount(this);
+        }
+    }
+
+    componentWillUnmount() {
+        if(this.props.onUnmount) {
+            this.props.onUnmount(this);
+        }
+    }
+
+    setSelected(isSelected) {
+        this.setState({
+            "selected": isSelected
+        });
+
+        const element = ReactDOM.findDOMNode(this);
+        if(element) {
+            scrollIntoViewIfNeeded(element);
+        }
+    }
+
+    render() {
+        if(Array.isArray(this.state.childNodes) && this.state.childNodes.length === 0) {
+            return (
+                <li key={this.props.globalId} className={this.state.selected ? 'tree-node-selected' : ''} >
+                    <span className="tree-view-node" onClick={this.handleClickEvent}>{this.props.label}</span>
+                </li>
+            );
+        }
+
+        return (
+            <li className={"tree-view-parent" + (!this.state.collapsed ? ' tree-view-expanded' : '') + (this.state.selected ? ' tree-node-selected' : '')} key={this.props.globalId}>
+                <span className="tree-view-node-arrow" onClick={this.handleToggleCollapse}></span><span className="tree-view-node" onClick={this.handleClickEvent} onDoubleClick={this.handleToggleCollapse}>{this.props.label}</span>
+                <ul>{this.state.childNodes}</ul>
+            </li>
+        );
+    }
+}
 
 
 class ComponentTreeViewNode extends React.Component {
@@ -181,11 +300,11 @@ class ComponentTreeViewNode extends React.Component {
         // Delegate to a specific type of formatting view node.
         switch(descriptor) {
             case "markup://aura:text":
-                return (<TextTreeViewNode component={this.state.component} />);
+                return (<TextTreeViewLabel component={this.state.component} />);
             case "markup://aura:html":
-                return (<HtmlTreeViewNode component={this.state.component} />);
+                return (<HtmlTreeViewLabel component={this.state.component} />);
             case "markup://aura:expression":
-                return (<ExpressionTreeViewNode component={this.state.component} />);
+                return (<ExpressionTreeViewLabel component={this.state.component} />);
         }
 
         // Just a normal component, lets use our own internal formatting
@@ -247,6 +366,9 @@ class ComponentTreeViewNode extends React.Component {
             this.props.onClick.call(this, event);
         }
         
+        // Probably too low level for this. Lets bubble up an event to handle at the top level.
+        //this.update();
+
         this.setSelected(true);
     }
 
@@ -259,7 +381,6 @@ class ComponentTreeViewNode extends React.Component {
     }
 
     componentDidMount() {
-
         // Update if we haven't already
         if(this.state.component === undefined) {
             // If this is a performance problem, consider wrapping it in requestIdleCallback
@@ -290,6 +411,33 @@ class ComponentTreeViewNode extends React.Component {
         }
     }
 
+    getChildNodes() {
+        if(Array.isArray(this.state.childNodes) && this.state.childNodes.length) {
+            return this.state.childNodes.map(item => 
+                <ComponentTreeViewNode 
+                    key={item.globalId} 
+                    globalId={item.globalId} 
+                    showGlobalId={this.props.showGlobalId} 
+                    collapsed={this.props.collapsed} 
+                    depth={this.props.depth+1} 
+
+                    // Event handlers
+                    onClick={this.props.onClick}
+                    onMount={this.props.onMount}
+                    onUnmount={this.props.onUnmount}/>
+            );
+        }
+        
+        // Expressions can also output their simple values.
+        if(this.state.descriptor === "markup://aura:expression") {
+            const value = this.state.component.attributes.value;
+            if(value !== null && value !== undefined && (Array.isArray(value) && value.length > 0))  {
+                return (<ul><li>{value}</li></ul>);
+            }
+        }
+
+        return [];
+    }
 
     update() {
         ComponentTreeSerializer
@@ -309,28 +457,15 @@ class ComponentTreeViewNode extends React.Component {
     }
 
     render() {
-        //console.count(this.props.globalId);
-        if(Array.isArray(this.state.childNodes) && this.state.childNodes.length === 0) {
+        const childNodes = this.getChildNodes();
+
+        if(childNodes.length === 0) {
             return (
                 <li key={this.props.globalId} className={this.state.selected ? 'tree-node-selected' : ''} >
                     <span className="tree-view-node" onClick={this.handleClickEvent}>{this.getLabel()}</span>
                 </li>
             );
-        }
-
-        const childNodes = this.state.childNodes === null ? [] : this.state.childNodes.map(item => 
-            <ComponentTreeViewNode 
-                key={item.globalId} 
-                globalId={item.globalId} 
-                showGlobalId={this.props.showGlobalId} 
-                collapsed={this.props.collapsed} 
-                depth={this.props.depth+1} 
-
-                // Event handlers
-                onClick={this.props.onClick}
-                onMount={this.props.onMount}
-                onUnmount={this.props.onUnmount}/>
-        );
+        }        
         
         return (
             <li className={"tree-view-parent" + (!this.state.collapsed ? ' tree-view-expanded' : '') + (this.state.selected ? ' tree-node-selected' : '')} key={this.props.globalId}>
@@ -348,7 +483,7 @@ ComponentTreeViewNode.defaultProps = {
     collapsed: function(){}
 };
 
-class HtmlTreeViewNode extends React.Component {
+class HtmlTreeViewLabel extends React.Component {
     constructor(props) {
         super(props);
     }
@@ -387,7 +522,7 @@ class HtmlTreeViewNode extends React.Component {
     }
 };
 
-class TextTreeViewNode extends React.Component {
+class TextTreeViewLabel extends React.Component {
     constructor(props) {
         super(props);
     }
@@ -406,7 +541,7 @@ class TextTreeViewNode extends React.Component {
     }
 };
 
-class ExpressionTreeViewNode extends React.Component {
+class ExpressionTreeViewLabel extends React.Component {
     constructor(props) {
         super(props);
     }

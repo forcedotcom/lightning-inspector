@@ -39,7 +39,7 @@ export default class JsonSerializer {
                     var domOutput = [];
                     for(var c=0,length=attributes.length,attribute;c<length;c++) {
                         attribute = attributes.item(c);
-                        domOutput.push(attribute.name + "=" + attribute.value);
+                        domOutput.push(attribute.name + '="' + attribute.value + '"');
                     }
                     return `<${value.tagName} ${domOutput.join(' ')}>`; // Serialize it specially.
                 }
@@ -111,6 +111,10 @@ export default class JsonSerializer {
      * 
      */
     static parse(json) {
+        if(json === undefined || json === null) {
+            return json;
+        }
+        
         return resolve(JSON.parse(json));
     }
 }

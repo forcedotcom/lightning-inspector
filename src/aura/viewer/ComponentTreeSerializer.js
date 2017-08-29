@@ -7,13 +7,6 @@ export default class ComponentTreeSerializer {
         return new Promise((resolve, reject) => {
             const command = "window.$A && $A.getRoot() && window[Symbol.for('AuraDevTools')].Inspector.getRootComponents();";
         
-            // const rootNodes = await BrowserApi.eval(command);
-
-            // if(!rootNodes) {
-            //     return [];
-            // }
-
-            // return JsonSerializer.parse(rootNodes);
             BrowserApi.eval(command)
                 .then((rootNodes) => {
                     resolve(JsonSerializer.parse(rootNodes));
