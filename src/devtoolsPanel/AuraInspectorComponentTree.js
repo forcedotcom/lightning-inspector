@@ -101,6 +101,14 @@ export default function AuraInspectorComponentTree(devtoolsPanel) {
         // When the user comes back, do nothing special.
     };
 
+    this.onSearch = function(searchTerm) {
+        tree.search(searchTerm);
+    };
+
+    this.onCancelSearch = function() {
+        tree.search(selectedNodeId || "");
+    };
+
     this.render = function(renderingConfig = {}) {
         renderingConfig = Object.assign({
             "expandAll": undefined,
@@ -122,6 +130,8 @@ export default function AuraInspectorComponentTree(devtoolsPanel) {
 
                                                     // Event Handlers
                                                     onClick={ComponentTreeNode_OnClick}
+                                                    onHoverEnter={ComponentTreeNode_OnHoverEnter}
+                                                    onHoverLeave={ComponentTreeNode_OnHoverLeave}
 
                                                     // Tree Configuration
                                                     expandAll={renderingConfig.expandAll} 
@@ -182,6 +192,19 @@ export default function AuraInspectorComponentTree(devtoolsPanel) {
                 this.update();
             }
         });
+    }
+
+    function ComponentTreeNode_OnHoverEnter(event) {
+        const globalId = this.props.globalId;
+
+        if(globalId) {
+            devtoolsPanel.highlightElement(this.props.globalId)            
+        }
+    }
+
+    function ComponentTreeNode_OnHoverLeave(event) {
+        devtoolsPanel.removeHighlightElement();
+        
     }
 
     function ShowGlobalIdsCheckBox_Change(event) {

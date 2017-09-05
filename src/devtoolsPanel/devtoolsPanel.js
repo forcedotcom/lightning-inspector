@@ -152,6 +152,8 @@ panel.init(function(){
 
             this.subscribe("AuraInspector:AddPanel", AuraInspector_OnAddPanel.bind(this));
             this.subscribe("AuraInspector:ShowComponentInTree", AuraInspector_OnShowComponentInTree.bind(this));
+            this.subscribe("AuraInspector:Search", AuraInspector_OnSearch.bind(this));
+            this.subscribe("AuraInspector:CancelSearch", AuraInspector_OnCancelSearch.bind(this));
 
             // AuraInspector:publish and AuraInspector:publishbash are essentially the only things we listen for anymore.
             // We broadcast one publish message everywhere, and then we have subscribers.
@@ -597,6 +599,18 @@ panel.init(function(){
         setTimeout(() => {
             this.hideLoading();
         }, 300);
+    }
+
+    function AuraInspector_OnCancelSearch() {
+        if(currentPanel && currentPanel.onCancelSearch) {
+            currentPanel.onCancelSearch();
+        }
+    }
+
+    function AuraInspector_OnSearch(searchTerm) {
+        if(currentPanel && currentPanel.onSearch) {
+            currentPanel.onSearch(searchTerm);
+        }
     }
 
     /**  BEGIN HELP BUTTON */

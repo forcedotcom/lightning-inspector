@@ -1,4 +1,3 @@
-
 import React from "react";
 import ReactDOM from "react-dom";
 import ComponentTreeSerializer from "../../aura/viewer/ComponentTreeSerializer.js";
@@ -10,8 +9,7 @@ export default class ComponentTreeView extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            nodesMap: new Map(),
-            lastSelected: null
+            nodesMap: new Map()
         };
 
         this.handleNodeMounted = this.handleNodeMounted.bind(this);
@@ -34,14 +32,13 @@ export default class ComponentTreeView extends React.Component {
 
     setSelectedId(globalId) {
         if(this.state.nodesMap.has(globalId)) {
-            if(this.state.lastSelected) {
-                this.state.lastSelected.setSelected(false);
-            }
+
+            this.state.nodesMap.forEach(item => {
+                item.setSelected(false);
+            });
+            
             const node = this.state.nodesMap.get(globalId);
             node.setSelected(true);
-            //node.update();
-
-            this.state.lastSelected = node;
         } else {
             this.state.selectedNodeId = globalId;
         }
@@ -53,6 +50,22 @@ export default class ComponentTreeView extends React.Component {
                 item.update();
             }
         });
+    }
+
+    search(searchTerm) {
+        // Is an ID
+        if(this.state.nodesMap.has(searchTerm)) {
+            this.setSelectedId(searchTerm);
+        } else {
+            const matches = [];
+            this.state.nodesMap.forEach(item => {
+                if(searchTerm && item.state.descriptor && (item.state.descriptor.startsWith(searchTerm) || item.state.descriptor.startsWith("markup://" + searchTerm))) {
+                    item.setSelected(true);
+                } else {
+                    item.setSelected(false);
+                }
+            });
+        }
     }
 
     // Manages if a node is collapsed or not.
@@ -89,9 +102,10 @@ export default class ComponentTreeView extends React.Component {
                         // Event Handlers
                         onMount={this.handleNodeMounted}
                         onUnmount={this.handleNodeUnmounted}
-                        onClick={this.props.onClick}/>);
+                        onClick={this.props.onClick}
+                        onHoverEnter={this.props.onHoverEnter}
+                        onHoverLeave={this.props.onHoverLeave}/>);
         }
-
         return (<div>{nodes}</div>);
     }
 }
@@ -144,6 +158,8 @@ class ComponentTreeViewRootNode extends React.Component {
 
                                 // Event handlers
                                 onClick={this.props.onClick}
+                                onHoverEnter={this.props.onHoverEnter}
+                                onHoverLeave={this.props.onHoverLeave}
                                 onMount={this.props.onMount}
                                 onUnmount={this.props.onUnmount}/>);
             }
@@ -287,6 +303,8 @@ class ComponentTreeViewNode extends React.Component {
 
         this.handleToggleCollapse = this.handleToggleCollapse.bind(this);
         this.handleClickEvent = this.handleClickEvent.bind(this);
+        this.handleMouseEnterEvent = this.handleMouseEnterEvent.bind(this);
+        this.handleMouseLeaveEvent = this.handleMouseLeaveEvent.bind(this);
 
     }
 
@@ -302,7 +320,7 @@ class ComponentTreeViewNode extends React.Component {
             case "markup://aura:text":
                 return (<TextTreeViewLabel component={this.state.component} />);
             case "markup://aura:html":
-                return (<HtmlTreeViewLabel component={this.state.component} />);
+                return (<HtmlTreeViewLabel component={this.state.component} showGlobalId={this.props.showGlobalId} />);
             case "markup://aura:expression":
                 return (<ExpressionTreeViewLabel component={this.state.component} />);
         }
@@ -372,6 +390,18 @@ class ComponentTreeViewNode extends React.Component {
         this.setSelected(true);
     }
 
+    handleMouseEnterEvent(event) {
+        if(this.props.onHoverEnter) {
+            this.props.onHoverEnter.call(this, event);
+        }
+    }
+
+    handleMouseLeaveEvent(event) {
+        if(this.props.onHoverLeave) {
+            this.props.onHoverLeave.call(this, event);
+        }
+    }
+
     componentWillReceiveProps(newProperties) {
         if(this.props.collapsed) {
             this.setState({
@@ -423,6 +453,8 @@ class ComponentTreeViewNode extends React.Component {
 
                     // Event handlers
                     onClick={this.props.onClick}
+                    onHoverEnter={this.props.onHoverEnter}
+                    onHoverLeave={this.props.onHoverLeave}
                     onMount={this.props.onMount}
                     onUnmount={this.props.onUnmount}/>
             );
@@ -462,14 +494,15 @@ class ComponentTreeViewNode extends React.Component {
         if(childNodes.length === 0) {
             return (
                 <li key={this.props.globalId} className={this.state.selected ? 'tree-node-selected' : ''} >
-                    <span className="tree-view-node" onClick={this.handleClickEvent}>{this.getLabel()}</span>
+                    <span className="tree-view-node" onClick={this.handleClickEvent} onMouseEnter={this.handleMouseEnterEvent} onMouseLeave={this.handleMouseLeaveEvent}>{this.getLabel()}</span>
                 </li>
             );
         }        
         
         return (
             <li className={"tree-view-parent" + (!this.state.collapsed ? ' tree-view-expanded' : '') + (this.state.selected ? ' tree-node-selected' : '')} key={this.props.globalId}>
-                <span className="tree-view-node-arrow" onClick={this.handleToggleCollapse}></span><span className="tree-view-node" onClick={this.handleClickEvent} onDoubleClick={this.handleToggleCollapse}>{this.getLabel()}</span>
+                <span className="tree-view-node-arrow" onClick={this.handleToggleCollapse}></span>
+                <span className="tree-view-node" onClick={this.handleClickEvent} onDoubleClick={this.handleToggleCollapse} onMouseEnter={this.handleMouseEnterEvent} onMouseLeave={this.handleMouseLeaveEvent}>{this.getLabel()}</span>
                 <ul>{childNodes}</ul>
             </li>
         );

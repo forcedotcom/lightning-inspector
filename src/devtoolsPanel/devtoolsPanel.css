@@ -1323,7 +1323,7 @@ aurainspector-actioncard .action-card-wrapper aurainspector-json { font-family: 
 
 aurainspector-actioncard .action-card-wrapper .attributes.storable-false .storable-info { display:none; }
 
-aurainspector-actioncard .action-card-wrapper .action-details .action-parameters aurainspector-label { display:inline-block; width:100px; color: #54698d; }
+aurainspector-actioncard .action-card-wrapper .action-details .action-parameters aurainspector-label { color: #54698d; }
 aurainspector-actioncard .action-card-wrapper .action-header h2 { overflow: hidden; overflow-wrap: break-word; }
 
 aurainspector-actioncard .action-card-wrapper:focus .action-header .watch-icon,

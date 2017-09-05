@@ -1,4 +1,5 @@
 //chrome.devtools.inspectedWindow.eval("!!window[Symbol.for('AuraDevTools')] && !!window.$A", function(isAuraPresent){
+import BrowserApi from "./aura/viewer/BrowserApi.js";
 
 // Detect if we are inspecting anything other than a DevTools Window
 chrome.devtools.inspectedWindow.eval("location.protocol", loadDevtools);
@@ -21,9 +22,11 @@ function loadDevtools(protocol){
                                           // });
                                           //
                                           // Implement Search!
-                                          // panel.onSearch.addListener(function(action, queryString){
-                                          //     console.log("Searching!", action, queryString);
-                                          // });
+                                          panel.onSearch.addListener(function(action, queryString){
+                                              // TODO: Abstract the Symbol.for() stuff? 
+                                              // Maybe just InjectedScript.search(); ?
+                                              BrowserApi.eval(`window[Symbol.for('AuraDevTools')].Inspector.search('${action}', '${queryString}')`);
+                                          });
 
                                       });
 
@@ -32,13 +35,13 @@ function loadDevtools(protocol){
         });
 
         chrome.devtools.panels.elements.onSelectionChanged.addListener(function(){
-            chrome.devtools.inspectedWindow.eval("window.$A && this.$0 && $0.getAttribute && $0.getAttribute('data-aura-rendered-by')", function(globalId){
+            BrowserApi.eval("window.$A && this.$0 && $0.getAttribute && $0.getAttribute('data-aura-rendered-by')").then(function(globalId){
                 if(globalId) {
                     // Need to include undefined at the end, or devtools can't handle it internally.
                     // You'll see this error.
                     // "Extension server error: Inspector protocol error: Object has too long reference chain(must not be longer than 1000)"
                     var command = "$auraTemp = $A.getCmp('" + globalId + "'); undefined;";
-                    chrome.devtools.inspectedWindow.eval(command);
+                    BrowserApi.eval(command);
                 }
             });
         });

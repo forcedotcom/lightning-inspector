@@ -8,48 +8,7 @@ import UnStrictApis from "./aura/gatherer/unStrictApis.js";
 
     // Do NOT use this pattern, it's tech-debt and should be removed. Add all logic to AuraInspector.
     $Aura.actions = {
-        "AuraDevToolService.HighlightElement": function(globalId) {
-            // Ensure the classes are present that HighlightElement depends on.
-            if(!$Aura.actions["AuraDevToolService.AddStyleRules"].addedStyleRules) {
-                $Aura.actions["AuraDevToolService.AddStyleRules"](globalId);
-                $Aura.actions["AuraDevToolService.AddStyleRules"].addedStyleRules = true;
-            }
-
-            var className = "auraDevToolServiceHighlight3";
-            var previous = document.getElementsByClassName(className);
-            for(var d=previous.length-1,current;d>=0;d--){
-                current = previous[d];
-                current.classList.remove(className);
-                current.classList.remove("auraDevToolServiceHighlight4");
-            }
-
-            // Apply the classes to the elements
-            if(globalId) {
-                var cmp = $A.getCmp(globalId);
-                if(cmp && cmp.isValid()) {
-                    var elements = cmp.getElements();
-                    // todo: add classes to elements
-                    for(var c=0,length=elements.length;c<length;c++) {
-                        if(elements[c].nodeType === 1){
-                            elements[c].classList.add(className);
-                        }
-                    }
-                }
-            }
-        },
-
-        "AuraDevToolService.RemoveHighlightElement": function() {
-            var removeClassName = "auraDevToolServiceHighlight3";
-            var addClassName = "auraDevToolServiceHighlight4";
-            var previous = document.getElementsByClassName(removeClassName);
-            for(var d=previous.length-1;d>=0;d--){
-                previous[d].classList.add(addClassName);
-                //previous[d].classList.remove(removeClassName);
-            }
-
-        },
-
-        "AuraDevToolService.AddStyleRules": function(globalId) {
+        "AuraDevToolService.AddStyleRules": function() {
             var styleRuleId = "AuraDevToolService.AddStyleRules";
 
             // Already added
@@ -137,8 +96,8 @@ import UnStrictApis from "./aura/gatherer/unStrictApis.js";
             });
 
             // Component tree hovering to show the element in the dom.
-            this.subscribe("AuraInspector:OnHighlightComponent", $Aura.actions["AuraDevToolService.HighlightElement"]);
-            this.subscribe("AuraInspector:OnHighlightComponentEnd", $Aura.actions["AuraDevToolService.RemoveHighlightElement"]);
+            this.subscribe("AuraInspector:OnHighlightComponent", AuraInspector_OnAddHighlightDomNode);
+            this.subscribe("AuraInspector:OnHighlightComponentEnd", AuraInspector_OnRemoveHighlightDomNode);
 
             // Action dropping and modifying
             this.subscribe("AuraInspector:OnActionToWatchEnqueue", AuraInspector_OnActionToWatchEnqueue.bind(this));
@@ -164,6 +123,14 @@ import UnStrictApis from "./aura/gatherer/unStrictApis.js";
             }
 
             this.publish("AuraInspector:OnInjectionScriptInitialized")
+        };
+
+        this.search = function(action, term) {
+            if(action === "performSearch") {
+                this.publish("AuraInspector:Search", term);
+            } else {
+                this.publish("AuraInspector:CancelSearch")
+            }
         };
 
         this.instrument = function() {
@@ -685,6 +652,45 @@ import UnStrictApis from "./aura/gatherer/unStrictApis.js";
             newFunction.apply(this, arguments);
             return original.apply(this, arguments);
         };
+    }
+
+    function AuraInspector_OnAddHighlightDomNode(globalId) {
+        // Ensure the classes are present that HighlightElement depends on.
+        if(!$Aura.actions["AuraDevToolService.AddStyleRules"].addedStyleRules) {
+            $Aura.actions["AuraDevToolService.AddStyleRules"]();
+            $Aura.actions["AuraDevToolService.AddStyleRules"].addedStyleRules = true;
+        }
+
+        const className = "auraDevToolServiceHighlight3";
+        const previous = document.getElementsByClassName(className);
+        for(let d=previous.length-1,current;d>=0;d--){
+            current = previous[d];
+            current.classList.remove(className);
+            current.classList.remove("auraDevToolServiceHighlight4");
+        }
+
+        // Apply the classes to the elements
+        if(globalId) {
+            var cmp = $A.getComponent(globalId);
+            if(cmp && cmp.isValid()) {
+                var elements = cmp.getElements() || [];
+                // todo: add classes to elements
+                for(var c=0,length=elements.length;c<length;c++) {
+                    if(elements[c].nodeType === 1){
+                        elements[c].classList.add(className);
+                    }
+                }
+            }
+        }
+    }
+
+    function AuraInspector_OnRemoveHighlightDomNode() {
+        const removeClassName = "auraDevToolServiceHighlight3";
+        const addClassName = "auraDevToolServiceHighlight4";
+        const previous = document.getElementsByClassName(removeClassName);
+        for(let d=previous.length-1;d>=0;d--){
+            previous[d].classList.add(addClassName);
+        }
     }
 
     function Action_OnFinishAction(config, context) {
