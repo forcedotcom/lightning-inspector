@@ -61,7 +61,7 @@ export default class ComponentTreeView extends React.Component {
             this.state.nodesMap.forEach(item => {
                 if(searchTerm && item.state.descriptor && (item.state.descriptor.startsWith(searchTerm) || item.state.descriptor.startsWith("markup://" + searchTerm))) {
                     item.setSelected(true);
-                } else {
+                } else if(item.isSelected()) {
                     item.setSelected(false);
                 }
             });
@@ -268,6 +268,10 @@ class DomTreeViewNode extends React.Component {
         }
     }
 
+    isSelected() {
+        return !!this.state.selected;
+    }
+
     render() {
         if(Array.isArray(this.state.childNodes) && this.state.childNodes.length === 0) {
             return (
@@ -439,6 +443,11 @@ class ComponentTreeViewNode extends React.Component {
         if(element) {
             scrollIntoViewIfNeeded(element);
         }
+    }
+
+    
+    isSelected() {
+        return !!this.state.selected;
     }
 
     getChildNodes() {
