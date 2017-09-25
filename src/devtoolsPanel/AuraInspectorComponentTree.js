@@ -84,14 +84,7 @@ export default function AuraInspectorComponentTree(devtoolsPanel) {
         });
 
         devtoolsPanel.subscribe("AuraInspector:ShowComponentInTree", function(id) {
-            if(treeComponent.isRendered()) {
-                treeComponent.selectById(id);
-
-                devtoolsPanel.updateComponentView(id);
-                devtoolsPanel.showSidebar();
-            } else {
-                selectedNodeId = id;
-            }
+            selectedNodeId = id;
         });
 
         newTreeContainer = tabBody.querySelector("#tree-react");

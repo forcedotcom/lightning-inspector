@@ -61,7 +61,7 @@ export default class ComponentTreeView extends React.Component {
             this.state.nodesMap.forEach(item => {
                 if(searchTerm && item.state.descriptor && (item.state.descriptor.startsWith(searchTerm) || item.state.descriptor.startsWith("markup://" + searchTerm))) {
                     item.setSelected(true);
-                } else if(item.isSelected()) {
+                } else {
                     item.setSelected(false);
                 }
             });
@@ -258,13 +258,15 @@ class DomTreeViewNode extends React.Component {
     }
 
     setSelected(isSelected) {
-        this.setState({
-            "selected": isSelected
-        });
+        if(this.isSelected() !== isSelected) {
+            this.setState({
+                "selected": isSelected
+            });
 
-        const element = ReactDOM.findDOMNode(this);
-        if(element) {
-            scrollIntoViewIfNeeded(element);
+            const element = ReactDOM.findDOMNode(this);
+            if(element) {
+                scrollIntoViewIfNeeded(element);
+            }
         }
     }
 
@@ -434,18 +436,29 @@ class ComponentTreeViewNode extends React.Component {
         }
     }
 
-    setSelected(isSelected) {
-        this.setState({
-            "selected": isSelected
-        });
+    shouldComponentUpdate(nextProps, nextState) {
+        // Assuming that we updated just the selected state, and that we won't redraw in that case, just 
+        // toggle the selected class.
+        // This is to prevent rerendering the entire tree below this node.
+        if(this.state.selected !== nextState.selected) {
+            this.updateSelectedClass(nextState.selected);
+        }
+        return true;
+    }
 
-        const element = ReactDOM.findDOMNode(this);
-        if(element) {
-            scrollIntoViewIfNeeded(element);
+    setSelected(isSelected) {
+        if(this.isSelected() !== isSelected) {
+            this.setState({
+                "selected": isSelected
+            });
+
+            const element = ReactDOM.findDOMNode(this);
+            if(element) {
+                scrollIntoViewIfNeeded(element);
+            }
         }
     }
 
-    
     isSelected() {
         return !!this.state.selected;
     }
@@ -495,6 +508,16 @@ class ComponentTreeViewNode extends React.Component {
                         "collapsed": this.props.collapsed(this.props, children.length)
                     });
                 });
+    }
+
+    updateSelectedClass(isSelected) {
+        const element = ReactDOM.findDOMNode(this);
+        if(isSelected && !element.classList.contains("tree-node-selected")) {
+            element.classList.add("tree-node-selected");
+        } else if(isSelected === false && element.classList.contains("tree-node-selected")) {
+            element.classList.remove("tree-node-selected");
+        }
+        return false;
     }
 
     render() {
