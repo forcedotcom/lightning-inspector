@@ -5,7 +5,9 @@
 
 	chaosCard.attachedCallback = function() {
 		this.shadowRoot.querySelector("#element_textContent").textContent = this.getAttribute("textContent");
-		//this.shadowRoot.querySelector("#cssPath").textContent = this.getAttribute("cssPath");
+		if(this.getAttribute("stepCount") && this.getAttribute("stepCount") != "undefined") {
+			this.shadowRoot.querySelector("#stepCount").textContent = 'Step# '+this.getAttribute("stepCount");
+		}
 		if(this.getAttribute("locatorRoot")) {
 			this.shadowRoot.querySelector("#element_locator_root").textContent = 'Root:'+this.getAttribute("locatorRoot");	
 		}

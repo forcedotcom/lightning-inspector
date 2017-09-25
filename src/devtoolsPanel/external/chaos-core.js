@@ -13827,7 +13827,7 @@ window.Chaos = Chaos;
 module.exports = Chaos;
 },{"./rest/EventClient":85,"./rest/StressRunClient":87,"./streaming/EventStreamingClient":88}],84:[function(require,module,exports){
 "use strict";
-var url = 'https://staging-salesforce-chaos.herokuapp.com';//'https://sbaik-ltm.internal.salesforce.com:10000';
+var url = 'https://salesforce-chaos.herokuapp.com';//'https://sbaik-ltm.internal.salesforce.com:10000';
 module.exports = {
     AppConfig: {
         url: url,
@@ -13982,6 +13982,16 @@ StressRunClient.prototype = new restClient();
  * @return Promise that resolves on successful post, else reject
  */
 StressRunClient.prototype.saveStressRun = function(params) {
+/*
+<<<<<<< HEAD
+  console.log("saveStressRun with params:", params);
+    var stressrun = {
+        start_time: params.startTime,//.getTime(),
+        end_time: params.endTime,//.getTime(),
+        stresskey: {
+            clientinfo: {
+                organization_id: params.organizationId
+//=======*/
     // getTime() doesn't work 
     var stressrun = {
         start_time: new Date(params.startTime).getTime(),
@@ -13992,6 +14002,8 @@ StressRunClient.prototype.saveStressRun = function(params) {
                 organization_id: params.organizationId,
                 application: params.application,
                 user_id: params.user_id
+//>>>>>>> upstream/master
+
             },
             serverinfo: {
                 server_url: params.serverUrl

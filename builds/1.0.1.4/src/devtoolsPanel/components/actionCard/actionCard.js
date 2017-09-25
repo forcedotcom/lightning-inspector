@@ -198,79 +198,113 @@
 			hide(shadowRoot.querySelector(".div_errorResponse"));//.style.display = "none";
 			//get an array of key->value from response, fill them into the picklist -- save this to actionCard itself?
 			var returnValue = this.getAttribute("returnValue");
-			returnValue = JSON.parse(returnValue);
-			var returnValueArray = [];
-			getArrayOfObject(returnValue, returnValueArray, null);
-			var select_actionResultKey = shadowRoot.querySelector("#select_actionResultKey");
-			for(var i = 0; i < returnValueArray.length; i++) {
-				returnValueArrayi = returnValueArray[i];
-		    	var key = Object.keys(returnValueArrayi)[0];
-		    	//var value = returnValueArrayi[key];
-				var option = document.createElement("option");
-				option.text = key;
-		    	select_actionResultKey.add(option);
-			}
+			
+			var actionResultValue = shadowRoot.querySelector("#textarea_actionResultValue");
+			actionResultValue.value = returnValue;
 			//show save/cancel button, and wire up logic
-			show(shadowRoot.querySelector(".div_editActionResult"));//.style.display = "block";
+			show(shadowRoot.querySelector(".div_editActionResult"));
 		} else if (dropOrModify === "errorResponseNextTime") {
-            hide(shadowRoot.querySelector(".div_editActionResult"));//.style.display = "none";
-			show(shadowRoot.querySelector(".div_errorResponse"));//.style.display = "block";
+            hide(shadowRoot.querySelector(".div_editActionResult"));
+			show(shadowRoot.querySelector(".div_errorResponse"));
+			
+			shadowRoot.querySelector("#errorResponseType").addEventListener('change', ErrorReponseType_OnChange.bind(this));
 		} else {
-			console.log("unknown choice for dropOrModify, we need a handler for it !!!");
+			console.warn("unknown choice for dropOrModify, we need a handler for it !!!");
+		}
+	}
+
+	function ErrorReponseType_OnChange() {
+		var errorResponseType = this.querySelector("#errorResponseType").value;
+		if(errorResponseType === "exceptionEvent") {
+			this.setAttribute("errorResponseType", "exceptionEvent");
+			hide(this.querySelector(".messageAndStackDiv"));
+			show(this.querySelector(".exceptionEventDiv"))
+		} else {
+			this.setAttribute("errorResponseType", "messageAndStack");
+			hide(this.querySelector(".exceptionEventDiv"));
+			show(this.querySelector(".messageAndStackDiv"));
 		}
 	}
 
 	function SaveError_OnClick() {
-		const shadowRoot = this;
 		var actionId = this.getAttribute("id");
+		var nextError;
 		if(actionId) {
-			var nextErrorMsg = shadowRoot.querySelector("#textarea_actionErrorMessage").value.trim();
-			var nextErrorStack = shadowRoot.querySelector("#textarea_actionErrorStack").value.trim();
-			var nextError = {
-                "message": nextErrorMsg,
-                "stack": nextErrorStack
-            };
-			
-			if(nextErrorMsg && nextErrorMsg.length) {
-				var data = JSON.stringify({
-                    'actionName': this.getAttribute("name"),//necessary, as we use this as key in actionsToWatch AuraInspectorInjectedScript.js
-                    'actionId': actionId.substring(12, actionId.length), //action_card_713;a --> 713;a
-                    'nextResponse': undefined,
-                    'nextError': nextError
-                });
-	            //console.log('SaveActionResult_OnClick, dataToPublish = ', dataToPublish);
-	            //call AuraInspectorActionsView_OnEnqueueNextErrorForAction in AuraInspectorActionsView
-	            var command = `
-	               window[Symbol.for('AuraDevTools')].Inspector.publish("AuraInspector:EnqueueNextErrorForAction", ${data});
-	            `;
-	            chrome.devtools.inspectedWindow.eval(command, function (response, exception) {
-		            if (exception) {
-		            	console.log('ERROR from SaveActionResult_OnClick, CMD:', command, exception);
-		            }
-		        });
-		        //make the textara readonly
-		        shadowRoot.querySelector("#textarea_actionErrorMessage").setAttribute('readonly','readonly');
-		        shadowRoot.querySelector("#textarea_actionErrorStack").setAttribute('readonly','readonly');
-		        
-                //hide save/cancel button
-		        hide(shadowRoot.querySelector("#button_saveError"));
-		        hide(shadowRoot.querySelector("#button_cancelError"));
-
-		        //display the edit button
-		        show(shadowRoot.querySelector("#button_editError"));
-			} else {
-				console.log("nextErrorMsg cannot be empty");
+			var errorResponseType = this.getAttribute("errorResponseType");
+			if(errorResponseType == "exceptionEvent") {
+				var attributes = this.querySelector("#eventAttribute").value.trim();
+				try {
+					attributes = JSON.parse(attributes)
+				} catch (e) { /*nothing, just pass the raw string*/ }
+				nextError = {
+					"exceptionEvent": true,
+					"event":{
+						"descriptor": this.querySelector("#eventDescriptor").value.trim(),//"nameSpace://eventName",//opt
+						"attributes": attributes,
+						/*{ //or just "attributes"
+							"values": [1,2,3]
+						}, */
+						//"eventDef":  //opt
+					}
+				}
+			} else if (errorResponseType == "messageAndStack") {
+				nextError = {
+	                "message": this.querySelector("#textarea_actionErrorMessage").value.trim(),
+	                "stack": this.querySelector("#textarea_actionErrorStack").value.trim()
+	            };
 			}
+			if(nextError) {
+					var data = JSON.stringify({
+	                    'actionName': this.getAttribute("name"),//necessary, as we use this as key in actionsToWatch AuraInspectorInjectedScript.js
+	                    'actionId': actionId.substring(12, actionId.length), //action_card_713;a --> 713;a
+	                    'nextResponse': undefined,
+	                    'nextError': nextError
+	                });
+		            //console.log('SaveActionResult_OnClick, dataToPublish = ', dataToPublish);
+		            //call AuraInspectorActionsView_OnEnqueueNextErrorForAction in AuraInspectorActionsView
+		            var command = `
+		               window[Symbol.for('AuraDevTools')].Inspector.publish("AuraInspector:EnqueueNextErrorForAction", ${data});
+		            `;
+		            chrome.devtools.inspectedWindow.eval(command, function (response, exception) {
+			            if (exception) {
+			            	console.log('ERROR from SaveActionResult_OnClick, CMD:', command, exception);
+			            }
+			        });
+			        //make the textara readonly
+			        if(errorResponseType == "messageAndStack") {
+				    	this.querySelector("#textarea_actionErrorMessage").setAttribute('readonly', 'readonly');
+				    	this.querySelector("#textarea_actionErrorStack").setAttribute('readonly', 'readonly');
+					} else {
+						this.querySelector("#eventDescriptor").setAttribute('readonly', 'readonly');
+						this.querySelector("#eventAttribute").setAttribute('readonly', 'readonly');
+					}
+			        
+	                //hide save/cancel button
+			        hide(this.querySelector("#button_saveError"));
+			        hide(this.querySelector("#button_cancelError"));
+
+			        //display the edit button
+			        show(this.querySelector("#button_editError"));
+			} else {
+					console.log("nextErrorMsg cannot be empty");
+			}
+			
 		}
 	}
 
 	function EditError_OnClick() {
 		const shadowRoot = this;
 		var actionId = this.getAttribute("id");
+		var errorResponseType = this.getAttribute("errorResponseType");
 		if(actionId) {
 			//make the textara readonly
-		    shadowRoot.querySelector("#textarea_actionErrorMessage").removeAttribute('readonly');
-		    shadowRoot.querySelector("#textarea_actionErrorStack").removeAttribute('readonly');
+			if(errorResponseType == "messageAndStack") {
+		    	this.querySelector("#textarea_actionErrorMessage").removeAttribute('readonly');
+		    	this.querySelector("#textarea_actionErrorStack").removeAttribute('readonly');
+			} else {
+				this.querySelector("#eventDescriptor").removeAttribute('readonly');
+				this.querySelector("#eventAttribute").removeAttribute('readonly');
+			}
 
 		    //show save/cancel button
 		    show(shadowRoot.querySelector("#button_saveError"));
@@ -320,31 +354,25 @@
 		var actionId = this.getAttribute("id");
 		var actionName = this.getAttribute("name");
 		var actionParameter = this.getAttribute("parameters");
-		var actionIsStorable = this.getAttribute("isStorable");
+		//var actionIsStorable = this.getAttribute("isStorable");
 
-		//for now, let's only allow modify one set of key->value in response, and key has to be an string
-		var nextResponseKey = shadowRoot.querySelector("#select_actionResultKey").value;
-		nextResponseKey = nextResponseKey ? nextResponseKey.trim() : undefined;
-		
 		var nextResponseValue = shadowRoot.querySelector("#textarea_actionResultValue").value;
-		var nextResponse = {};
-		if(actionId && nextResponseKey && nextResponseKey.length && nextResponseValue) {
+		if(actionId && nextResponseValue) {
 			try { //see if we can parse it to Json
 				nextResponseValue = JSON.parse(nextResponseValue);
 			} catch(e) {
 				//nothing, if we cannot, just trim it.
 				nextResponseValue = nextResponseValue.trim();
+				console.warn("cannot parse response into JSON", e);
 			}
-			nextResponse[nextResponseKey] = nextResponseValue;
-
 			//publish data to AuraInspectorActionsView
 			var data = JSON.stringify({
 							'actionName': actionName, 
 							'actionParameter': JSON.parse(actionParameter), 
 							'actionId': actionId.substring(12, actionId.length), //action_card_713;a --> 713;a
 							//'actionIsStorable': actionIsStorable, no need
-							'nextResponse': nextResponse,
-							'nextErrorMsg': undefined
+							'nextResponse': nextResponseValue,
+							'nextError': undefined
                         });
 
             //call AuraInspectorActionsView_OnEnqueueNextResponseForAction in AuraInspectorActionsView
@@ -366,8 +394,8 @@
 	        //show edit button
 	        show(shadowRoot.querySelector("#button_editActionResult"))
 		} else {
-			console.log("SaveActionResult_OnClick, either actionId is bogus, or bad value of key/value in nextResponse", 
-				actionId, nextResponseKey, nextResponseValue);
+			console.log("SaveActionResult_OnClick, either actionId is bogus, or bad nextResponse", 
+				actionId, nextResponseValue);
 		}
 	}
 

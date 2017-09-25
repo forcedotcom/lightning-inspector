@@ -173,6 +173,8 @@ panel.init(function(){
 
         this.publish("AuraInspector:OnPanelConnect", "DevtoolsPanel: Devtools loaded." + Date.now());
 
+        //this.subscribe("AuraInspector:RequestReleaseInfo", AuraInspector_OnRequestReleaseInfo.bind(this));
+
         var tryAgainButton = document.querySelector("#no-aura-available-try-again");
         tryAgainButton.addEventListener("click", TryAgainButton_OnClick.bind(this));
 
@@ -495,6 +497,16 @@ panel.init(function(){
      */
 
     /* Event Handlers */
+
+    /**
+        event handlers for AuraInspector:RequestReleaseInfo
+        this will send message to lightning-inspector's background.js
+        @param message obj {'serverUrl': String like "https://ap1.lightning.mobile1.t.force.com/one/one.app"}
+    */
+    /*function AuraInspector_OnRequestReleaseInfo(message) {
+        runtime.postMessage({"chaos": message, "tabId": chrome.devtools.inspectedWindow.tabId});
+    }*/
+
     function HeaderActions_OnClick(event){
         var target = event.target;
         if(target.id.indexOf("tabs-") === 0) {
@@ -517,6 +529,8 @@ panel.init(function(){
             for(var c=0,length=data.length;c<length;c++) {
                 callSubscribers(data[c].key, data[c].data);
             }
+        } else {
+            console.warn("BackgroundScript_OnMessage, unknown message:", message.action);
         }
     }
 

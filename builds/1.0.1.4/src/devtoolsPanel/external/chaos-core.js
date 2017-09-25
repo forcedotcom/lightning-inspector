@@ -13813,7 +13813,6 @@ module.exports = yeast;
  */
 "use strict";
 var Chaos = window.Chaos || {};
-//var Chaos = {};
 Chaos.Streaming = {
     EventStreamingClient: require('./streaming/EventStreamingClient')
 };
@@ -13828,7 +13827,7 @@ window.Chaos = Chaos;
 module.exports = Chaos;
 },{"./rest/EventClient":85,"./rest/StressRunClient":87,"./streaming/EventStreamingClient":88}],84:[function(require,module,exports){
 "use strict";
-var url = 'https://staging-salesforce-chaos.herokuapp.com';//'https://sbaik-ltm.internal.salesforce.com:10000';
+var url = 'https://salesforce-chaos.herokuapp.com';//'https://sbaik-ltm.internal.salesforce.com:10000';
 module.exports = {
     AppConfig: {
         url: url,
@@ -13971,74 +13970,65 @@ StressRunClient.prototype = new restClient();
  * startTime: date object -- specifies the time it started
  * endTime: date object -- specifies the time it ended
  * message: error message in string
+ * organizationId: Id of the organization
+ * serverUrl: App server URL of the current client being run on
  * error: JavaScript error object (optional)
  * fileName: name of the file that errored (optional)
  * lineNumber: line number of the code that errored (optional)
  * columnNumber: column number of the code that errored (optional)
-
+ * releaseName: Name of the release (optional)
+ * changelist: Number of the changelist (optinal)
  * @params JSON object that contains above parameters
  * @return Promise that resolves on successful post, else reject
  */
 StressRunClient.prototype.saveStressRun = function(params) {
+  console.log("saveStressRun with params:", params);
     var stressrun = {
-        start_time: params.startTime.getTime(),
-        end_time: params.endTime.getTime(),
+        start_time: params.startTime,//.getTime(),
+        end_time: params.endTime,//.getTime(),
         stresskey: {
-            erroroption: {
-                message: params.message,
-                type: 'aura.logger.log' //TODO: sbaik@206: Hard code error type for now, come back to this later
-            },
             clientinfo: {
-                organization_id: getOrganizationId()
+                organization_id: params.organizationId
             },
             serverinfo: {
-                server_url: window.location.protocol + '//' + window.location.host
-                //TODO: sbaik@206: need to write a chrome extension code to parse and get sfdc release version.jsp
-                ///this includes useful information such as changelist, aura jars, etc.
-                //unfornuately, heroku server cannot do this for the client as the server does not have SFDC vpn conection
+                server_url: params.serverUrl
             }
         }
     };
 
-    //Fill out error option object
-    if (params.fileName) {
-        stressrun.stresskey.erroroption.file_name = params.fileName;
+    //Fill out serverinfo object
+    if (params.releaseName) {
+        stressrun.stresskey.serverinfo.release_name = params.releaseName;
     }
-    if (params.lineNumber) {
-        stressrun.stresskey.erroroption.line_number = params.lineNumber;
+    if (params.changelist) {
+        stressrun.stresskey.serverinfo.changelist = params.changelist;
     }
-    if (params.columnNumber) {
-        stressrun.stresskey.erroroption.column_number = params.columnNumber;
+
+    if (params.message || (params.error && params.error instanceof Error)) {
+        stressrun.stresskey.erroroption = {};
+        if (params.message) {
+            //if message is not provided but error object is, default to error object's message
+            stressrun.stresskey.erroroption.message = params.message ? params.message : params.error.message;
+        }
+        if (params.fileName) {
+            stressrun.stresskey.erroroption.file_name = params.fileName;
+        }
+        if (params.lineNumber) {
+            stressrun.stresskey.erroroption.line_number = params.lineNumber;
+        }
+        if (params.columnNumber) {
+            stressrun.stresskey.erroroption.column_number = params.columnNumber;
+        }
     }
 
     //Fill out stacktrace
-    if (params.error && params.error.stack) {
+    if (params.error &&  params.error instanceof Error && params.error.stack) {
         stressrun.stresskey.stacktrace = {
             stacktrace: params.error.stack
         };
     }
 
     return this.post(stressrun);
-};
-
-/**
- * Parses cookie and gets organizationId
- * @return organizationId
- */
-var getOrganizationId = function() {
-    var cookieName = 'sid' + '=';
-    var cookieArray = document.cookie.split(';');
-    for (var i = 0; i < cookieArray.length; i++) {
-        var cookie = cookieArray[i];
-        while (cookie.charAt(0) === ' ') {
-            cookie = cookie.substring(1);
-        }
-        if (cookie.indexOf(cookieName) === 0) {
-            return cookie.substring(cookieName.length, cookie.indexOf('!'));
-        }
-    }
-    //This should never happen
-    return '000000000000000';
 };
 
 module.exports = StressRunClient;

@@ -347,6 +347,14 @@
 		"message": "Edit",
 		"description": "Edit override changes."
 	},
+	"actioncard_eventDescriptor": {
+		"message": "Event Descriptor",
+		"description": "EventDescriptor for the event we gonna fire."
+	},
+	"actioncard_eventAttribute": {
+		"message": "Event Attribute",
+		"description": "EventAttribute for the event we gonna fire."
+	},
 	"actioncard_errormessage": {
 		"message": "Error Message",
 		"description": "When specifying the action should throw an error, this is the error message it should throw."

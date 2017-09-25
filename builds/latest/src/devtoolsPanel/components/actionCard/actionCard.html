@@ -97,9 +97,6 @@
 				<!-- Override the Result -->
 		        <div class="div_editActionResult slds-p-bottom--x-small slds-p-horizontal--x-small">
 		            <div class="div_textarea_ActionResult">
-		            	<label for="actionResult" class="slds-form-element__label"><aurainspector-label key="actioncard_key"></aurainspector-label></label>
-		            	<select id="select_actionResultKey" class="slds-select"></select>
-
 		            	<label for="actionResult" class="slds-form-element__label slds-m-top--x-small"><aurainspector-label key="actioncard_newvalue"></aurainspector-label></label>
 		            	<textarea name="actionResultValue" id="textarea_actionResultValue" class="slds-textarea code" rows="3" wrap="off"></textarea>
 		        	</div>
@@ -112,11 +109,27 @@
 
 		        <!-- Error Response Next Time -->
 		        <div class="div_errorResponse slds-p-bottom--x-small slds-p-horizontal--x-small">
-		        	<label for="actionResult" class="slds-form-element__label"><aurainspector-label key="actioncard_errormessage"></aurainspector-label></label>
-		        	<textarea name="actionErrorMessage" id="textarea_actionErrorMessage" class="slds-textarea code" rows="3" wrap="off"></textarea>
-		            <label for="actionResult" class="slds-form-element__label slds-m-top--x-small"><aurainspector-label key="actioncard_errorstack"></aurainspector-label></label>
-		            <textarea name="actionErrorStack" id="textarea_actionErrorStack" class="slds-textarea code" rows="3" wrap="off"></textarea>
-		            <div class="div_actionButtons slds-p-top--x-small">
+		        	<div class="slds-p-bottom--x-small slds-p-top--x-small dropOrModify">
+						<select id="errorResponseType" class="slds-select select_dropOrModify">
+					   		<option value="exceptionEvent">Exception Event</option>
+					    	<option value="messageAndStack">Message And Stack</option>
+						</select>
+					</div>
+
+					<div class="exceptionEventDiv">
+						<aurainspector-label key="actioncard_eventDescriptor"></aurainspector-label>
+		            	<textarea name="eventDescriptor" id="eventDescriptor" class="slds-textarea code" rows="1" wrap="off"></textarea>
+		            	<aurainspector-label key="actioncard_eventAttribute"></aurainspector-label>
+		            	<textarea name="eventAttribute" id="eventAttribute" class="slds-textarea code" rows="1" wrap="off"></textarea>
+		            </div>
+
+					<div class="messageAndStackDiv slds-hide">
+			        	<label for="actionResult" class="slds-form-element__label"><aurainspector-label key="actioncard_errormessage"></aurainspector-label></label>
+			        	<textarea name="actionErrorMessage" id="textarea_actionErrorMessage" class="slds-textarea code" rows="3" wrap="off"></textarea>
+			            <label for="actionResult" class="slds-form-element__label slds-m-top--x-small"><aurainspector-label key="actioncard_errorstack"></aurainspector-label></label>
+			            <textarea name="actionErrorStack" id="textarea_actionErrorStack" class="slds-textarea code" rows="3" wrap="off"></textarea>
+		            </div>
+		        	<div class="div_actionButtons slds-p-top--x-small">
 			            <button id="button_saveError" class="button_saveError slds-button slds-button--neutral"><aurainspector-label key="actioncard_save"></aurainspector-label></button>
 			            <button id="button_cancelError" class="button_cancelError slds-button slds-button--neutral"><aurainspector-label key="actioncard_cancel"></aurainspector-label></button>
 			            <button id="button_editError" class="button_editError slds-button slds-button--neutral slds-hide"><aurainspector-label key="actioncard_edit"></aurainspector-label></button>

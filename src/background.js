@@ -207,13 +207,42 @@ function AuraInspectorBackgroundPage() {
             });
         } if(message.action === BACKGROUND_KEY) {
             callBackgroundPageSubscribers(message.key, [message.data, port.sender]);
-        }else {
+        } else {
             var tabId = getTabId(port);
-            if(tabId !== -1) {
+            if (tabId !== -1) {
                 passMessageToDevTools(message, tabId);
+            } else {
+                console.warn("unknown action or tabId", message, tabId);
             }
         }
     }
+
+    /**
+    *   get release version of the app from server
+    *   @param serverUrl url of server we are running chaos run against, like https://mobile1.t.salesforce.com/sfdc/releaseVersion.jsp
+    */
+    function getAppVersion(serverUrl) {
+            return new Promise((resolve, reject) => {
+                var versionUrl = "";
+                versionUrl = serverUrl.substring(serverUrl.indexOf("lightning.")+"lightning.".length, serverUrl.indexOf("com")+"com".length);
+                versionUrl = "https://" + versionUrl + "/sfdc/releaseVersion.jsp";
+                var xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange = function() {
+                    if (this.readyState == 4 && this.status == 200) {
+                         var idx = this.responseText.indexOf("AuraJarVersion");
+                         if(idx>=0) {
+                            resolve(this.responseText.substr(idx, 21));
+                        } else {
+                            reject("no AuraJarVersion in response");
+                        }
+                    }
+                };
+                xhttp.open("GET", versionUrl, true);
+                xhttp.send();
+            });
+            
+    };
+
 
     function BackgroundPage_OnMessageExternal(message, sender) {
         
