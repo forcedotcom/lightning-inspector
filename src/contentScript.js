@@ -20,7 +20,7 @@ if(!window.AuraInspector) {
          * Initializes the connection to the chrome extensions runtime
          * Happens when we include the content script on the page.
          */
-        this.connect = function () {
+        this.connect = function (onConnectCallback) {
             // Don't setup everything again, that wouldn't make sense
             if(runtime) { return; }
             runtime = chrome.runtime.connect();
@@ -33,6 +33,9 @@ if(!window.AuraInspector) {
             scriptElement.async = scriptElement.defer = false;
             scriptElement.onload = function() {
                 this.parentNode.removeChild(this);
+                if(onConnectCallback) {
+                    onConnectCallback();
+                }
             };
             (document.head||document.documentElement).appendChild(scriptElement);
         };
@@ -48,8 +51,9 @@ if(!window.AuraInspector) {
         };
 
         this.init = function(){
-            this.connect();
-            this.injectBootstrap();
+            this.connect(() => {
+                this.injectBootstrap();
+            });
 
             // Simply catches publish commands and passes them to the AuraInspector
             window.addEventListener("message", Handler_OnWindowMessage);
