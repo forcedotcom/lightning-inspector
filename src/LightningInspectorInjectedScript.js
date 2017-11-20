@@ -913,25 +913,22 @@ import UnStrictApis from "./aura/gatherer/unStrictApis.js";
     function OnActionRunDeprecated(config, event) {
         var action = config["self"];
         var startTime = performance.now();
-        if(action.getDef().isServerAction()) {
-            var data = {
-                "actionId": action.getId()
-            };
+        var data = {
+            "actionId": action.getId(),
+            "isServerAction": action.getDef().isServerAction()
+        };
 
-            $Aura.Inspector.publish("AuraInspector:OnClientActionStart", data);
-        }
+        $Aura.Inspector.publish("AuraInspector:OnClientActionStart", data);
 
         var ret = config["fn"].call(config["scope"], event);
 
-        if(action.getDef().isServerAction()) {
-            data = {
-                "actionId": action.getId(),
-                "name": action.getDef().getName(),
-                "scope": action.getComponent().getGlobalId()
-            };
+        data = {
+            "actionId": action.getId(),
+            "name": action.getDef().getName(),
+            "scope": action.getComponent().getGlobalId()
+        };
 
-            $Aura.Inspector.publish("AuraInspector:OnClientActionEnd", data);
-        }
+        $Aura.Inspector.publish("AuraInspector:OnClientActionEnd", data);
     }
 
     function bootstrapCounters() {
