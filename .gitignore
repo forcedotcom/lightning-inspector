@@ -25,9 +25,10 @@ node_modules
 .idea/
 key.pem
 /dist/
+/builds/
 *.worker.js
 *.log
 .web-extension-id
 updates.temp
 updates.json
-builds/lightning-inspector-*.zip
+aura-inspector-tests/src/main/webapp/dist

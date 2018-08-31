@@ -27,7 +27,7 @@ export default class ComponentTreeView extends React.Component {
     }
 
     handleNodeUnmounted(destroyedNode) {
-        this.state.nodesMap.remove(destroyedNode.props.globalId);
+        this.state.nodesMap.delete(destroyedNode.props.globalId);
     }
 
     setSelectedId(globalId) {

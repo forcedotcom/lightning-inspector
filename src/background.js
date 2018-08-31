@@ -38,10 +38,11 @@ function AuraInspectorBackgroundPage() {
         chrome.contextMenus.create({
             title: "Inspect Lightning Component",
             contexts:["all"],
-            onclick: BackgroundPage_OnContextClick.bind(this),
+            onclick: BackgroundPage_OnContextClick.bind(this)
 
+            // Commented out the filter since most pages don't have .app in them anymore. 
             // Consider moving this into onConnect, and using the href of the page as the documentUrlPattern
-            documentUrlPatterns: ["*://*/*cmp*", "*://*/*app*"]
+            // ,documentUrlPatterns: ["*://*/*cmp*", "*://*/*app*"]
         });
 
         // Add the external panels to the tabInfo collection.

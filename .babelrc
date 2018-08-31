@@ -1,19 +1,16 @@
 {
     "plugins": [
         "transform-class-properties",
-        "babel-plugin-lodash"
+        "transform-react-jsx"
     ],
+
     "presets": [
-        "latest",
-        [
-          "es2015",
-          {
-            "loose": true
-          }
-        ],
-        "react",
-        "stage-0"
-    ],
+        ["env", {
+            "targets": {
+                "browsers": ["last 4 Chrome versions"]
+            }
+        }]
+    ], 
 
     "ignore": [
         "./src/aura/LightningInspectorInjectedScript.js",

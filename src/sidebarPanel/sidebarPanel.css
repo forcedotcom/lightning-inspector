@@ -1,4 +1,7 @@
-BODY { background:pink!important; }
+/**
+ * This file is being used by the elements sidebar panel. 
+ * Not the Lightning Tab.
+ */
 BODY .sidebar { display: block; }
 BODY .component-view {
     width: 100%;
