@@ -81,7 +81,7 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 12);
+/******/ 	return __webpack_require__(__webpack_require__.s = 13);
 /******/ })
 /************************************************************************/
 /******/ ({
@@ -43868,7 +43868,7 @@ WebInspector.ProfileTypeRegistry.instance = new WebInspector.ProfileTypeRegistry
 
 /***/ }),
 
-/***/ 12:
+/***/ 13:
 /*!***************************************************************************************************************************************************************************************************!*\
   !*** multi ./src/devtoolsPanel/perfpanel/js/AuraPerfPanel.js ./src/devtoolsPanel/perfpanel/js/Main.js ./src/devtoolsPanel/perfpanel/js/ProfilesPanel.js ./src/devtoolsPanel/perfpanel/js/init.js ***!
   \***************************************************************************************************************************************************************************************************/
