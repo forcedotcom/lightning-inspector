@@ -13982,6 +13982,8 @@ StressRunClient.prototype = new restClient();
  * @return Promise that resolves on successful post, else reject
  */
 StressRunClient.prototype.saveStressRun = function(params) {
+/*
+<<<<<<< HEAD
   console.log("saveStressRun with params:", params);
     var stressrun = {
         start_time: params.startTime,//.getTime(),
@@ -13989,6 +13991,19 @@ StressRunClient.prototype.saveStressRun = function(params) {
         stresskey: {
             clientinfo: {
                 organization_id: params.organizationId
+//=======*/
+    // getTime() doesn't work 
+    var stressrun = {
+        start_time: new Date(params.startTime).getTime(),
+        end_time: new Date(params.endTime).getTime(),
+        time_to_failure: params.timeToFailure,
+        stresskey: {
+            clientinfo: {
+                organization_id: params.organizationId,
+                application: params.application,
+                user_id: params.user_id
+//>>>>>>> upstream/master
+
             },
             serverinfo: {
                 server_url: params.serverUrl
@@ -14050,7 +14065,7 @@ EventStreamingClient.prototype.saveSteps = function(stressRunId, steps) {
     this.connect();
     var blob = new Blob([JSON.stringify(steps)]),
         self = this;
-
+        
     var promise = new Promise(function(resolve, reject) {
         self.streamAsBlob('saveSteps', blob, {
             size: blob.size,
@@ -14112,7 +14127,7 @@ StreamingClient.prototype = {
             stream = ss.createStream(),
             blobStream = ss.createBlobReadStream(blob),
             size = 0;
-
+            
         var promise = new Promise(function(resolve, reject) {
             //reject on all stream errors
             stream.on('error', rejectOnError(reject));

@@ -71,6 +71,10 @@
 		"message": "Show Global IDs",
 		"description": "Button that toggles the display of the unique id in the panel for every component in the tree that has one."
 	},
+	"componenttree_menu_updateonselect": {
+		"message": "Update On Select",
+		"description": "When you click on new tree nodes, should they get their latest data? Select to say yes."
+	},
 	"performance_menu_showcollected": {
 		"message": "Show Current Collected",
 		"description": "While recording, we don't show what we have collected. The button associated with this label will show what we recorded without stopping recording."
