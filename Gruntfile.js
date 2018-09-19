@@ -43,6 +43,7 @@ module.exports = function(grunt) {
               "src/devtoolsPanel/external/**",
               "src/devtoolsPanel/components/**",
               "src/devtoolsPanel/perfpanel/**",
+              "stylesheets-previewer/**",
               "images/**",
               "_locales/**",
               "manifest.json"
