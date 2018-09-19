@@ -1,0 +1,58 @@
+{
+  "version": "0.0.1",
+  "name": "Lightning Stylesheets Previewer",
+  "manifest_version": 2,
+  "description": "Inject Lightning Stylesheets CSS into Visualforce frames in Lightning",
+  "homepage_url": "http://salesforce.com",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "default_locale": "en",
+  "background": {
+    "scripts": [
+      "background.js"
+    ],
+    "persistent": true
+  },
+  "options_page": "options/index.html",
+  "page_action": {
+    "default_icon": "icons/icon-19.png",
+    "default_title": "Lightning Stylesheets Previewer",
+    "default_popup": "page_action/page_action.html"
+  },
+  "permissions": [
+    "clipboardRead",
+    "clipboardWrite",
+    "contentSettings",
+    "contextMenus",
+    "cookies",
+    "idle",
+    "tabs"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.salesforce.com/*",
+        "https://*.visual.force.com/*",
+        "https://*.lightning.force.com/*",
+        "https://*.my.salesforce.com/*",
+        "https://*.t.salesforce.com/*",
+        "https://*.t.force.com/*",
+        "https://*.secure.force.com/*"
+      ],
+      "css": [
+        "styles/inject.css"
+      ],
+      "js": [
+        "inject.js"
+      ],
+      "all_frames": true
+    }
+  ],
+  "web_accessible_resources": [
+    "template/template.html"
+  ],
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
+}
