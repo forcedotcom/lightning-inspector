@@ -9,10 +9,18 @@
         "128": "images/icon128.png"
     },
     "background": {
-        "scripts" : [ "dist/background.js" ]
+        "scripts" : [ "dist/background.js",
+                      "stylesheets-previewer/background.js"
+        ]
+    },
+    "page_action": {
+        "default_icon": "stylesheets-previewer/icons/icon-19.png",
+        "default_title": "Lightning Stylesheets Previewer",
+        "default_popup": "stylesheets-previewer/page_action/page_action.html"
     },
     "web_accessible_resources": [
-        "dist/LightningInspectorInjectedScript.js"
+        "dist/LightningInspectorInjectedScript.js",
+        "stylesheets-previewer/template/template.html"
     ],
     "devtools_page": "viewerLoader.html",
     "permissions": [
@@ -20,9 +28,35 @@
         "background",
         "contextMenus",
         "http://*/",
-        "https://*/"
+        "https://*/",
+        "clipboardRead",
+        "clipboardWrite",
+        "contentSettings",
+        "contextMenus",
+        "cookies"
     ],
     "default_locale": "en",
+
+    "content_scripts": [
+        {
+          "matches": [
+            "https://*.salesforce.com/*",
+            "https://*.visual.force.com/*",
+            "https://*.lightning.force.com/*",
+            "https://*.my.salesforce.com/*",
+            "https://*.t.salesforce.com/*",
+            "https://*.t.force.com/*",
+            "https://*.secure.force.com/*"
+          ],
+          "css": [
+            "stylesheets-previewer/styles/inject.css"
+          ],
+          "js": [
+            "stylesheets-previewer/inject.js"
+          ],
+          "all_frames": true
+        }
+      ],
 
     "externally_connectable": {
         "ids": [
