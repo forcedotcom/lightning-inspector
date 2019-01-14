@@ -32,18 +32,6 @@
   font-style: italic;
   font-weight: 700; }
 
-html {
-  font-family: "Salesforce Sans", Arial, sans-serif;
-  font-size: 100%;
-  line-height: 1.5;
-  background: #fafaf9;
-  color: #3e3e3c;
-  -webkit-tap-highlight-color: transparent; }
-
-body {
-  font-size: 0.8125rem;
-  background: transparent; }
-
 .extension-view-container {
   /*! normalize.css v3.0.2 | MIT License | git.io/normalize */ }
   .extension-view-container html {
@@ -814,6 +802,20 @@ body {
  * @required
  */
   /**
+ *
+ * @summary Initializes a trigger element around the dropdown
+ * @name dropdown
+ * @selector .slds-dropdown-trigger
+ * @restrict div, span, li
+ * @variant
+ */
+  /**
+ * @summary Initializes dropdown
+ * @selector .slds-dropdown
+ * @restrict .slds-dropdown-trigger div, .slds-dropdown-trigger ul, .slds-docked-composer_overflow div
+ * @notes Applies positioning and container styles, by default, dropdown appears below and center of target
+ */
+  /**
  * @summary Initializes select
  *
  * @name base
@@ -919,6 +921,123 @@ body {
  * @restrict .slds-slider
  * @modifier
  */
+  /**
+ * @summary Container that manages layout when a listbox of pill options sit next to a combobox search input
+ *
+ * @name base
+ * @selector .slds-combobox_container
+ * @restrict div
+ * @variant
+ */
+  /**
+ * Container around form element with combobox input
+ *
+ * @selector .slds-combobox
+ * @restrict .slds-combobox_container > div
+ */
+  /**
+ * Form element with combobox input
+ *
+ * @selector .slds-combobox__form-element
+ * @restrict .slds-combobox > div
+ */
+  /**
+ * Listbox container
+ *
+ * @selector .slds-listbox
+ * @restrict ul
+ */
+  /**
+ * Inline listbox
+ *
+ * @selector .slds-listbox_inline
+ * @restrict .slds-listbox
+ * @modifier
+ */
+  /**
+ * Horizontal listbox
+ *
+ * @selector .slds-listbox_horizontal
+ * @restrict .slds-listbox
+ * @modifier
+ */
+  /**
+ * Choosable option within listbox
+ *
+ * @selector .slds-listbox__option
+ * @restrict .slds-listbox__item > div
+ */
+  /**
+ * Creates a vertical listbox
+ *
+ * @selector .slds-listbox_vertical
+ * @restrict .slds-listbox
+ * @modifier
+ */
+  /**
+ * Class to target styling the value of a combobox input
+ *
+ * @selector .slds-combobox__input-value
+ * @restrict .slds-combobox input
+ */
+  /**
+ * If readonly selection is an entity, use this class
+ *
+ * @selector .slds-combobox__input-entity-icon
+ * @restrict .slds-combobox__form-element span
+ */
+  /**
+ * Icon that is a direct sibling of a combobox container. This is not the same as an input icon.
+ *
+ * @selector .slds-combobox_container__icon
+ * @restrict .slds-combobox_container svg
+ */
+  /**
+ * The icon within a plain listbox that indicates if an option has been selected or not.
+ *
+ * @selector .slds-listbox__icon-selected
+ * @restrict .slds-listbox__item svg
+ */
+  /**
+ * Modifier that makes selected icon visible
+ *
+ * @selector .slds-is-selected
+ * @restrict .slds-listbox__option
+ * @modifier
+ */
+  /**
+ * The main text of an entity listbox
+ *
+ * @selector .slds-listbox__option-text_entity
+ * @restrict .slds-listbox__option span
+ */
+  /**
+ * The metadata or secondary text of an entity listbox
+ *
+ * @selector .slds-listbox__option-meta_entity
+ * @restrict .slds-listbox__option span
+ */
+  /**
+ * If combo has a selection model that requires a listbox of pills to be displayed
+ * inside of a combobox
+ *
+ * @selector .slds-has-inline-listbox
+ * @restrict .slds-combobox_container
+ */
+  /**
+ * @name base
+ * @selector .slds-combobox-picklist
+ * @restrict div
+ * @variant
+ * @s1 false
+ */
+  /**
+   * Read-only input element for picklist
+   *
+   * @selector .slds-picklist__input
+   * @restrict .slds-picklist .slds-form-element__control
+   * @required
+   */
   /**
  * @summary Initializes grid
  *
@@ -5425,6 +5544,394 @@ body {
         background-color: white;
         color: #dddbda;
         cursor: default; }
+  .extension-view-container .slds-dropdown-trigger {
+    position: relative;
+    display: inline-block;
+    /**
+   * @summary If someone is using javascript for click to toggle - this modifier will help
+   * @selector .slds-dropdown-trigger_hover
+   * @restrict .slds-dropdown-trigger
+   */
+    /**
+   * @summary If someone is using javascript for click to toggle - this modifier will help
+   * @selector .slds-dropdown-trigger_click
+   * @restrict .slds-dropdown-trigger
+   */ }
+    .extension-view-container .slds-dropdown-trigger .slds-dropdown {
+      top: 100%; }
+    .extension-view-container .slds-dropdown-trigger .slds-dropdown_bottom,
+    .extension-view-container .slds-dropdown-trigger .slds-dropdown--bottom {
+      top: auto; }
+    .extension-view-container .slds-dropdown-trigger .slds-dropdown {
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity 0.1s linear, visibility 0.1s linear; }
+    .extension-view-container .slds-dropdown-trigger:hover, .extension-view-container .slds-dropdown-trigger:focus {
+      outline: 0; }
+      .extension-view-container .slds-dropdown-trigger:hover .slds-dropdown, .extension-view-container .slds-dropdown-trigger:focus .slds-dropdown {
+        visibility: visible;
+        opacity: 1;
+        transition: opacity 0.1s linear, visibility 0.1s linear; }
+    .extension-view-container .slds-dropdown-trigger_hover .slds-dropdown, .extension-view-container .slds-dropdown-trigger--hover .slds-dropdown {
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity 0.1s linear, visibility 0.1s linear; }
+    .extension-view-container .slds-dropdown-trigger_hover:hover, .extension-view-container .slds-dropdown-trigger_hover:focus, .extension-view-container .slds-dropdown-trigger--hover:hover, .extension-view-container .slds-dropdown-trigger--hover:focus {
+      outline: 0; }
+      .extension-view-container .slds-dropdown-trigger_hover:hover .slds-dropdown, .extension-view-container .slds-dropdown-trigger_hover:focus .slds-dropdown, .extension-view-container .slds-dropdown-trigger--hover:hover .slds-dropdown, .extension-view-container .slds-dropdown-trigger--hover:focus .slds-dropdown {
+        visibility: visible;
+        opacity: 1;
+        transition: opacity 0.1s linear, visibility 0.1s linear; }
+    .extension-view-container .slds-dropdown-trigger_click, .extension-view-container .slds-dropdown-trigger--click {
+      /**
+     * @summary Opens dropdown menu when invoked on click
+     * @selector .slds-is-open
+     * @restrict .slds-dropdown-trigger_click
+     * @modifier
+     * @group visibility
+     */ }
+      .extension-view-container .slds-dropdown-trigger_click .slds-dropdown, .extension-view-container .slds-dropdown-trigger--click .slds-dropdown {
+        display: none; }
+      .extension-view-container .slds-dropdown-trigger_click.slds-is-open .slds-dropdown, .extension-view-container .slds-dropdown-trigger--click.slds-is-open .slds-dropdown {
+        display: block;
+        visibility: visible;
+        opacity: 1; }
+    .extension-view-container .slds-dropdown-trigger > [class*="slds-button_icon"] ~ .slds-dropdown_left[class*="slds-nubbin"],
+    .extension-view-container .slds-dropdown-trigger > [class*="slds-button_icon"] ~ .slds-dropdown--left[class*="slds-nubbin"],
+    .extension-view-container .slds-dropdown-trigger > [class*="slds-button--icon"] ~ .slds-dropdown_left[class*="slds-nubbin"],
+    .extension-view-container .slds-dropdown-trigger > [class*="slds-button--icon"] ~ .slds-dropdown--left[class*="slds-nubbin"] {
+      left: -0.5rem; }
+    .extension-view-container .slds-dropdown-trigger > [class*="slds-button_icon"] ~ .slds-dropdown_right[class*="slds-nubbin"],
+    .extension-view-container .slds-dropdown-trigger > [class*="slds-button_icon"] ~ .slds-dropdown--right[class*="slds-nubbin"],
+    .extension-view-container .slds-dropdown-trigger > [class*="slds-button--icon"] ~ .slds-dropdown_right[class*="slds-nubbin"],
+    .extension-view-container .slds-dropdown-trigger > [class*="slds-button--icon"] ~ .slds-dropdown--right[class*="slds-nubbin"] {
+      right: -0.5rem; }
+  .extension-view-container .slds-dropdown {
+    position: absolute;
+    z-index: 7000;
+    left: 50%;
+    float: left;
+    min-width: 6rem;
+    max-width: 20rem;
+    margin-top: 0.125rem;
+    margin-bottom: 0.125rem;
+    border: 1px solid #dddbda;
+    border-radius: 0.25rem;
+    padding: 0.25rem 0;
+    font-size: 0.75rem;
+    background: white;
+    box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.16);
+    transform: translateX(-50%);
+    /**
+   * @summary Positions dropdown to left side of target
+   * @selector .slds-dropdown_left
+   * @restrict .slds-dropdown
+   * @modifier
+   * @group menu position
+   */
+    /**
+   * @summary Positions dropdown to right side of target
+   * @selector .slds-dropdown_right
+   * @restrict .slds-dropdown
+   * @modifier
+   * @group menu position
+   */
+    /**
+   * @summary Positions dropdown to above target
+   * @selector .slds-dropdown_bottom
+   * @restrict .slds-dropdown
+   * @modifier
+   * @group menu position
+   */
+    /**
+   * @summary Sets min-width of 6rem/96px
+   * @selector .slds-dropdown_xx-small
+   * @restrict .slds-dropdown
+   * @modifier
+   * @group width
+   */
+    /**
+   * @summary Sets min-width of 12rem/192px
+   * @selector .slds-dropdown_x-small
+   * @restrict .slds-dropdown
+   * @modifier
+   * @group width
+   */
+    /**
+   * @summary Sets min-width of 15rem/240px
+   * @selector .slds-dropdown_small
+   * @restrict .slds-dropdown
+   * @modifier
+   * @group width
+   */
+    /**
+   * @summary Sets min-width of 20rem/320px
+   * @selector .slds-dropdown_medium
+   * @restrict .slds-dropdown
+   * @modifier
+   * @group width
+   */
+    /**
+   * @summary Sets min-width of 25rem/400px
+   * @selector .slds-dropdown_large
+   * @restrict .slds-dropdown
+   * @modifier
+   * @group width
+   */
+    /**
+   * @summary Sets min-width of 25rem/400px
+   * @selector .slds-dropdown_large
+   * @restrict .slds-dropdown
+   * @modifier
+   * @group width
+   */
+    /**
+   * @summary Forces overflow scrolling after 5 list items
+   * @selector .slds-dropdown_length-5
+   * @restrict .slds-dropdown, .slds-dropdown__list, .slds-listbox
+   * @modifier
+   * @group height
+   */
+    /**
+   * @summary Forces overflow scrolling after 7 list items
+   * @selector .slds-dropdown_length-7
+   * @restrict .slds-dropdown, .slds-dropdown__list, .slds-listbox
+   * @modifier
+   * @group height
+   */
+    /**
+   * @summary Forces overflow scrolling after 10 list items
+   * @selector .slds-dropdown_length-10
+   * @restrict .slds-dropdown, .slds-dropdown__list, .slds-listbox
+   * @modifier
+   * @group height
+   */
+    /**
+   * @summary Forces overflow scrolling after 5 list items with an icon
+   * @selector .slds-dropdown_length-with-icon-5
+   * @restrict .slds-dropdown, .slds-dropdown__list, .slds-listbox
+   * @modifier
+   * @group height
+   */
+    /**
+   * @summary Forces overflow scrolling after 7 list items with an icon
+   * @selector .slds-dropdown_length-with-icon-7
+   * @restrict .slds-dropdown, .slds-dropdown__list, .slds-listbox
+   * @modifier
+   * @group height
+   */
+    /**
+   * @summary Forces overflow scrolling after 10 list items with an icon
+   * @selector .slds-dropdown_length-with-icon-10
+   * @restrict .slds-dropdown, .slds-dropdown__list, .slds-listbox
+   * @modifier
+   * @group height
+   */
+    /**
+   * @summary Theme
+   * @selector .slds-dropdown_inverse
+   * @restrict .slds-dropdown
+   * @modifier
+   * @group theme
+   */
+    /**
+   * @summary Adds padding to area above dropdown menu list
+   * @selector .slds-dropdown__header
+   * @restrict .slds-dropdown li
+   */
+    /**
+   * @summary Initializes dropdown item
+   * @selector .slds-dropdown__item
+   * @restrict .slds-dropdown li
+   * @required
+   */ }
+    .extension-view-container .slds-dropdown_left, .extension-view-container .slds-dropdown--left {
+      left: 0;
+      transform: translateX(0); }
+    .extension-view-container .slds-dropdown_right, .extension-view-container .slds-dropdown--right {
+      left: auto;
+      right: 0;
+      transform: translateX(0); }
+    .extension-view-container .slds-dropdown_bottom, .extension-view-container .slds-dropdown--bottom {
+      bottom: 100%; }
+    .extension-view-container .slds-dropdown_xx-small, .extension-view-container .slds-dropdown--xx-small {
+      min-width: 6rem; }
+    .extension-view-container .slds-dropdown_x-small, .extension-view-container .slds-dropdown--x-small {
+      min-width: 12rem; }
+    .extension-view-container .slds-dropdown_small, .extension-view-container .slds-dropdown--small {
+      min-width: 15rem; }
+    .extension-view-container .slds-dropdown_medium, .extension-view-container .slds-dropdown--medium {
+      min-width: 20rem; }
+    .extension-view-container .slds-dropdown_large, .extension-view-container .slds-dropdown--large {
+      min-width: 25rem;
+      max-width: 512px; }
+    .extension-view-container .slds-dropdown_fluid, .extension-view-container .slds-dropdown--fluid {
+      min-width: auto;
+      max-width: 100%;
+      width: 100%; }
+    .extension-view-container .slds-dropdown_length-5, .extension-view-container .slds-dropdown--length-5 {
+      -webkit-overflow-scrolling: touch;
+      max-height: calc(((0.8125rem * 1.5) + 1rem) * 5);
+      overflow-y: auto; }
+    .extension-view-container .slds-dropdown_length-7, .extension-view-container .slds-dropdown--length-7 {
+      -webkit-overflow-scrolling: touch;
+      max-height: calc(((0.8125rem * 1.5) + 1rem) * 7);
+      overflow-y: auto; }
+    .extension-view-container .slds-dropdown_length-10, .extension-view-container .slds-dropdown--length-10 {
+      -webkit-overflow-scrolling: touch;
+      max-height: calc(((0.8125rem * 1.5) + 1rem) * 10);
+      overflow-y: auto; }
+    .extension-view-container .slds-dropdown_length-with-icon-5, .extension-view-container .slds-dropdown--length-with-icon-5 {
+      -webkit-overflow-scrolling: touch;
+      max-height: calc((1.5rem + 1rem) * 5);
+      overflow-y: auto; }
+    .extension-view-container .slds-dropdown_length-with-icon-7, .extension-view-container .slds-dropdown--length-with-icon-7 {
+      -webkit-overflow-scrolling: touch;
+      max-height: calc((1.5rem + 1rem) * 7);
+      overflow-y: auto; }
+    .extension-view-container .slds-dropdown_length-with-icon-10, .extension-view-container .slds-dropdown--length-with-icon-10 {
+      -webkit-overflow-scrolling: touch;
+      max-height: calc((1.5rem + 1rem) * 10);
+      overflow-y: auto; }
+    .extension-view-container .slds-dropdown_inverse, .extension-view-container .slds-dropdown--inverse {
+      background: #061c3f;
+      border-color: #061c3f; }
+      .extension-view-container .slds-dropdown_inverse .slds-dropdown__item > a, .extension-view-container .slds-dropdown--inverse .slds-dropdown__item > a {
+        color: white; }
+        .extension-view-container .slds-dropdown_inverse .slds-dropdown__item > a:hover, .extension-view-container .slds-dropdown_inverse .slds-dropdown__item > a:focus, .extension-view-container .slds-dropdown--inverse .slds-dropdown__item > a:hover, .extension-view-container .slds-dropdown--inverse .slds-dropdown__item > a:focus {
+          color: rgba(255, 255, 255, 0.75);
+          background-color: transparent; }
+        .extension-view-container .slds-dropdown_inverse .slds-dropdown__item > a:active, .extension-view-container .slds-dropdown--inverse .slds-dropdown__item > a:active {
+          color: rgba(255, 255, 255, 0.5);
+          background-color: transparent; }
+        .extension-view-container .slds-dropdown_inverse .slds-dropdown__item > a[aria-disabled="true"], .extension-view-container .slds-dropdown--inverse .slds-dropdown__item > a[aria-disabled="true"] {
+          color: rgba(255, 255, 255, 0.15);
+          cursor: default; }
+          .extension-view-container .slds-dropdown_inverse .slds-dropdown__item > a[aria-disabled="true"]:hover, .extension-view-container .slds-dropdown--inverse .slds-dropdown__item > a[aria-disabled="true"]:hover {
+            background-color: transparent; }
+    .extension-view-container .slds-dropdown mark {
+      font-weight: 700;
+      background-color: transparent;
+      color: inherit; }
+    .extension-view-container .slds-dropdown[class*="slds-nubbin_top"], .extension-view-container .slds-dropdown[class*="slds-nubbin--top"] {
+      margin-top: 0.5rem; }
+    .extension-view-container .slds-dropdown[class*="slds-nubbin_bottom"], .extension-view-container .slds-dropdown[class*="slds-nubbin--bottom"] {
+      margin-bottom: 0.5rem; }
+    .extension-view-container .slds-dropdown_nubbin-top, .extension-view-container .slds-dropdown--nubbin-top {
+      margin-top: 0.5rem; }
+      .extension-view-container .slds-dropdown_nubbin-top:before, .extension-view-container .slds-dropdown--nubbin-top:before {
+        width: 1rem;
+        height: 1rem;
+        position: absolute;
+        transform: rotate(45deg);
+        content: '';
+        background-color: white;
+        left: 50%;
+        top: -0.5rem;
+        margin-left: -0.5rem; }
+      .extension-view-container .slds-dropdown_nubbin-top:after, .extension-view-container .slds-dropdown--nubbin-top:after {
+        width: 1rem;
+        height: 1rem;
+        position: absolute;
+        transform: rotate(45deg);
+        content: '';
+        background-color: white;
+        left: 50%;
+        top: -0.5rem;
+        margin-left: -0.5rem; }
+      .extension-view-container .slds-dropdown_nubbin-top:before, .extension-view-container .slds-dropdown--nubbin-top:before {
+        background: white; }
+      .extension-view-container .slds-dropdown_nubbin-top:after, .extension-view-container .slds-dropdown--nubbin-top:after {
+        background: white;
+        box-shadow: -1px -1px 0 0 rgba(0, 0, 0, 0.16);
+        z-index: -1; }
+      .extension-view-container .slds-dropdown_nubbin-top.slds-dropdown_left, .extension-view-container .slds-dropdown_nubbin-top.slds-dropdown--left, .extension-view-container .slds-dropdown--nubbin-top.slds-dropdown_left, .extension-view-container .slds-dropdown--nubbin-top.slds-dropdown--left {
+        left: -1rem; }
+        .extension-view-container .slds-dropdown_nubbin-top.slds-dropdown_left:before, .extension-view-container .slds-dropdown_nubbin-top.slds-dropdown_left:after, .extension-view-container .slds-dropdown_nubbin-top.slds-dropdown--left:before, .extension-view-container .slds-dropdown_nubbin-top.slds-dropdown--left:after, .extension-view-container .slds-dropdown--nubbin-top.slds-dropdown_left:before, .extension-view-container .slds-dropdown--nubbin-top.slds-dropdown_left:after, .extension-view-container .slds-dropdown--nubbin-top.slds-dropdown--left:before, .extension-view-container .slds-dropdown--nubbin-top.slds-dropdown--left:after {
+          left: 1.5rem;
+          margin-left: 0; }
+      .extension-view-container .slds-dropdown_nubbin-top.slds-dropdown_right, .extension-view-container .slds-dropdown_nubbin-top.slds-dropdown--right, .extension-view-container .slds-dropdown--nubbin-top.slds-dropdown_right, .extension-view-container .slds-dropdown--nubbin-top.slds-dropdown--right {
+        right: -1rem; }
+        .extension-view-container .slds-dropdown_nubbin-top.slds-dropdown_right:before, .extension-view-container .slds-dropdown_nubbin-top.slds-dropdown_right:after, .extension-view-container .slds-dropdown_nubbin-top.slds-dropdown--right:before, .extension-view-container .slds-dropdown_nubbin-top.slds-dropdown--right:after, .extension-view-container .slds-dropdown--nubbin-top.slds-dropdown_right:before, .extension-view-container .slds-dropdown--nubbin-top.slds-dropdown_right:after, .extension-view-container .slds-dropdown--nubbin-top.slds-dropdown--right:before, .extension-view-container .slds-dropdown--nubbin-top.slds-dropdown--right:after {
+          left: auto;
+          right: 1.5rem;
+          margin-left: 0; }
+    .extension-view-container .slds-dropdown__header {
+      padding: 0.5rem 0.75rem; }
+    .extension-view-container .slds-dropdown__item {
+      line-height: 1.5;
+      /**
+     * @summary If menu contains menuitemcheckbox then this toggles the selected icon when it is selected
+     * @selector .slds-icon_selected
+     * @restrict .slds-dropdown__item svg
+     */
+      /**
+     * @summary If menu contains menuitemcheckbox then this handles the selected states
+     * @selector .slds-is-selected
+     * @restrict .slds-dropdown__item
+     * @modifier
+     */ }
+      .extension-view-container .slds-dropdown__item > a {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0.75rem;
+        color: #3e3e3c;
+        white-space: nowrap;
+        cursor: pointer; }
+        .extension-view-container .slds-dropdown__item > a:hover, .extension-view-container .slds-dropdown__item > a:focus {
+          outline: 0;
+          text-decoration: none;
+          background-color: #f3f2f2; }
+        .extension-view-container .slds-dropdown__item > a:active {
+          text-decoration: none;
+          background-color: #ecebea; }
+        .extension-view-container .slds-dropdown__item > a[aria-disabled="true"] {
+          color: #dddbda;
+          cursor: default; }
+          .extension-view-container .slds-dropdown__item > a[aria-disabled="true"]:hover {
+            background-color: transparent; }
+          .extension-view-container .slds-dropdown__item > a[aria-disabled="true"] .slds-icon {
+            fill: #dddbda; }
+      .extension-view-container .slds-dropdown__item .slds-icon_selected,
+      .extension-view-container .slds-dropdown__item .slds-icon--selected {
+        opacity: 0;
+        transition: opacity 0.05s ease; }
+      .extension-view-container .slds-dropdown__item.slds-is-selected .slds-icon_selected,
+      .extension-view-container .slds-dropdown__item.slds-is-selected .slds-icon--selected {
+        opacity: 1; }
+      .extension-view-container .slds-dropdown__item.slds-has-notification .slds-indicator_unsaved {
+        top: -0.375rem; }
+    .extension-view-container .slds-dropdown .slds-has-icon {
+      position: relative; }
+      .extension-view-container .slds-dropdown .slds-has-icon_left > a,
+      .extension-view-container .slds-dropdown .slds-has-icon--left > a,
+      .extension-view-container .slds-dropdown .slds-has-icon_left > span,
+      .extension-view-container .slds-dropdown .slds-has-icon--left > span {
+        padding-left: 2rem; }
+      .extension-view-container .slds-dropdown .slds-has-icon_right > a,
+      .extension-view-container .slds-dropdown .slds-has-icon--right > a,
+      .extension-view-container .slds-dropdown .slds-has-icon_right > span,
+      .extension-view-container .slds-dropdown .slds-has-icon--right > span {
+        padding-right: 2rem; }
+      .extension-view-container .slds-dropdown .slds-has-icon_left-right > a,
+      .extension-view-container .slds-dropdown .slds-has-icon--left-right > a,
+      .extension-view-container .slds-dropdown .slds-has-icon_left-right > span,
+      .extension-view-container .slds-dropdown .slds-has-icon--left-right > span {
+        padding-left: 2rem;
+        padding-right: 2rem; }
+      .extension-view-container .slds-dropdown .slds-has-icon .slds-icon {
+        width: 1rem;
+        height: 1rem;
+        position: absolute;
+        top: 50%;
+        margin-top: -0.5rem;
+        fill: #706e6b; }
+        .extension-view-container .slds-dropdown .slds-has-icon .slds-icon_left, .extension-view-container .slds-dropdown .slds-has-icon .slds-icon--left {
+          left: 0.75rem; }
+        .extension-view-container .slds-dropdown .slds-has-icon .slds-icon_right, .extension-view-container .slds-dropdown .slds-has-icon .slds-icon--right {
+          right: 0.75rem; }
   .extension-view-container .slds-select {
     background-color: white;
     border: 1px solid #dddbda;
@@ -5702,6 +6209,291 @@ body {
       left: 0;
       bottom: 0;
       padding: 0; }
+  .extension-view-container .slds-combobox_container {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    /**
+   * Opens listbox dropdown
+   *
+   * @selector .slds-is-open
+   * @restrict .slds-combobox
+   * @modifier
+   */ }
+    .extension-view-container .slds-combobox_container.slds-is-open .slds-dropdown {
+      display: block; }
+  .extension-view-container .slds-combobox {
+    position: static;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto; }
+  .extension-view-container .slds-combobox__form-element {
+    flex: 1 1 auto; }
+  .extension-view-container [role="combobox"] input[readonly] {
+    padding-left: 0.75rem;
+    border-color: #dddbda;
+    background-color: white;
+    font-size: inherit;
+    font-weight: 400; }
+    .extension-view-container [role="combobox"] input[readonly]:focus {
+      border-color: #0070d2; }
+    .extension-view-container [role="combobox"] input[readonly][disabled] {
+      background-color: #ecebea;
+      border-color: #c9c7c5; }
+  .extension-view-container .slds-listbox {
+    font-size: 0.8125rem; }
+  .extension-view-container .slds-listbox_inline,
+  .extension-view-container .slds-listbox--inline {
+    display: inline-flex;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    align-items: center;
+    margin-left: 0.125rem;
+    margin-right: 0.125rem; }
+    .extension-view-container .slds-listbox_inline li,
+    .extension-view-container .slds-listbox--inline li {
+      display: flex; }
+    .extension-view-container .slds-listbox_inline li + li,
+    .extension-view-container .slds-listbox--inline li + li {
+      padding-left: 0.125rem; }
+  .extension-view-container .slds-listbox_horizontal,
+  .extension-view-container .slds-listbox--horizontal {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center; }
+    .extension-view-container .slds-listbox_horizontal li + li,
+    .extension-view-container .slds-listbox--horizontal li + li {
+      padding-left: 0.125rem; }
+  .extension-view-container .slds-listbox__option:hover {
+    cursor: pointer; }
+  .extension-view-container .slds-listbox__option:focus {
+    outline: 0; }
+  .extension-view-container .slds-listbox__option .slds-truncate {
+    display: inline-block;
+    vertical-align: middle; }
+  .extension-view-container .slds-listbox_vertical,
+  .extension-view-container .slds-listbox--vertical {
+    /**
+   * Focus state of a vertical listbox option
+   *
+   * @selector .slds-has-focus
+   * @restrict .slds-listbox__option
+   * @modifier
+   */
+    /**
+   * Modifies the listbox option if it contains an plain object or string
+   *
+   * @selector .slds-listbox__option_plain
+   * @restrict .slds-listbox__option
+   */
+    /**
+   * Modifies the listbox option if it contains an entity object
+   *
+   * @selector .slds-listbox__option_entity
+   * @restrict .slds-listbox__option
+   */
+    /**
+   * If the listbox option has metadata or secondary information that sits below its primary text
+   *
+   * @selector .slds-listbox__option_has-meta
+   * @restrict .slds-listbox__option
+   */ }
+    .extension-view-container .slds-listbox_vertical .slds-listbox__option:focus,
+    .extension-view-container .slds-listbox_vertical .slds-listbox__option:hover,
+    .extension-view-container .slds-listbox_vertical .slds-listbox__option.slds-has-focus,
+    .extension-view-container .slds-listbox--vertical .slds-listbox__option:focus,
+    .extension-view-container .slds-listbox--vertical .slds-listbox__option:hover,
+    .extension-view-container .slds-listbox--vertical .slds-listbox__option.slds-has-focus {
+      background-color: #f3f2f2;
+      text-decoration: none; }
+    .extension-view-container .slds-listbox_vertical .slds-listbox__option[role="presentation"]:hover,
+    .extension-view-container .slds-listbox--vertical .slds-listbox__option[role="presentation"]:hover {
+      background-color: transparent;
+      cursor: default; }
+    .extension-view-container .slds-listbox_vertical .slds-listbox__option_plain,
+    .extension-view-container .slds-listbox_vertical .slds-listbox__option--plain,
+    .extension-view-container .slds-listbox--vertical .slds-listbox__option_plain,
+    .extension-view-container .slds-listbox--vertical .slds-listbox__option--plain {
+      padding: 0.5rem 0.75rem; }
+    .extension-view-container .slds-listbox_vertical .slds-listbox__option_entity,
+    .extension-view-container .slds-listbox_vertical .slds-listbox__option--entity,
+    .extension-view-container .slds-listbox--vertical .slds-listbox__option_entity,
+    .extension-view-container .slds-listbox--vertical .slds-listbox__option--entity {
+      padding: 0.25rem 0.75rem; }
+      .extension-view-container .slds-listbox_vertical .slds-listbox__option_entity .slds-media__figure,
+      .extension-view-container .slds-listbox_vertical .slds-listbox__option--entity .slds-media__figure,
+      .extension-view-container .slds-listbox--vertical .slds-listbox__option_entity .slds-media__figure,
+      .extension-view-container .slds-listbox--vertical .slds-listbox__option--entity .slds-media__figure {
+        margin-right: 0.5rem; }
+    .extension-view-container .slds-listbox_vertical .slds-listbox__option_has-meta .slds-media__figure,
+    .extension-view-container .slds-listbox_vertical .slds-listbox__option--has-meta .slds-media__figure,
+    .extension-view-container .slds-listbox--vertical .slds-listbox__option_has-meta .slds-media__figure,
+    .extension-view-container .slds-listbox--vertical .slds-listbox__option--has-meta .slds-media__figure {
+      margin-top: 0.25rem; }
+  .extension-view-container [class*="slds-input-has-icon_left"] .slds-combobox__input[value],
+  .extension-view-container [class*="slds-input-has-icon--left"] .slds-combobox__input[value],
+  .extension-view-container [class*="slds-input-has-icon_left"] .slds-combobox__input.slds-combobox__input-value,
+  .extension-view-container [class*="slds-input-has-icon--left"] .slds-combobox__input.slds-combobox__input-value {
+    padding-left: 2.25rem; }
+  .extension-view-container .slds-combobox__input-entity-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    position: absolute;
+    top: 50%;
+    left: calc(0.25rem + 1px);
+    transform: translateY(-50%); }
+    .extension-view-container .slds-combobox__input-entity-icon .slds-icon {
+      width: 1.25rem;
+      height: 1.25rem; }
+  .extension-view-container .slds-combobox_container__icon {
+    color: #b0adab; }
+  .extension-view-container .slds-listbox__icon-selected {
+    opacity: 0;
+    fill: #0070d2; }
+  .extension-view-container .slds-listbox__option.slds-is-selected .slds-listbox__icon-selected {
+    opacity: 1; }
+  .extension-view-container .slds-listbox__option-text_entity,
+  .extension-view-container .slds-listbox__option-text--entity {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
+    margin-bottom: 0.125rem; }
+  .extension-view-container .slds-listbox__option-meta_entity,
+  .extension-view-container .slds-listbox__option-meta--entity {
+    display: block;
+    margin-top: -0.25rem;
+    color: #706e6b; }
+  .extension-view-container .slds-listbox_object-switcher,
+  .extension-view-container .slds-listbox--object-switcher {
+    flex-shrink: 0;
+    padding: 0.125rem; }
+  .extension-view-container .slds-has-inline-listbox,
+  .extension-view-container .slds-has-object-switcher {
+    flex-direction: row;
+    background: white;
+    border: 1px solid #dddbda;
+    border-radius: 0.25rem;
+    /**
+   * Input field within a combobox
+   *
+   * @selector .slds-combobox__input
+   * @restrict .slds-combobox input
+   */
+    /**
+   * Modifier to the combobox when an SVG icon sits adjacent to the combobox form element
+   *
+   * @selector .slds-has-icon_left
+   * @restrict .slds-combobox
+   */ }
+    .extension-view-container .slds-has-inline-listbox .slds-combobox__input,
+    .extension-view-container .slds-has-object-switcher .slds-combobox__input {
+      min-height: 1.625rem;
+      line-height: 1.625rem;
+      border: 0;
+      padding-top: 0.125rem;
+      padding-bottom: 0.125rem; }
+      .extension-view-container .slds-has-inline-listbox .slds-combobox__input:focus, .extension-view-container .slds-has-inline-listbox .slds-combobox__input:active,
+      .extension-view-container .slds-has-object-switcher .slds-combobox__input:focus,
+      .extension-view-container .slds-has-object-switcher .slds-combobox__input:active {
+        outline: 0;
+        box-shadow: none; }
+    .extension-view-container .slds-has-inline-listbox .slds-listbox_object-switcher ~ .slds-listbox_inline,
+    .extension-view-container .slds-has-inline-listbox .slds-listbox--object-switcher ~ .slds-listbox--inline,
+    .extension-view-container .slds-has-inline-listbox .slds-combobox_container__icon ~ .slds-listbox_inline,
+    .extension-view-container .slds-has-inline-listbox .slds-combobox_container__icon ~ .slds-listbox--inline,
+    .extension-view-container .slds-has-object-switcher .slds-listbox_object-switcher ~ .slds-listbox_inline,
+    .extension-view-container .slds-has-object-switcher .slds-listbox--object-switcher ~ .slds-listbox--inline,
+    .extension-view-container .slds-has-object-switcher .slds-combobox_container__icon ~ .slds-listbox_inline,
+    .extension-view-container .slds-has-object-switcher .slds-combobox_container__icon ~ .slds-listbox--inline {
+      margin-left: 0.5rem; }
+    .extension-view-container .slds-has-inline-listbox.slds-has-icon_left,
+    .extension-view-container .slds-has-object-switcher.slds-has-icon_left {
+      padding-left: 2.25rem;
+      /**
+     * SVG icon that sits adjacent to the combobox form element
+     *
+     * @selector .slds-combobox_container__icon
+     * @restrict .slds-combobox_container svg
+     */ }
+      .extension-view-container .slds-has-inline-listbox.slds-has-icon_left .slds-combobox_container__icon,
+      .extension-view-container .slds-has-object-switcher.slds-has-icon_left .slds-combobox_container__icon {
+        width: 1rem;
+        height: 1rem;
+        position: absolute;
+        left: 1.125rem;
+        top: 50%;
+        margin-top: -0.5rem; }
+  .extension-view-container .slds-has-inline-listbox [role="listbox"] {
+    display: inline-flex; }
+  .extension-view-container .slds-has-inline-listbox .slds-combobox__input[value],
+  .extension-view-container .slds-has-inline-listbox .slds-combobox__input-value {
+    box-shadow: 0 0 0 2px #fff inset, 0 0 0 3px #dddbda inset; }
+  .extension-view-container .slds-picklist {
+    position: relative;
+    /**
+     * Resets explicit width on picklist to be fluid to its parent element
+     *
+     * @selector .slds-picklist_fluid
+     * @restrict .slds-picklist
+     * @modifier
+     */ }
+    .extension-view-container .slds-picklist .slds-dropdown {
+      width: 15rem; }
+    .extension-view-container .slds-picklist li {
+      /**
+       * Set default state of icon for when a listbox option is selected
+       *
+       * @selector .slds-icon_selected
+       * @restrict .slds-picklist li svg
+       * @required
+       */
+      /**
+       * Toggles state of icon for when a listbox option is selected
+       *
+       * @selector .slds-is-selected
+       * @restrict .slds-picklist li
+       * @modifier
+       * @required
+       */ }
+      .extension-view-container .slds-picklist li .slds-icon_selected,
+      .extension-view-container .slds-picklist li .slds-icon--selected {
+        opacity: 0;
+        transition: opacity 0.05s ease; }
+      .extension-view-container .slds-picklist li.slds-is-selected .slds-icon_selected,
+      .extension-view-container .slds-picklist li.slds-is-selected .slds-icon--selected {
+        fill: #0070d2;
+        opacity: 1; }
+    .extension-view-container .slds-picklist_fluid .slds-picklist__input,
+    .extension-view-container .slds-picklist_fluid .slds-picklist__label,
+    .extension-view-container .slds-picklist_fluid .slds-dropdown,
+    .extension-view-container .slds-picklist_fluid .slds-lookup, .extension-view-container .slds-picklist--fluid .slds-picklist__input,
+    .extension-view-container .slds-picklist--fluid .slds-picklist__label,
+    .extension-view-container .slds-picklist--fluid .slds-dropdown,
+    .extension-view-container .slds-picklist--fluid .slds-lookup {
+      width: auto;
+      min-width: 0;
+      max-width: 15rem; }
+  .extension-view-container .slds-picklist__input {
+    width: 15rem; }
+    .extension-view-container .slds-picklist__input .slds-button {
+      line-height: 0; }
+  .extension-view-container .slds-picklist__label {
+    padding-right: 2rem;
+    width: 15rem;
+    color: #3e3e3c;
+    text-align: left; }
+    .extension-view-container .slds-picklist__label .slds-icon {
+      width: 0.75rem;
+      height: 0.75rem;
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      margin-top: -0.375rem;
+      fill: #706e6b; }
+    .extension-view-container .slds-picklist__label .slds-truncate {
+      display: block; }
   @media (min-width: 30em) {
     .extension-view-container .slds-nowrap_small,
     .extension-view-container .slds-nowrap--small {
