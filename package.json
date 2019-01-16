@@ -22,7 +22,7 @@
     "build:readme": "./node_modules/doctoc/doctoc.js ./*.md",
     "bump": "./bin/bump.js",
     "doc": "./node_modules/.bin/esdoc",
-    "start:aura": "bin/jetty-run.sh",
+    "start": "bin/jetty-run.sh",
     "postinstall": "exit 0; git submodule init; git submodule update;",
     "test": "jest --watchAll --coverage",
     "test:prod": "jest --coverage",
@@ -31,6 +31,7 @@
     "watch:prod": "export NODE_ENV=production; export GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`;  ./node_modules/grunt/bin/grunt watch"
   },
   "devDependencies": {
+    "@salesforce-ux/design-system": "2.5.0",
     "babel-core": "^6.26.0",
     "babel-jest": "^23.0.1",
     "babel-loader": "^7.1.2",
@@ -77,7 +78,7 @@
     "url-loader": "^1.0.1",
     "web-ext": "^2.7.0",
     "webpack": "^4.5.0",
-    "webpack-dashboard": "^2",
+    "webpack-dashboard": "^2.0.0",
     "webpack-dev-server": "^3.1.3",
     "webpack-merge": "^4.1.2",
     "worker-loader": "^2.0.0"

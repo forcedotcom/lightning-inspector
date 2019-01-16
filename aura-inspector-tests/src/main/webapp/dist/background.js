@@ -81,7 +81,7 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = "./src/background.js");
+/******/ 	return __webpack_require__(__webpack_require__.s = 0);
 /******/ })
 /************************************************************************/
 /******/ ({
@@ -135,10 +135,11 @@ function AuraInspectorBackgroundPage() {
         chrome.contextMenus.create({
             title: "Inspect Lightning Component",
             contexts: ["all"],
-            onclick: BackgroundPage_OnContextClick.bind(this),
+            onclick: BackgroundPage_OnContextClick.bind(this)
 
+            // Commented out the filter since most pages don't have .app in them anymore. 
             // Consider moving this into onConnect, and using the href of the page as the documentUrlPattern
-            documentUrlPatterns: ["*://*/*cmp*", "*://*/*app*"]
+            // ,documentUrlPatterns: ["*://*/*cmp*", "*://*/*app*"]
         });
 
         // Add the external panels to the tabInfo collection.
@@ -496,6 +497,59 @@ function AuraInspectorBackgroundPage() {
         return tabs.size;
     };
 }
+
+/***/ }),
+
+/***/ "./stylesheets-previewer/src/bg/background.js":
+/*!****************************************************!*\
+  !*** ./stylesheets-previewer/src/bg/background.js ***!
+  \****************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+// if you checked "fancy-settings" in extensionizr.com, uncomment this lines
+
+// var settings = new Store("settings", {
+//     "sample_setting": "This is how you use Store.js to remember values"
+// });
+
+
+//example of using a message handler from the inject scripts
+chrome.extension.onMessage.addListener((request, sender, sendResponse) => {
+  switch (request.msg) {
+    case "pageActionState":
+      if (request.value) {
+        chrome.pageAction.show(sender.tab.id);
+        console.log("Activating extension on", sender.tab.url);
+      }
+      break;
+    default:
+      sendResponse();
+  }
+});
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.url) {
+    console.log('Tab %d got new URL: %s', tabId, changeInfo.url);
+    chrome.pageAction.hide(tabId);
+  }
+});
+
+/***/ }),
+
+/***/ 0:
+/*!******************************************************************************!*\
+  !*** multi ./src/background.js ./stylesheets-previewer/src/bg/background.js ***!
+  \******************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+__webpack_require__(/*! ./src/background.js */"./src/background.js");
+module.exports = __webpack_require__(/*! ./stylesheets-previewer/src/bg/background.js */"./stylesheets-previewer/src/bg/background.js");
+
 
 /***/ })
 
