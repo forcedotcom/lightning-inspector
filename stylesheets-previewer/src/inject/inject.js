@@ -426,7 +426,7 @@ chrome.extension.sendMessage({}, function(response) {
                             "from the extension");
                         switch(request.msg) {
                             case "activateSlds4Vf":
-                          applyLightningStylesheetsCss(window);
+                                applyLightningStylesheetsCss(window);
                                 return sendResponse({ msg: request.msg, complete: true });
                             case "openPanel":
                                 return togglePanel(true);
