@@ -7,7 +7,14 @@ const FileManagerPlugin = require("filemanager-webpack-plugin");
 module.exports = {
         entry: {
           "contentScript": './src/contentScript.js',
-          "background": './src/background.js',
+          "background": [
+            './src/background.js', 
+            
+            // Stylesheets previewer is not yet supporting the pub/sub method 
+            // of the Lightning Inspector. Once it switches to publish and subscribe
+            // we can delete this.
+            './stylesheets-previewer/src/bg/background.js'
+          ],
           "devtools_tab": [
             "./src/devtools.js"
           ],
@@ -53,60 +60,11 @@ module.exports = {
           "LightningInspectorInjectedScript": [
             "./src/LightningInspectorInjectedScript.js", 
             "./src/aura/gatherer/unStrictApis.js"
+          ],
+          "StylesheetsPreviewerContentScript": [
+            "./stylesheets-previewer/src/inject/inject.js"
           ]
         },
-        // {
-        //   // Scripts
-        //   "contentScript": './src/contentScript.js',
-        //   "background": './src/background.js',
-        //   "devtools_tab": [
-        //     "./src/devtools.js"
-        //   ],
-        //   "viewerPanel": [
-        //     "./src/devtoolsPanel/devtoolsPanel.js",
-        //     "./src/devtoolsPanel/devtoolsPanelInitialization.js"
-        //   ],
-        //   "viewerSidebar": [
-        //     "./src/sidebarPanel/sidebarPanel.js"
-        //   ],
-        //   "component-json": [
-        //     "./src/devtoolsPanel/components/json/json.js"
-        //   ],
-        //   "component-actionCard": [
-        //     "./src/devtoolsPanel/components/actionCard/actionCard.js"
-        //   ],
-        //   "component-auracomponent": [
-        //     "./src/devtoolsPanel/components/auracomponent/auracomponent.js"
-        //   ],
-        //   "component-chaosCard": [
-        //     "./src/devtoolsPanel/components/chaosCard/chaosCard.js"
-        //   ],
-        //   "component-controllerreference": [
-        //     "./src/devtoolsPanel/components/controllerreference/controllerreference.js"
-        //   ],
-        //   "component-eventCard": [
-        //     "./src/devtoolsPanel/components/eventCard/eventCard.js"
-        //   ],
-        //   "component-label": [
-        //     "./src/devtoolsPanel/components/label/label.js"
-        //   ],
-        //   "component-onOffButton": [
-        //     "./src/devtoolsPanel/components/onOffButton/onOffButton.js"
-        //   ],
-        //   "component-outputFunction": [
-        //     "./src/devtoolsPanel/components/outputFunction/outputFunction.js"
-        //   ],
-        //   "LightningInspectorInjectedScript": [
-        //     "./src/LightningInspectorInjectedScript.js", 
-        //     "./src/aura/gatherer/unStrictApis.js"
-        //   ],
-        //   "LightningInspectorTestInBrowser": [
-        //     "./src/ui/panels/EventLogPanel.js",
-        //     "./src/test/InspectorTestApi.js",
-        //     "./src/LightningInspectorInjectedScript.js", 
-        //     "./src/aura/gatherer/unStrictApis.js"
-        //   ]
-        // },
         stats: {
             // If you what more info on whats breaking, toggle to true.
             errorDetails: true

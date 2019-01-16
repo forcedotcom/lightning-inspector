@@ -10499,9 +10499,10 @@ webidl-conversions@^4.0.2:
   version "4.0.2"
   resolved "https://nexus.soma.salesforce.com/nexus/content/groups/npm-all/webidl-conversions/-/webidl-conversions-4.0.2.tgz#a855980b1f0b6b359ba1d5d9fb39ae941faa63ad"
 
-webpack-dashboard@^2:
+webpack-dashboard@^2.0.0:
   version "2.0.0"
   resolved "https://nexus.soma.salesforce.com/nexus/content/groups/npm-all/webpack-dashboard/-/webpack-dashboard-2.0.0.tgz#70db22e7bb5b12b4a7fde82de87ce01eed8d921c"
+  integrity sha512-JxbGYU13+Np6NUT6nXIc3x1fMWAQIwT0evjV6MatXdol8TEsrNIFiSLmT1D0ofoObZssglqq5OGQ8yxQ6LAdgw==
   dependencies:
     blessed "^0.1.81"
     commander "^2.15.1"

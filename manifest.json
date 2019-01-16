@@ -9,7 +9,7 @@
     "128": "images/icon128.png"
   },
   "background": {
-    "scripts": ["dist/background.js", "stylesheets-previewer/background.js"]
+    "scripts": ["dist/background.js"]
   },
   "page_action": {
     "default_icon": "stylesheets-previewer/icons/icon-19.png",
@@ -30,7 +30,8 @@
     "clipboardRead",
     "clipboardWrite",
     "contentSettings",
-    "cookies"
+    "cookies",
+    "idle"
   ],
   "default_locale": "en",
 
@@ -46,7 +47,7 @@
         "https://*.secure.force.com/*"
       ],
       "css": ["stylesheets-previewer/styles/inject.css"],
-      "js": ["stylesheets-previewer/inject.js"],
+      "js": ["dist/StylesheetsPreviewerContentScript.js"],
       "all_frames": true
     }
   ],
