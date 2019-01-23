@@ -89,4 +89,8 @@
   .has-mixed-checks + .slds-checkbox__label .slds-checkbox_faux {
     border-color: red;
   }
+
+  .slds-checkbox .slds-form-element__label {
+    padding: 0px;
+  }
 }
