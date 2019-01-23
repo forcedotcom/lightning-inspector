@@ -184,18 +184,9 @@ const applyLightningStylesheetsCss = (contentWindow) => {
   const contentDoc = contentWindow.document;
   if(!contentDoc.querySelector(`.${SELECTOR_CSS_SLDS4VF}`)) {
         model.themeSelected = CATEGORY_LIGHTNING;
-    // Array.from(contentDoc.querySelectorAll(`${SELECTOR_CSS_LINK}, ${SELECTOR_STYLE_TAG}`))
-    //   .map(cssElement => {
-    //     deactivateCSSElement(cssElement);
-        // 	});
 
     const css = contentDoc.createElement("link");
     css.rel = "stylesheet";
-    // When testing local SLDS4VF
-        // css.href = "https://localhost:4443/styles/extension.css";
-    // css.href="https://drive.google.com/a/salesforce.com/uc?authuser=0&id=0B2Qc3WrvwamZY3lvRmNJMWZaeUk&export=download";
-    // css.href="https://design-system-visualforce.herokuapp.com/styles/extension.css?token=51828b28843be76b5715105e5a715003";
-        // css.href = "http://lex4vf-dev.surge.sh/styles/production.css";
     css.href = model.orgLightningStylesheetsCssPath;
         css.type = "text/css";
     css.id = SELECTOR_CSS_SLDS4VF;
