@@ -1,4 +1,5 @@
 import "./inject.scss";
+import Template from "./Template.js";
 
 console.log("content.js loaded", window == top ? "@ top" : "in frame @", window.location.href);
 if (window == top) {
@@ -32,7 +33,6 @@ const model = (() => {
         filename,
         category
     });
-    let templates;
     const isPageReady = false;
 
     document.addEventListener("domcontentready", () => { isPageReady = true; });
@@ -47,6 +47,24 @@ const model = (() => {
             } else {
                 data.push(cssLinkData)
             }
+        },
+        addStyleTags: function(stylesToProcess = []) {
+            stylesToProcess.forEach((styleTag) => {
+                
+                const styleData = createElementData(
+                    styleTag,
+                    styleTag.textContent.trim().substring(0, 144),
+                    "&lt;STYLE tag&gt;",
+                    "styleTag"
+                );
+
+                if (getById(styleData.id)) {
+                    console.warn(`${styledata.id} is already processed, but was attempted to be added again.`, styleData);
+                    return;
+                }
+
+                data.push(styleData);
+            });
         },
         categoryHeaderContent: {
             [CATEGORY_LIGHTNING]: {
@@ -89,14 +107,6 @@ const model = (() => {
                 href,
                 href.split(/\.css|\.xcss/).shift().split('/').pop(),
                 model.getCategoryByUrl(href)
-            )
-        },
-        getStyleTagData: styleTag => {
-            return createElementData(
-                styleTag,
-                styleTag.textContent.trim().substring(0, 144),
-                "&lt;STYLE tag&gt;",
-                "styleTag"
             )
         },
 
@@ -152,75 +162,13 @@ const model = (() => {
             return `/slds/css/${(new Date()).getTime()}/min/lightningstylesheets/one:oneNamespace,force:sldsTokens,force:base,force:oneSalesforceSkin,force:levelTwoDensity,force:themeTokens,force:formFactorLarge/slds.css`
         },
         get templates() {
-            return templates
+            return Template.templates;
         },
         set templates(newTemplates) {
-            templates = newTemplates
+            Template.templates = newTemplates;
         }
     }
 })();
-
-/**
-* supplant() does variable substitution on the string. It scans through the string looking for 
-* expressions enclosed in {{}} braces. If an expression is found, use it as a key on the object, 
-* and if the key has a string value or number value, it is substituted for the bracket expression 
-* and it repeats.
-*
-* Written by Douglas Crockford
-* http://www.crockford.com/
-*/
-const supplant = function (string, values) {
-    return string.replace(
-        /{{([^{}]*)}}/g, 
-        function (a, b) {
-            var r = values[b];
-            return typeof r === 'string' || typeof r === 'number' ? r : a;
-        }
-    );
-}
-
-
-class Template {
-    _templateHtml = '';
-    /**
-     * The id='' from the template.html file.
-     */
-    constructor(templateId) {
-        if (!model.templates) {
-            throw new Error('No templates defined. Call await fetchTemplates() before creating any Template objects.');
-        }
-
-        if (!model.templates.hasOwnProperty(templateId)) {
-            throw new Error(`No template of id '${tempalteId}' defined. Check template.html to ensure you have the correct id.`);
-        }
-
-        this._templateHtml = model.templates[templateId];
-    }
-
-    renderTo(target, model) {
-        const fragment = this.render(model);
-        target.appendChild(fragment);
-    }
-
-    /**
-     * Convert the contents of the template to HTML.
-     * Returns a DocumentFragment
-     * @param {Map} model Key value pairs. Any patterns of {{value}} in the HTML will be replaced with the value in the model.
-     */
-    render(model = {}) {
-        const mergedHtml = supplant(this._templateHtml, model);
-
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = mergedHtml;
-
-        const fragment = document.createDocumentFragment();
-        for (var child of tempDiv.childNodes) {
-            fragment.appendChild(child);
-        }
-
-        return fragment;
-    }
-}
 
 const togglePanel = (force) => document.getElementById(WRAPPER_ID).classList.toggle('is-open', force);
 
@@ -472,17 +420,17 @@ const processCssLinks = cssLink => {
     return cssLink;
 }
 
-const processStyleTags = styleTag => {
-    // Skip the inject.css file for this extension
-    if(styleTag.textContent.includes('sfdc-lightning-stylesheets-extension-view')) {
-        return;
-    }
-    console.log("Processing:", styleTag.innerHTML.trim().substring(0, 24) + "…"); //styleTag
-    styleTag.id = createRandomId();
-    styleTag.classList.add(SELECTOR_CSS_PROCESSED);
-    model.add(model.getStyleTagData(styleTag));
-    return styleTag;
-}
+// const processStyleTags = styleTag => {
+//     // Skip the inject.css file for this extension
+//     if(styleTag.textContent.includes('sfdc-lightning-stylesheets-extension-view')) {
+//         return;
+//     }
+//     console.log("Processing:", styleTag.innerHTML.trim().substring(0, 24) + "…"); //styleTag
+//     styleTag.id = createRandomId();
+//     styleTag.classList.add(SELECTOR_CSS_PROCESSED);
+//     model.add(model.getStyleTagData(styleTag));
+//     return styleTag;
+// }
 
 const fetchTemplates = () => {
     return fetch(chrome.runtime.getURL(URL_TEMPLATE))

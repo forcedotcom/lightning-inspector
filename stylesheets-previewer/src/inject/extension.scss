@@ -47,7 +47,13 @@
   .extension-view-body {
     flex: 1 1 auto;
     overflow: auto;
-    padding-bottom: $spacing-large;
+    padding-bottom: $spacing-large;  
+  }
+  
+  .extension-view-body h2 {
+    font-weight: 500;
+    font-size: 18px;
+    color: #080807;
   }
 
   .extension-view-body,
@@ -62,6 +68,9 @@
 
   .extension-view-list-body .list-item {
     margin-left: $spacing-large;
+  }
+  ul.extension-view-list-body .list-item:last-child {
+    border-bottom: 0px none;
   }
 
   .button-apply-lss,
