@@ -372,8 +372,8 @@ const getPageStyleTags = () => {
         const toProcessStyleTags = currentStyleTags
             .filter(styleTag => {
                 const isExtensionCss = styleTag.textContent.includes('sfdc-lightning-stylesheets-extension-view');
-                const hasBeenProcessByExtension = !styleTag.classList.contains(SELECTOR_CSS_PROCESSED);
-                return isExtensionCss && hasBeenProcessByExtension;
+                const hasBeenProcessByExtension = styleTag.classList.contains(SELECTOR_CSS_PROCESSED);
+                return !isExtensionCss && !hasBeenProcessByExtension;
             })
             .map((styleTag) => {
                 styleTag.id = createRandomId();
