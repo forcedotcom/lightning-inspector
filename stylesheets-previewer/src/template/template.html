@@ -17,6 +17,9 @@
 </template>
 <template id="body" type="text/template">
   <div class="extension-view-body">
+      <div class="extension-view-dropdown"></div>
+      <h2 class="slds-text-heading_medium slds-m-bottom_medium">Toggle your custom styles</h2>
+      <div class="extension-view-custom-styles"></div>
   </div>
 </template>
 <template id="list_body" type="text/template">
@@ -27,16 +30,8 @@
     <div class="slds-form-element">
       <div class="slds-form-element__control">
         <span class="slds-checkbox">
-          <input
-            aria-labelledby="title_{{category}}"
-            class="category-check"
-            type="checkbox"
-            name="css_categories"
-            id="checkbox_{{category}}"
-            value="on"
-            {{is_checked}}
-            data-css-category="{{category}}"
-          />
+          <input aria-labelledby="title_{{category}}" class="category-check" type="checkbox" name="css_categories" id="checkbox_{{category}}"
+            value="on" {{is_checked}} data-css-category="{{category}}" />
           <label class="slds-grid slds-checkbox__label" for="checkbox_{{category}}">
             <div>
               <span class="slds-checkbox_faux"></span>
@@ -58,16 +53,8 @@
     <div class="list-item-content slds-form-element">
       <div class="slds-form-element__control">
         <span class="slds-checkbox">
-          <input
-            class="list-item-check"
-            type="checkbox"
-            name="css_options"
-            id="checkbox_{{id}}"
-            value="on"
-            {{is_checked}}
-            data-css-node-id="{{id}}"
-            data-css-category="{{category}}"
-          />
+          <input class="list-item-check" type="checkbox" name="css_options" id="checkbox_{{id}}" value="on"
+            {{is_checked}} data-css-node-id="{{id}}" data-css-category="{{category}}" />
           <label class="slds-grid slds-checkbox__label" for="checkbox_{{id}}">
             <div>
               <span class="slds-checkbox_faux"></span>
@@ -90,13 +77,8 @@
   </li>
 </template>
 <template id="icon_check" type="text/template">
-  <svg
-    class="slds-icon slds-icon_x-small slds-listbox__icon-selected"
-    aria-hidden="true"
-    xmlns="http://www.w3.org/2000/svg"
-    width="52"
-    height="52"
-    viewBox="0 0 52 52">
+  <svg class="slds-icon slds-icon_x-small slds-listbox__icon-selected" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+    width="52" height="52" viewBox="0 0 52 52">
     <path d="m19.1 42.5l-16.5-16.6c-0.6-0.6-0.6-1.6 0-2.2l2.2-2.2c0.6-0.6 1.6-0.6 2.2 0l12.4 12.5c0.4 0.4 1.1 0.4 1.5 0l24.3-24.5c0.6-0.6 1.6-0.6 2.2 0l2.2 2.2c0.6 0.6 0.6 1.6 0 2.2l-28.3 28.6c-0.6 0.7-1.6 0.7-2.2 0z"></path>
   </svg>
 </template>
@@ -105,12 +87,8 @@
 </template>
 <template id="theme_picklist_option" type="text/template">
   <li role="presentation" class="slds-listbox__item">
-    <div
-      id="listbox-option-category-{{category}}"
-      class="slds-media slds-listbox__option slds-listbox__option_plain slds-media_small slds-media_center {{is_selected}}"
-      role="option"
-      data-category="{{category}}"
-    >
+    <div id="listbox-option-category-{{category}}" class="slds-media slds-listbox__option slds-listbox__option_plain slds-media_small slds-media_center {{is_selected}}"
+      role="option" data-category="{{category}}">
       <span class="slds-media__figure">
         {{partial_icon_check}}
       </span>
@@ -123,22 +101,19 @@
 </template>
 <template id="theme_picklist" type="text/template">
   <div class="slds-form-element slds-m-bottom_large">
-    <label class="slds-form-element__label" for="combobox-theme-select">Select a stylesheet:</label>
+    <h2 class="slds-text-heading_medium slds-m-bottom_medium">Choose a Salesforce theme</h2>
+    <label class="slds-form-element__label" for="combobox-theme-select">Select a Stylesheet:</label>
     <div class="slds-form-element__control">
       <div class="slds-combobox_container slds-size_small">
         <div class="slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click" aria-expanded="true" aria-haspopup="listbox"
           role="combobox">
           <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none">
-            <input type="text" class="slds-input slds-combobox__input slds-combobox__input-value" id="combobox-theme-select" aria-controls="listbox-unique-id"
-              autocomplete="off" role="textbox" placeholder="Select an Option" readonly="" value="{{selected_value}}" />
+            <input type="text" class="slds-input slds-combobox__input slds-combobox__input-value" id="combobox-theme-select"
+              aria-controls="listbox-unique-id" autocomplete="off" role="textbox" placeholder="Select an Option"
+              readonly="" value="{{selected_value}}" />
             <span class="slds-icon_container slds-icon-utility-down slds-input__icon slds-input__icon_right" title="Description of icon when needed">
-              <svg
-                class="slds-icon slds-icon slds-icon_x-small slds-icon-text-default"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                width="52"
-                height="52"
-                viewBox="0 0 52 52">
+              <svg class="slds-icon slds-icon slds-icon_x-small slds-icon-text-default" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                width="52" height="52" viewBox="0 0 52 52">
                 <path d="m8.3 14h35.4c1 0 1.7 1.3 0.9 2.2l-17.3 21.2c-0.6 0.8-1.9 0.8-2.5 0l-17.5-21.2c-0.7-0.9-0.1-2.2 1-2.2z"></path>
               </svg>
               <span class="slds-assistive-text">Description of icon when needed</span>

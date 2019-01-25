@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "__MSG_manifest_name__",
   "description": "__MSG_manifest_description__",
-  "version": "1.0.2.0",
+  "version": "1.0.2.1",
   "icons": {
     "16": "images/icon16.png",
     "48": "images/icon48.png",
@@ -14,11 +14,11 @@
   "page_action": {
     "default_icon": "stylesheets-previewer/icons/icon-19.png",
     "default_title": "Lightning Stylesheets Previewer",
-    "default_popup": "stylesheets-previewer/page_action/page_action.html"
+    "default_popup": "stylesheets-previewer/src/page_action/page_action.html"
   },
   "web_accessible_resources": [
     "dist/LightningInspectorInjectedScript.js",
-    "stylesheets-previewer/template/template.html"
+    "stylesheets-previewer/src/template/template.html"
   ],
   "devtools_page": "viewerLoader.html",
   "permissions": [
@@ -44,7 +44,10 @@
         "https://*.my.salesforce.com/*",
         "https://*.t.salesforce.com/*",
         "https://*.t.force.com/*",
-        "https://*.secure.force.com/*"
+        "https://*.secure.force.com/*",
+        "http://*/",
+        "https://*/",
+        "http://localhost:8888/*"
       ],
       "css": ["stylesheets-previewer/styles/inject.css"],
       "js": ["dist/StylesheetsPreviewerContentScript.js"],
