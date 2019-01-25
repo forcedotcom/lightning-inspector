@@ -1,4 +1,4 @@
-#extension-view {
+#sfdc-lightning-stylesheets-extension-view {
   position: fixed;
   top: 0;
   bottom: 0;
@@ -79,7 +79,7 @@
   }
 
   .list-item-content {
-    padding: $spacing-xx-small 0;
+    // padding: $spacing-xx-small 0;
   }
 
   .list-item-label_static {
