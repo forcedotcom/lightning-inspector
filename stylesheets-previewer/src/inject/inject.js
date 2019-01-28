@@ -34,18 +34,27 @@ const model = (() => {
         category
     });
     const isPageReady = false;
+    let isDirty = false;
 
+    // Track page being ready to interact with
     document.addEventListener("domcontentready", () => { isPageReady = true; });
 
     return {
         isPageReady: function() {
             return isPageReady || document.readyState === "complete";
         },
+        isDirty: function() {
+            return isDirty;
+        },
+        isPanelOpen: function() {
+            return document.getElementById(WRAPPER_ID).classList.has('is-open');
+        },
         add: cssLinkData => {
             if (getById(cssLinkData.id)) {
                 console.warn(cssLinkData.id, "is already processed", cssLinkData);
             } else {
-                data.push(cssLinkData)
+                isDirty = true;
+                data.push(cssLinkData);
             }
         },
         addStyleTags: function(stylesToProcess = []) {
@@ -63,6 +72,7 @@ const model = (() => {
                     return;
                 }
 
+                isDirty = true;
                 data.push(styleData);
             });
         },
@@ -346,17 +356,21 @@ const activateCSSElement = element => {
 const createRandomId = () => `${(new Date()).getTime()}-${Math.random()*10**17}`;
 
 const getPageStyleSheets = () => {
-    const stylesheetsQuery = document.querySelectorAll(SELECTOR_CSS_LINK);
+    const stylesheetsQuery = Array.from(document.querySelectorAll(SELECTOR_CSS_LINK));
     if (stylesheetsQuery.length) {
         const prevStylesheets = currentStylesheets.concat([]);
-        currentStylesheets = Array.from(stylesheetsQuery);
+        // Save the list for next time.
+        currentStylesheets = stylesheetsQuery;
         currentStylesheets
             .filter(cssLink => !cssLink.classList.contains(SELECTOR_CSS_PROCESSED))
-            .map(cssLink => processCssLinks(cssLink));
-        if (currentStylesheets.length != prevStylesheets.length) {
-            console.log("CSS Found:", document.querySelectorAll(SELECTOR_CSS_LINK));
-            render();
-        };
+            .map(cssLink => {
+                const href = cssLink.getAttribute('href');
+                cssLink.id = createRandomId();
+                cssLink.dataset.initCssUrl = cssLink.getAttribute('href');
+                cssLink.classList.add(SELECTOR_CSS_PROCESSED);
+                model.add(model.getCssLinkData(cssLink));
+                return cssLink;
+            });
     }
 }
 
@@ -382,10 +396,6 @@ const getPageStyleTags = () => {
             });
 
         return toProcessStyleTags;
-        // if (currentStyleTags.length != prevStyleTags.length) {
-        //     console.log("Style Tag Found:", document.querySelectorAll(SELECTOR_STYLE_TAG));
-        //     render();
-        // };
     }
 }
 
@@ -410,26 +420,14 @@ const handlePickListSelect = (listItem) => {
     handleCategorySelection(category);
 }
 
-const processCssLinks = cssLink => {
-    console.log("Processing:", cssLink.getAttribute('href')); //cssLink
-    const href = cssLink.getAttribute('href');
-    cssLink.id = createRandomId();
-    cssLink.dataset.initCssUrl = cssLink.getAttribute('href');
-    cssLink.classList.add(SELECTOR_CSS_PROCESSED);
-    model.add(model.getCssLinkData(cssLink));
-    return cssLink;
-}
-
-// const processStyleTags = styleTag => {
-//     // Skip the inject.css file for this extension
-//     if(styleTag.textContent.includes('sfdc-lightning-stylesheets-extension-view')) {
-//         return;
-//     }
-//     console.log("Processing:", styleTag.innerHTML.trim().substring(0, 24) + "…"); //styleTag
-//     styleTag.id = createRandomId();
-//     styleTag.classList.add(SELECTOR_CSS_PROCESSED);
-//     model.add(model.getStyleTagData(styleTag));
-//     return styleTag;
+// const processCssLinks = cssLink => {
+//     console.log("Processing:", cssLink.getAttribute('href')); //cssLink
+//     const href = cssLink.getAttribute('href');
+//     cssLink.id = createRandomId();
+//     cssLink.dataset.initCssUrl = cssLink.getAttribute('href');
+//     cssLink.classList.add(SELECTOR_CSS_PROCESSED);
+//     model.add(model.getCssLinkData(cssLink));
+//     return cssLink;
 // }
 
 const fetchTemplates = () => {
@@ -476,14 +474,6 @@ chrome.extension.sendMessage({}, function (response) {
 
                 document.body.addEventListener("change", e => {
                     const clickedElement = event.target;
-                    // const toggle = (checkbox, value) => {
-                    //     if (value) {
-                    //         if (checkbox.checked !== value) checkbox.click();
-                    //     } else {
-                    //         checkbox.click();
-                    //     }
-                    //     return checkbox;
-                    // }
 
                     if (clickedElement.classList.contains("category-check")) {
                         model.data
@@ -538,11 +528,19 @@ chrome.extension.sendMessage({}, function (response) {
                 if (isValidVisualforcePage) {
                     fetchTemplates().then(() => {
                         console.log("Initializing on:", window.location.pathname);
-                        const pollCSSLoaded = setInterval(getPageStyleSheets, 3000);
+                        const pollCSSLoaded = setInterval(() => {
+                            getPageStyleSheets();
+
+                            if (model.isPanelOpen() && model.isDirty()) {
+                                render();
+                            }
+                        }, 3000);
                         const styleTagsToProcess = getPageStyleTags();
                         model.addStyleTags(styleTagsToProcess);
                         
                         getPageStyleSheets();
+
+                        // Who does the render?
 
                         chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                             console.log(sender.tab ?

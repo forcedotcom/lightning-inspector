@@ -44,10 +44,7 @@
         "https://*.my.salesforce.com/*",
         "https://*.t.salesforce.com/*",
         "https://*.t.force.com/*",
-        "https://*.secure.force.com/*",
-        "http://*/",
-        "https://*/",
-        "http://localhost:8888/*"
+        "https://*.secure.force.com/*"
       ],
       "css": ["stylesheets-previewer/styles/inject.css"],
       "js": ["dist/StylesheetsPreviewerContentScript.js"],
