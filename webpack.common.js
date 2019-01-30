@@ -6,14 +6,12 @@ const FileManagerPlugin = require("filemanager-webpack-plugin");
  
 module.exports = {
         entry: {
-          "contentScript": './src/contentScript.js',
+          "contentScript": [
+            './src/contentScript.js',
+            './stylesheets-previewer/src/inject/inject.js'
+          ],
           "background": [
             './src/background.js', 
-            
-            // Stylesheets previewer is not yet supporting the pub/sub method 
-            // of the Lightning Inspector. Once it switches to publish and subscribe
-            // we can delete this.
-            './stylesheets-previewer/src/bg/background.js'
           ],
           "devtools_tab": [
             "./src/devtools.js"
@@ -61,8 +59,11 @@ module.exports = {
             "./src/LightningInspectorInjectedScript.js", 
             "./src/aura/gatherer/unStrictApis.js"
           ],
-          "StylesheetsPreviewerContentScript": [
-            "./stylesheets-previewer/src/inject/inject.js"
+          // "StylesheetsPreviewerContentScript": [
+          //   "./stylesheets-previewer/src/inject/inject.js"
+          // ],
+          "BrowserAction": [
+            "./stylesheets-previewer/src/page_action/page_action.js"
           ]
         },
         stats: {

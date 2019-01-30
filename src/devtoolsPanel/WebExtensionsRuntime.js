@@ -1,18 +1,23 @@
 export default function WebExtensionsRuntime(name) {
 	const onConnectListeners = [];
     const _subscribers = new Map();
+    let currentTabId = null;
 
-	this.connect = function(callback) {
-		const tabId = this.getTabId();
+	this.connect = function(callback, tabId) {
+        if (tabId) {
+            currentTabId = tabId;
+        } else {
+            currentTabId = this.getTabId();
+        }
         const runtime = chrome.runtime.connect({"name": name });
 
         if(callback) {
         	onConnectListeners.push(callback);
         }
 
-        runtime.postMessage( { "action": "BackgroundPage:publish", "key": "BackgroundPage:InjectContentScript", "data": tabId } );
+        runtime.postMessage( { "action": "BackgroundPage:publish", "key": "BackgroundPage:InjectContentScript", "data": currentTabId } );
         runtime.onMessage.addListener(BackgroundScript_OnMessage.bind(this));
-        runtime.postMessage({subscribe: ["AuraInspector:bootstrap"], port: runtime.name, tabId: tabId});
+        runtime.postMessage({subscribe: ["AuraInspector:bootstrap"], port: runtime.name, tabId: currentTabId});
         this.publish("AuraInspector:OnPanelConnect", "Chrome Runtime: Panel " + name + " connected to the page.");
 	};
 
@@ -48,7 +53,9 @@ export default function WebExtensionsRuntime(name) {
             }, window.location.origin);
         `;
 
-        chrome.devtools.inspectedWindow.eval(command, function() {
+        chrome.tabs.executeScript(this.getTabId(), {
+            code: command
+        }, function() {
             if(_subscribers.has(key)) {
                 //console.log(key, _subscribers.get(key).length)
                 _subscribers.get(key).forEach(function(callback){
@@ -57,8 +64,16 @@ export default function WebExtensionsRuntime(name) {
             }
         });
 
-        chromeEval(command);
+        // chrome.devtools.inspectedWindow.eval(command, function() {
+        //     if(_subscribers.has(key)) {
+        //         //console.log(key, _subscribers.get(key).length)
+        //         _subscribers.get(key).forEach(function(callback){
+        //             callback(data);
+        //         });
+        //     }
+        // });
 
+        // chromeEval(command);
     };
 
 	// Aren't doing yet.
@@ -69,7 +84,7 @@ export default function WebExtensionsRuntime(name) {
 	this.disconnect = function() {};
 
 	this.getTabId = function() {
-		return chrome.devtools.inspectedWindow.tabId;
+		return currentTabId || chrome.devtools.inspectedWindow.tabId;
 	};
 
 	this.onSelectionChanged = function(callback) {

@@ -6,8 +6,8 @@
 </template>
 <template id="header" type="text/template">
   <div class="extension-view-header slds-grid slds-has-divider_bottom-space slds-shrink-none">
-    <h1 class="extension-view-heading slds-align-middle slds-text-heading_small">Stylesheets on this Visualforce page:</h1>
-    <button class="button-panel-close slds-button slds-button_icon slds-col_bump-left slds-button_icon slds-button_icon-small">
+    <h1 class="extension-view-heading slds-align-middle slds-text-heading_medium slds-p-around_medium">Stylesheets on this Visualforce page:</h1>
+    <button class="button-panel-close slds-button slds-button_icon slds-col_bump-left slds-button_icon slds-button_icon-small slds-align-middle">
       <svg class="slds-button__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" aria-hidden="true">
         <path d="m3.4 29h33.2c0.9 0 1.3 1.1 0.7 1.7l-9.6 9.6c-0.6 0.6-0.6 1.5 0 2.1l2.2 2.2c0.6 0.6 1.5 0.6 2.1 0l17.5-17.6c0.6-0.6 0.6-1.5 0-2.1l-17.5-17.5c-0.6-0.6-1.5-0.6-2.1 0l-2.1 2.1c-0.6 0.6-0.6 1.5 0 2.1l9.6 9.6c0.6 0.7 0.2 1.8-0.7 1.8h-33.2c-0.8 0-1.5 0.6-1.5 1.4v3c0 0.8 0.6 1.6 1.4 1.6z"></path>
       </svg>
@@ -16,7 +16,7 @@
   </div>
 </template>
 <template id="body" type="text/template">
-  <div class="extension-view-body">
+  <div class="extension-view-body slds-p-around_large slds-m-left_xx-small">
       <div class="extension-view-dropdown"></div>
       <h2 class="slds-text-heading_medium slds-m-bottom_medium">Toggle your custom styles</h2>
       <div class="extension-view-custom-styles"></div>
@@ -37,7 +37,7 @@
               <span class="slds-checkbox_faux"></span>
             </div>
             <div class="slds-truncate">
-              <span class="slds-form-element__label" title="{{filename}}">
+              <span class="" title="{{filename}}">
                 <h3 id="title_{{category}}" class="list-heading slds-text-heading_small">{{title}}</h3>
                 <p class="list-description">{{description}}</p>
               </span>
@@ -60,7 +60,7 @@
               <span class="slds-checkbox_faux"></span>
             </div>
             <div class="slds-truncate">
-              <span class="slds-form-element__label" title="{{filename}}">
+              <span class="" title="{{filename}}">
                 <strong>
                   {{filename}}
                 </strong>

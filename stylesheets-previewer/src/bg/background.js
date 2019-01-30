@@ -4,7 +4,7 @@ chrome.extension.onMessage.addListener(
     switch (request.msg) {
       case "pageActionState":
         if(request.value) {
-          chrome.pageAction.show(sender.tab.id);
+          // chrome.pageAction.show(sender.tab.id);
           console.log("Activating extension on", sender.tab.url);
         }
         break;
@@ -15,8 +15,8 @@ chrome.extension.onMessage.addListener(
 );
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.url) {
-    console.log('Tab %d got new URL: %s', tabId, changeInfo.url);
-    chrome.pageAction.hide(tabId);
-  }
+  // if (changeInfo.url) {
+  //   console.log('Tab %d got new URL: %s', tabId, changeInfo.url);
+  //   chrome.pageAction.hide(tabId);
+  // }
 });

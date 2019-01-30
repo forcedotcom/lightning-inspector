@@ -24,6 +24,10 @@
     padding: $spacing-small;
     min-width: 24rem;
   }
+  
+  &.extension-popup-container .extension-view-heading {
+    border-bottom: 1px solid #efefef;
+  }
 
   ul li,
   ol li {
@@ -47,7 +51,13 @@
   .extension-view-body {
     flex: 1 1 auto;
     overflow: auto;
-    padding-bottom: $spacing-large;
+    padding-bottom: $spacing-large;  
+  }
+  
+  .extension-view-body h2 {
+    font-weight: 500;
+    font-size: 18px;
+    color: #080807;
   }
 
   .extension-view-body,
@@ -62,6 +72,9 @@
 
   .extension-view-list-body .list-item {
     margin-left: $spacing-large;
+  }
+  ul.extension-view-list-body .list-item:last-child {
+    border-bottom: 0px none;
   }
 
   .button-apply-lss,
@@ -88,5 +101,9 @@
 
   .has-mixed-checks + .slds-checkbox__label .slds-checkbox_faux {
     border-color: red;
+  }
+
+  .slds-checkbox .slds-form-element__label {
+    padding: 0px;
   }
 }
