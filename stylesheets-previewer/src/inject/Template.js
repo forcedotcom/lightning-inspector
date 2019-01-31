@@ -1,5 +1,8 @@
+
+const URL_TEMPLATE = "stylesheets-previewer/src/template/template.html";
+
 export default class Template {
-    static templates = {};
+    static templates = null;
     _templateHtml = '';
     /**
      * The id='' from the template.html file.
@@ -38,6 +41,30 @@ export default class Template {
         }
 
         return fragment;
+    }
+
+    static fetchTemplates = async () => {
+        if (Template.templates !== null) {
+            return Template.templates;
+        }
+
+        return fetch(chrome.runtime.getURL(URL_TEMPLATE))
+            .then(response => response.text())
+            .then(response => {
+                const wrapper = document.createElement('div');
+                wrapper.innerHTML = response;
+
+                const $templates = wrapper.querySelectorAll("template");
+                const templates = {};
+
+                Array.from($templates).forEach(function (template) {
+                    templates[template.id] = template.innerHTML.trim();
+                });
+
+                Template.templates = templates;
+                
+                return templates;
+            })
     }
 }
 

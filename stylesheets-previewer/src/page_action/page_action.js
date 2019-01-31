@@ -3,6 +3,9 @@ import WebExtensionsRuntime from "../../../src/devtoolsPanel/WebExtensionsRuntim
 
 
 const runtime = new WebExtensionsRuntime("LightningStylesheetsBrowserAction");
+runtime.subscribe("LightningStylesheets:OnPanelConnect", function(data){
+    console.log("LightningStylesheets:OnPanelConnect");
+});
 
 const disableActivationButton = () => {
     document.querySelector(".button-deactivate").setAttribute("disabled", true);
@@ -57,29 +60,30 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             break;
     }
 });
+    chrome.tabs.query({active: true, currentWindow: true}, tabs => {
+        
+        runtime.subscribe("AuraInspector:OnPanelConnect", function(data){
+            chrome.tabs.sendMessage(tabs[0].id, { msg: 'getLightningStylesheetState'}, response => {
+                if (response === undefined) {
+                    return;
+                }
+                if (response.isValidVisualForcePage) {
+                    showVfPanel();
+                } else {
+                    hideVfPanel();
+                }
+            });
+            
+            chrome.tabs.sendMessage(tabs[0].id, { msg: "isLightningStylesheetsActive" }, response => {
+                //console.log("isLightningStylesheetsActive", response.value);
+                if(response && response.value) disableActivationButton();
+            });
+            chrome.tabs.sendMessage(tabs[0].id, {msg: "isPanelOpen"}, response => {
+                console.log(response);
+                if(response && response.value) disablePanelToggle();
+            });
+        });
 
-chrome.tabs.query({active: true, currentWindow: true}, tabs => {
-    // Injects the Content Script if necessary.
-    runtime.connect(function(){}, tabs[0].id);
-
-    chrome.tabs.sendMessage(tabs[0].id, { msg: 'getLightningStylesheetState'}, response => {
-        if (response === undefined) {
-            return;
-        }
-        if (response.isValidVisualForcePage) {
-            showVfPanel();
-        } else {
-            hideVfPanel();
-        }
-    });
-    
-    chrome.tabs.sendMessage(tabs[0].id, { msg: "isLightningStylesheetsActive" }, response => {
-        //console.log("isLightningStylesheetsActive", response.value);
-        if(response && response.value) disableActivationButton();
-    });
-    chrome.tabs.sendMessage(tabs[0].id, {msg: "isPanelOpen"}, response => {
-        console.log(response);
-        if(response && response.value) disablePanelToggle();
-    });
-})
-
+        // Injects the Content Script if necessary.
+        runtime.connect(function(){}, tabs[0].id);
+    })

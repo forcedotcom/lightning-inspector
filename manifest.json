@@ -34,26 +34,6 @@
     "idle"
   ],
   "default_locale": "en",
-
-  // "content_scripts": [
-  //   {
-  //     "matches": [
-  //       "https://*.salesforce.com/*",
-  //       "https://*.visual.force.com/*",
-  //       "https://*.lightning.force.com/*",
-  //       "https://*.my.salesforce.com/*",
-  //       "https://*.t.salesforce.com/*",
-  //       "https://*.t.force.com/*",
-  //       "https://*.secure.force.com/*",
-  //       "http://*/",
-  //       "https://*/",
-  //       "http://localhost:8888/*"
-  //     ],
-  //     "css": ["stylesheets-previewer/styles/inject.css"],
-  //     "js": ["dist/StylesheetsPreviewerContentScript.js"],
-  //     "all_frames": true
-  //   }
-  // ],
   "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
 
   "externally_connectable": {

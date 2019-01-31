@@ -1,0 +1,12 @@
+export const SELECTOR_CSS_PROCESSED = "css__processed";
+export const SELECTOR_CSS_DEACTIVATED = "css__deactivated";
+export const SELECTOR_CSS_SLDS4VF = "slds-vf-stylesheet";
+export const SELECTOR_CSS_LINK = "html link[rel='stylesheet']";
+export const SELECTOR_STYLE_TAG = "style";
+export const WRAPPER_ID = "sfdc-lightning-stylesheets-extension-view";
+export const CATEGORY_CLASSIC = 'salesforce';
+export const CATEGORY_LIGHTNING = 'lex4vf';
+export const CATEGORY_SLDS = 'slds';
+export const CATEGORY_NONE = 'none';
+export const LINKS_INLINE_STYLES = "styleTag";
+export const LINKS_CUSTOM_STYLES = "custom";

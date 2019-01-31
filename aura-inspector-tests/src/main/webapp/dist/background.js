@@ -407,7 +407,12 @@ function AuraInspectorBackgroundPage() {
     }
 
     function getTabId(port) {
-        return port && port.sender && port.sender.tab ? port.sender.tab.id : -1;
+        const senderTabId = port && port.sender && port.sender.tab ? port.sender.tab.id : null;
+        if (senderTabId === null) {
+            // Page and Browser actions have their tabId specified on the port.
+            return port.tabId || -1;
+        }
+        return senderTabId;
     }
 
     function TabInfo(tabId) {

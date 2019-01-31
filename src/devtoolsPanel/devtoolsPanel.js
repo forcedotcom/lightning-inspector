@@ -65,8 +65,8 @@ panel.init(function(){
     AuraInspectorOptions.getAll({ "activePanel": "transaction" }, function(options) {
         if(!panel.hasPanel(options["activePanel"])) {
             // If the panel we are switching to doesn't exist, use the
-            // default which is the transaction panel.
-            options["activePanel"] = "transaction";
+            // default which is the Component Tree.
+            options["activePanel"] = "component-tree";
         }
 
         panel.showPanel(options["activePanel"]);
