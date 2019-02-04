@@ -1772,6 +1772,18 @@ if (!window.LightningStylesheets) {
         isChecked ? activateCSSElement(element) : deactivateCSSElement(element);
     };
 
+    const isExtensionOwned = element => {
+        const className = ".sfdc-lightning-stylesheets-extension-view";
+        let current = element;
+        while (current && current instanceof Element) {
+            if (current.matches(className)) {
+                return true;
+            }
+            current = current.parentNode;
+        }
+        return false;
+    };
+
     //chrome.extension.sendMessage({}, async function (response) {
     var readyStateCheckInterval = setInterval(function () {
         if (model.isPageReady) {
@@ -1787,6 +1799,9 @@ if (!window.LightningStylesheets) {
                 const { hasVisualforceClasses, hasPageContent, isVisualforceFrame, isValidVisualforcePage } = model;
 
                 document.body.addEventListener("change", e => {
+                    if (!isExtensionOwned(e.target)) {
+                        return;
+                    }
                     const clickedElement = event.target;
                     if (clickedElement.classList.contains("category-check")) {
                         model.data.filter(elementData => elementData.category == clickedElement.dataset.cssCategory).map(elementData => toggleCSSElement(document.getElementById(elementData.id), clickedElement.checked));
@@ -1800,12 +1815,18 @@ if (!window.LightningStylesheets) {
                 });
 
                 document.body.addEventListener("click", e => {
+                    if (!isExtensionOwned(e.target)) {
+                        return;
+                    }
                     if (e.target.classList.contains("button-panel-close")) {
                         panel.toggle(false);
                     }
                 });
 
                 document.body.addEventListener("mousedown", e => {
+                    if (!isExtensionOwned(e.target)) {
+                        return;
+                    }
                     const target = e.target.classList.contains("slds-listbox__option") ? e.target : e.target.closest(".slds-listbox__option");
                     if (target) {
                         handlePickListSelect(target);
@@ -1813,12 +1834,18 @@ if (!window.LightningStylesheets) {
                 });
 
                 window.addEventListener("focusin", e => {
+                    if (!isExtensionOwned(e.target)) {
+                        return;
+                    }
                     if (e.target.id == "combobox-theme-select") {
                         document.querySelector(".slds-combobox").classList.add("slds-is-open");
                     }
                 });
 
                 window.addEventListener("focusout", e => {
+                    if (!isExtensionOwned(e.target)) {
+                        return;
+                    }
                     if (e.target.id == "combobox-theme-select") {
                         document.querySelector(".slds-combobox").classList.remove("slds-is-open");
                     }
