@@ -63,14 +63,6 @@ import UnStrictApis from "./aura/gatherer/unStrictApis.js";
     // use a symbol so it doesn't create a global property.
     window[$Symbol] = $Aura;
 
-    function LightningStylesheets() {
-        
-
-        this.init = function() {
-
-        };
-    }
-
     function AuraInspector() {
         var subscribers = {};
         var PUBLISH_KEY = "AuraInspector:publish";

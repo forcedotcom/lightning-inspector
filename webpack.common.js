@@ -59,9 +59,6 @@ module.exports = {
             "./src/LightningInspectorInjectedScript.js", 
             "./src/aura/gatherer/unStrictApis.js"
           ],
-          // "StylesheetsPreviewerContentScript": [
-          //   "./stylesheets-previewer/src/inject/inject.js"
-          // ],
           "BrowserAction": [
             "./stylesheets-previewer/src/page_action/page_action.js"
           ]
