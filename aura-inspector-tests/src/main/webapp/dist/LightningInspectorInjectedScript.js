@@ -81,7 +81,7 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 14);
+/******/ 	return __webpack_require__(__webpack_require__.s = 15);
 /******/ })
 /************************************************************************/
 /******/ ({
@@ -154,8 +154,10 @@ $Aura.actions = {
             var removeClassName = "auraDevToolServiceHighlight3";
             var addClassName = "auraDevToolServiceHighlight4";
             var element = event.target;
-            element.classList.remove(removeClassName);
-            element.classList.remove(addClassName);
+            if (element) {
+                element.classList.remove(removeClassName);
+                element.classList.remove(addClassName);
+            }
         });
     }
 };
@@ -169,6 +171,11 @@ $Aura.Inspector.init();
 // Attach to the global object so our integrations can access it, but
 // use a symbol so it doesn't create a global property.
 window[$Symbol] = $Aura;
+
+function LightningStylesheets() {
+
+    this.init = function () {};
+}
 
 function AuraInspector() {
     var subscribers = {};
@@ -2044,7 +2051,7 @@ exports.OnEventFire = function OnEventFire(output, config, params) {
 
 /***/ }),
 
-/***/ 14:
+/***/ 15:
 /*!*******************************************************************************************!*\
   !*** multi ./src/LightningInspectorInjectedScript.js ./src/aura/gatherer/unStrictApis.js ***!
   \*******************************************************************************************/

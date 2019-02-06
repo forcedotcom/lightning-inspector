@@ -45,8 +45,10 @@ import UnStrictApis from "./aura/gatherer/unStrictApis.js";
                 var removeClassName = "auraDevToolServiceHighlight3";
                 var addClassName = "auraDevToolServiceHighlight4";
                 var element = event.target;
-                element.classList.remove(removeClassName);
-                element.classList.remove(addClassName);
+                if (element) {
+                    element.classList.remove(removeClassName);
+                    element.classList.remove(addClassName);
+                }
             });
         }
     };

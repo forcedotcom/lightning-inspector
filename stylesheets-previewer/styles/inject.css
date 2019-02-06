@@ -276,7 +276,7 @@
     max-width: 100%;
     height: auto; }
 
-#extension-view {
+#sfdc-lightning-stylesheets-extension-view {
   position: fixed;
   top: 0;
   bottom: 0;
@@ -287,15 +287,12 @@
   box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 25px 50px 0 rgba(0, 0, 0, 0.1);
   transform: translateX(110%);
   transition: transform 0.4s ease-in-out; }
-  #extension-view.is-open {
+  #sfdc-lightning-stylesheets-extension-view.is-open {
     transform: translateX(0); }
 
 .extension-view-container {
   position: relative;
   height: 100%; }
-  .extension-view-container.extension-popup-container {
-    padding: 0.75rem;
-    min-width: 24rem; }
   .extension-view-container ul li,
   .extension-view-container ol li {
     margin-left: unset; }

@@ -81,7 +81,7 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
+/******/ 	return __webpack_require__(__webpack_require__.s = 1);
 /******/ })
 /************************************************************************/
 /******/ ({
@@ -407,7 +407,12 @@ function AuraInspectorBackgroundPage() {
     }
 
     function getTabId(port) {
-        return port && port.sender && port.sender.tab ? port.sender.tab.id : -1;
+        const senderTabId = port && port.sender && port.sender.tab ? port.sender.tab.id : null;
+        if (senderTabId === null) {
+            // Page and Browser actions have their tabId specified on the port.
+            return port.tabId || -1;
+        }
+        return senderTabId;
     }
 
     function TabInfo(tabId) {
@@ -500,55 +505,14 @@ function AuraInspectorBackgroundPage() {
 
 /***/ }),
 
-/***/ "./stylesheets-previewer/src/bg/background.js":
-/*!****************************************************!*\
-  !*** ./stylesheets-previewer/src/bg/background.js ***!
-  \****************************************************/
+/***/ 1:
+/*!*********************************!*\
+  !*** multi ./src/background.js ***!
+  \*********************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
-
-// if you checked "fancy-settings" in extensionizr.com, uncomment this lines
-
-// var settings = new Store("settings", {
-//     "sample_setting": "This is how you use Store.js to remember values"
-// });
-
-
-//example of using a message handler from the inject scripts
-chrome.extension.onMessage.addListener((request, sender, sendResponse) => {
-  switch (request.msg) {
-    case "pageActionState":
-      if (request.value) {
-        chrome.pageAction.show(sender.tab.id);
-        console.log("Activating extension on", sender.tab.url);
-      }
-      break;
-    default:
-      sendResponse();
-  }
-});
-
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.url) {
-    console.log('Tab %d got new URL: %s', tabId, changeInfo.url);
-    chrome.pageAction.hide(tabId);
-  }
-});
-
-/***/ }),
-
-/***/ 0:
-/*!******************************************************************************!*\
-  !*** multi ./src/background.js ./stylesheets-previewer/src/bg/background.js ***!
-  \******************************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-__webpack_require__(/*! ./src/background.js */"./src/background.js");
-module.exports = __webpack_require__(/*! ./stylesheets-previewer/src/bg/background.js */"./stylesheets-previewer/src/bg/background.js");
+module.exports = __webpack_require__(/*! ./src/background.js */"./src/background.js");
 
 
 /***/ })
