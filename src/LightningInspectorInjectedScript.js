@@ -157,7 +157,7 @@ import UnStrictApis from "./aura/gatherer/unStrictApis.js";
             // This instrument is where we add the methods _$getRawValue$() and _$getSelfGlobalId$() to the
             // component prototype. This allowed us to move to outputing the component from injected code, vs code in the framework.
             // Would be nice to get rid of needing this.
-            // When all of 222 is gone, you can remove this. 
+            // When all of 222 is gone, you can remove this, because we have a shiney new api.
             try {
                 $A.installOverride("outputComponent", function(){});
             } catch(e){}

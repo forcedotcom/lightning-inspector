@@ -59,7 +59,6 @@ export default class ComponentTreeSerializer {
 }
 
 function getComponent(globalId, callback, configuration) {
-    debugger;
     if(typeof callback !== "function") { throw new Error("callback is required for - getComponent(globalId, callback)"); }
     
     var command;
