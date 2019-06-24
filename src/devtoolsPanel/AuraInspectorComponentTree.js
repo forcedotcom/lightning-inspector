@@ -150,6 +150,7 @@ export default function AuraInspectorComponentTree(devtoolsPanel) {
             });
           
         } catch(e) {
+            console.log('catch');
             alert([e.message, e.stack]);
         }
 

@@ -1160,17 +1160,6 @@ function WebExtensionsRuntime(name) {
                 });
             }
         });
-
-        // chrome.devtools.inspectedWindow.eval(command, function() {
-        //     if(_subscribers.has(key)) {
-        //         //console.log(key, _subscribers.get(key).length)
-        //         _subscribers.get(key).forEach(function(callback){
-        //             callback(data);
-        //         });
-        //     }
-        // });
-
-        // chromeEval(command);
     };
 
     // Aren't doing yet.

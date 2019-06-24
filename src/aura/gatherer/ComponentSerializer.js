@@ -43,6 +43,40 @@ export default class ComponentSerializer {
         return JsonSerializer.stringify(rootNodes);
     }
 
+    static bootStrapInjectedAPI() { 
+        // This api is added by us in an override. If it's not there when we try to serialize a component we'll have issues.
+        // So if its not there, just run the bootstrap code.
+        if( $A.componentService.getSelfGlobalId ){ 
+            return; 
+        }
+
+        // Will exist in one scenario (when running the old version)
+        if(!("_$getSelfGlobalId$" in component)){
+            // Adds the _$getSelfGlobalId$ to Component prototype
+            try {
+                $A.installOverride("outputComponent", function(){});
+                $A.componentService.getSelfGlobalId = function(component) { 
+                    if (component == null) { 
+                        return null; 
+                    }
+                    if (component._$getSelfGlobalId$) { 
+                        return component._$getSelfGlobalId$(); 
+                    }
+                }
+                $A.componentService.getAttributeExpression = function (component, key) {
+                    if (component !== undefined && $A.util.isComponent(component)) {
+                        var value = component._$getRawValue$(key);
+                        if ($A.util.isExpression(value)) {
+                            return value.toString();
+                        }
+                    }
+                    return null;
+                }
+            } catch(e){}
+        }
+    }
+
+
     static getComponent(componentId, options) {
         var component = $A.util.isComponent(componentId) ? componentId : $A.getComponent(componentId);
         var configuration = Object.assign({
@@ -61,18 +95,11 @@ export default class ComponentSerializer {
                     "__proto__": null // no inherited properties
                 });
             } else {
-                // This api is added by us in an override. If it's not there when we try to serialize a component we'll have issues.
-                // So if its not there, just run the bootstrap code.
-                if(!("_$getSelfGlobalId$" in component)){
-                    // Adds the _$getSelfGlobalId$ to Component prototype
-                    try {
-                        $A.installOverride("outputComponent", function(){});
-                    } catch(e){}
-                }
+                ComponentSerializer.bootStrapInjectedAPI();
                 var isTypeModule = isModule(component);
                 var output = {
                     "descriptor": component.getDef().getDescriptor().toString(),
-                    "globalId": component._$getSelfGlobalId$(),
+                    "globalId": $A.componentService.getSelfGlobalId(component),
                     "rendered": component.isRendered(),
                     "isConcrete": component.isConcrete(),
                     "valid": component.isValid(),
@@ -81,7 +108,7 @@ export default class ComponentSerializer {
                     "__proto__": null, // no inherited properties
                     "elementCount": 0,
                     // TODO: Implement properly or remove.
-                    "rerender_count": 0, //this.getCount(component._$getSelfGlobalId$() + "_rerendered")
+                    "rerender_count": 0, //this.getCount($A.componentService.getSelfGlobalId(component) + "_rerendered")
                     "isModule": isTypeModule
 
                     // Added Later
@@ -122,7 +149,7 @@ export default class ComponentSerializer {
                         attributes.each(function(attributeDef) {
                             var key = attributeDef.getDescriptor().getName();
                             var value;
-                            var rawValue;
+                            var expression;
                             accessCheckFailed = false;
 
                             // BODY
@@ -131,21 +158,18 @@ export default class ComponentSerializer {
                             // the components children.
                             if(key === "body" && !configuration.body) { return; }
                             try {
-                                rawValue = component._$getRawValue$(key);
+                                expression = $A.componentService.getAttributeExpression(component, key)
                                 value = component.get("v." + key);
                             } catch(e) {
                                 value = undefined;
                             }
-
                             if(value === undefined || value === null) {
                                 value = value+"";
                             }
+                            output.attributes[key] = accessCheckFailed ? "[ACCESS CHECK FAILED]" : value;
 
-                            if($A.util.isExpression(rawValue)) {
-                                output.expressions[key] = rawValue+"";
-                                output.attributes[key] = accessCheckFailed ? "[ACCESS CHECK FAILED]" : value;
-                            } else {
-                                output.attributes[key] = rawValue;
+                            if(expression !== null) { 
+                                output.expressions[key] = expression;    
                             }
                         }.bind(this));
                     } catch(e) {
@@ -156,36 +180,46 @@ export default class ComponentSerializer {
                 }
                 // BODY
                 else if(configuration.body) {
-                    var rawValue;
-                    var value;
+                    var expression = [];
+                    var value = [];
+
+                    var supers = [];
+                    var selfAndSupers = [component];
+                    var superComponent = component;
+                    while(superComponent = superComponent.getSuper()) {
+                        selfAndSupers.push(superComponent); 
+                        supers.push($A.componentService.getSelfGlobalId(superComponent));
+                    }
+                    if(supers.length) {
+                        output["supers"] = supers;
+                    }
+
                     try {
-                        rawValue = component._$getRawValue$("body");
-                        value = component.get("v.body");
+                        // globalId or localId or component.id?
+                        expression.push({ 
+                            id: $A.componentService.getSelfGlobalId(component), 
+                            value: $A.componentService.getAttributeExpression(component, key)
+                        })
+                        value = selfAndSupers.map({
+                            id: $A.componentService.getSelfGlobalId(component),  
+                            value: component.get("v.body")
+                        }); 
                     } catch(e) {
                         value = undefined;
                     }
-
                     if(value === undefined || value === null) {
                         value = value+"";
                     }
-                    
-                    if($A.util.isExpression(rawValue)) {
-                        output.expressions["body"] = rawValue+"";
-                        output.attributes["body"] = value;
-                    } else {
-                        output.attributes["body"] = rawValue;
+                    output.attributes[key] = value;
+
+                    if(expression !== null) { 
+                        output.expressions[key] = expression;    
                     }
                 }
 
-                var supers = [];
-                var superComponent = component;
-                while(superComponent = superComponent.getSuper()) {
-                    supers.push(superComponent._$getSelfGlobalId$());
-                }
+                
 
-                if(supers.length) {
-                    output["supers"] = supers;
-                }
+               
 
                 // ELEMENT COUNT
                 // Concrete is the only one with elements really, so doing it at the super
@@ -248,10 +282,10 @@ export default class ComponentSerializer {
 
 /** Serializing Passthrough Values as valueProviders is a bit complex, so we have this helper function to do it. */
 function getValueProvider(valueProvider) {
-    if("_$getSelfGlobalId$" in valueProvider) {
-        return valueProvider._$getSelfGlobalId$();
+    if ($A.componentService.getSelfGlobalId(valueProvider) !== null) { 
+        return $A.componentService.getSelfGlobalId(valueProvider);  
     }
-
+    
     // Probably a passthrough value
     const output = {
         // Can't do providers yet since we don't have a way to get access to them.
@@ -265,7 +299,7 @@ function getValueProvider(valueProvider) {
         let value;
         let keys;
         let provider = valueProvider;
-        while(provider && !("_$getSelfGlobalId$" in provider)) {
+        while(provider && !("getGlobalId" in provider)) {
             keys = provider.getPrimaryProviderKeys();
             for(var c = 0; c<keys.length;c++) {
                 let key = keys[c];
@@ -282,15 +316,15 @@ function getValueProvider(valueProvider) {
             }
             provider = provider.getComponent();
         }
-        if(provider && "_$getSelfGlobalId$" in provider) {
-            output["globalId"] = provider._$getSelfGlobalId$();
+        if(provider && "getGlobalId" in provider) {
+            output["globalId"] = $A.componentService.getSelfGlobalId(provider);
         }
         output["values"] = values;
     } else {
-        while(!("_$getSelfGlobalId$" in valueProvider)) {
+        while(!("getGlobalId" in valueProvider)) {
             valueProvider = valueProvider.getComponent();
         }
-        output["globalId"] = valueProvider._$getSelfGlobalId$();
+        output["globalId"] = $A.componentService.getSelfGlobalId(valueProvider);
     }
 
     return output;

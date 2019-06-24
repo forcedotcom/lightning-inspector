@@ -157,6 +157,7 @@ import UnStrictApis from "./aura/gatherer/unStrictApis.js";
             // This instrument is where we add the methods _$getRawValue$() and _$getSelfGlobalId$() to the
             // component prototype. This allowed us to move to outputing the component from injected code, vs code in the framework.
             // Would be nice to get rid of needing this.
+            // When all of 222 is gone, you can remove this. 
             try {
                 $A.installOverride("outputComponent", function(){});
             } catch(e){}
@@ -524,10 +525,13 @@ import UnStrictApis from "./aura/gatherer/unStrictApis.js";
          * So we also include all the Disconnected components attached to dom elements.
          */
         this.getRootComponents = function() {
+            console.log(ComponentSerializer.getRootComponents());
+            console.log("a")
             return ComponentSerializer.getRootComponents();
         };
 
         this.getComponent = function(componentId, options) {
+            console.log(ComponentSerializer.getComponent(componentId, options));
             return ComponentSerializer.getComponent(componentId, options);
         };
 
