@@ -27036,6 +27036,7 @@ function AuraInspectorComponentTree(devtoolsPanel) {
         }, renderingConfig);
 
         try {
+            console.log('a');
             devtoolsPanel.showLoading();
 
             // TODO: Fix the options stuff.

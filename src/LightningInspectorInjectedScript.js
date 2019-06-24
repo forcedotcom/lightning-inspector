@@ -525,13 +525,10 @@ import UnStrictApis from "./aura/gatherer/unStrictApis.js";
          * So we also include all the Disconnected components attached to dom elements.
          */
         this.getRootComponents = function() {
-            console.log(ComponentSerializer.getRootComponents());
-            console.log("a")
             return ComponentSerializer.getRootComponents();
         };
 
         this.getComponent = function(componentId, options) {
-            console.log(ComponentSerializer.getComponent(componentId, options));
             return ComponentSerializer.getComponent(componentId, options);
         };
 

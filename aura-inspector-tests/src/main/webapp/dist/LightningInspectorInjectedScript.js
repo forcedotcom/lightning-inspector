@@ -639,13 +639,10 @@ function AuraInspector() {
      * So we also include all the Disconnected components attached to dom elements.
      */
     this.getRootComponents = function () {
-        console.log(_ComponentSerializer2.default.getRootComponents());
-        console.log("a");
         return _ComponentSerializer2.default.getRootComponents();
     };
 
     this.getComponent = function (componentId, options) {
-        console.log(_ComponentSerializer2.default.getComponent(componentId, options));
         return _ComponentSerializer2.default.getComponent(componentId, options);
     };
 
@@ -1879,10 +1876,10 @@ class ComponentSerializer {
                                 id: $A.componentService.getSelfGlobalId(component),
                                 value: $A.componentService.getAttributeExpression(component, key)
                             });
-                            value = selfAndSupers.map({
+                            value = selfAndSupers.map(component => ({
                                 id: $A.componentService.getSelfGlobalId(component),
                                 value: component.get("v.body")
-                            });
+                            }));
                         } catch (e) {
                             value = undefined;
                         }

@@ -217,10 +217,6 @@ export default class ComponentSerializer {
                     }
                 }
 
-                
-
-               
-
                 // ELEMENT COUNT
                 // Concrete is the only one with elements really, so doing it at the super
                 // level is duplicate work.

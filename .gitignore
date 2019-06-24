@@ -32,4 +32,9 @@ builds/lightning-inspector-latest.zip
 .web-extension-id
 updates.temp
 updates.json
-aura-inspector-tests/src/main/webapp/dist
+aura-inspector-tests/src/main/webapp/dist/
+aura-inspector-tests/src/main/webapp/dist/LightningInspectorInjectedScript.js
+aura-inspector-tests/src/main/webapp/dist/LightningInspectorInjectedScript.js.map
+aura-inspector-tests/src/main/webapp/dist/viewerPanel.js
+
+aura-inspector-tests/src/main/webapp/dist/viewerPanel.js.map
