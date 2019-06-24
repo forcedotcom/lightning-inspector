@@ -1860,7 +1860,7 @@ class ComponentSerializer {
                 // BODY
                 else if (configuration.body) {
                         var expression = [];
-                        var value = new Map();
+                        var value = [];
 
                         var supers = [];
                         var selfAndSupers = [component];
@@ -1879,7 +1879,10 @@ class ComponentSerializer {
                                 id: $A.componentService.getSelfGlobalId(component),
                                 value: $A.componentService.getAttributeExpression(component, key)
                             });
-                            value = selfAndSupers.map(component => component.id, component.get("v.body"));
+                            value = selfAndSupers.map({
+                                id: $A.componentService.getSelfGlobalId(component),
+                                value: component.get("v.body")
+                            });
                         } catch (e) {
                             value = undefined;
                         }

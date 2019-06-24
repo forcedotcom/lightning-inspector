@@ -200,10 +200,10 @@ export default class ComponentSerializer {
                             id: $A.componentService.getSelfGlobalId(component), 
                             value: $A.componentService.getAttributeExpression(component, key)
                         })
-                        value = selfAndSupers.map({
+                        value = selfAndSupers.map(component => ({
                             id: $A.componentService.getSelfGlobalId(component),  
                             value: component.get("v.body")
-                        }); 
+                        })); 
                     } catch(e) {
                         value = undefined;
                     }
