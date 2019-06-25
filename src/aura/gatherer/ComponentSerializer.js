@@ -44,8 +44,9 @@ export default class ComponentSerializer {
     }
 
     static bootStrapInjectedAPI() { 
-        // This api is added by us in an override. If it's not there when we try to serialize a component we'll have issues.
-        // So if its not there, just run the bootstrap code.
+        // This api is added by us in an override to accomodate the changes made in Aura 
+        // which are changing the _$getSelfGlobalId$ and _$getRawValue$ to $A.componentService.getSelfGlobalId and  $A.componentService.getAttributeExpression 
+        // If the changes to the functions are not there when we try to serialize a component, just run the bootstrap code.
         if( $A.componentService.getSelfGlobalId ){ 
             return; 
         }
@@ -180,8 +181,8 @@ export default class ComponentSerializer {
                 }
                 // BODY
                 else if(configuration.body) {
-                    var expression = [];
-                    var value = [];
+                    var expression = {};
+                    var value;
 
                     var supers = [];
                     var selfAndSupers = [component];
@@ -195,15 +196,13 @@ export default class ComponentSerializer {
                     }
 
                     try {
-                        // globalId or localId or component.id?
-                        expression.push({ 
-                            id: $A.componentService.getSelfGlobalId(component), 
-                            value: $A.componentService.getAttributeExpression(component, key)
-                        })
-                        value = selfAndSupers.map(component => ({
-                            id: $A.componentService.getSelfGlobalId(component),  
-                            value: component.get("v.body")
-                        })); 
+                        expression[$A.componentService.getSelfGlobalId(component)] = 
+                            $A.componentService.getAttributeExpression(component, key);
+
+                        value = selfAndSupers.reduce(function(acc, comp){ 
+                            acc[$A.componentService.getSelfGlobalId(comp)] = comp.get("v.body"); 
+                            return acc; 
+                        }, {}); 
                     } catch(e) {
                         value = undefined;
                     }

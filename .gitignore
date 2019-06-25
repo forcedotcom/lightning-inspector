@@ -34,15 +34,3 @@ updates.temp
 updates.json
 aura-inspector-tests/src/main/webapp/dist/
 
-
-# aura-inspector-tests/src/main/webapp/dist/LightningInspectorInjectedScript.js
-# aura-inspector-tests/src/main/webapp/dist/LightningInspectorInjectedScript.js.map
-# aura-inspector-tests/src/main/webapp/dist/viewerPanel.js
-# aura-inspector-tests/src/main/webapp/dist/viewerPanel.js.map
-# aura-inspector-tests/src/main/webapp/dist/component-outputFunction.js.map
-# aura-inspector-tests/src/main/webapp/dist/contentScript.js
-# aura-inspector-tests/src/main/webapp/dist/contentScript.js.map
-# aura-inspector-tests/src/main/webapp/dist/slds/assets/icons/standard-sprite/svg/symbols.svg
-# aura-inspector-tests/src/main/webapp/dist/slds/assets/icons/utility-sprite/svg/symbols.svg
-# aura-inspector-tests/src/main/webapp/dist/slds/assets/images/einstein-headers/einstein-figure.svg
-# aura-inspector-tests/src/main/webapp/dist/slds/assets/images/einstein-headers/einstein-header-background.svg
