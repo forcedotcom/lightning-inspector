@@ -24,9 +24,8 @@ node_modules
 .tx
 .idea/
 key.pem
-/dist/
-/builds/
-builds/lightning-inspector-latest.zip
+dist/
+builds/
 *.worker.js
 *.log
 .web-extension-id
