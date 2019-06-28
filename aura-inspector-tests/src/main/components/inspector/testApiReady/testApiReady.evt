@@ -1,0 +1,5 @@
+<aura:event 
+    access="GLOBAL" 
+    type="APPLICATION" 
+    description="When the Inspector Test API Is loaded and ready to be used, this event is fired.">
+</aura:event>
