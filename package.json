@@ -7,14 +7,6 @@
   "author": "Kris <kgray@salesforce.com>",
   "license": "MIT",
   "private": true,
-  "jest": {
-    "setupFiles": [
-      "raf/polyfill"
-    ],
-    "transformIgnorePatterns": [
-      "node_modules/?!(react-lds)"
-    ]
-  },
   "scripts": {
     "build": "export NODE_ENV=production; export GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`; yarn build:js;",
     "build:aura": "mvn clean install",
@@ -24,7 +16,7 @@
     "doc": "./node_modules/.bin/esdoc",
     "start": "bin/jetty-run.sh",
     "postinstall": "exit 0; git submodule init; git submodule update;",
-    "test": "jest --watchAll --coverage",
+    "test": "jest",
     "test:prod": "jest --coverage",
     "watch:dashboard": "export NODE_ENV=development; export GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`;  webpack-dashboard -- ./node_modules/grunt/bin/grunt watch",
     "watch": "export NODE_ENV=development; export GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`; ./node_modules/grunt/bin/grunt watch",
@@ -32,6 +24,7 @@
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-methods": "^7.3.0",
+    "@babel/preset-typescript": "^7.3.3",
     "babel-core": "^6.26.3",
     "babel-jest": "^23.0.1",
     "babel-loader": "^7.1.2",
@@ -62,7 +55,7 @@
     "grunt-stripcomments": "^0.7.2",
     "grunt-webpack": "^3.0.2",
     "grunt-zip": "^0.17.1",
-    "jest": "^23.1.0",
+    "jest": "^24.8.0",
     "json-bump": "^0.1.3",
     "json-loader": "^0.5.7",
     "less": "^3.0.4",
