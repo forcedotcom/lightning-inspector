@@ -24,9 +24,8 @@ node_modules
 .tx
 .idea/
 key.pem
-/dist/
-/builds/
-builds/lightning-inspector-latest.zip
+dist/
+builds/
 *.worker.js
 *.log
 .web-extension-id
@@ -34,4 +33,7 @@ updates.temp
 updates.json
 aura-inspector-tests/src/main/webapp/dist/
  
+<<<<<<< HEAD
  
+=======
+>>>>>>> ec030dd1a89136cfb035fe3901cfd196b3025481
