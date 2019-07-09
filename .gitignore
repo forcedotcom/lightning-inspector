@@ -32,4 +32,5 @@ builds/
 updates.temp
 updates.json
 aura-inspector-tests/src/main/webapp/dist/
- 
+coverage/
+
