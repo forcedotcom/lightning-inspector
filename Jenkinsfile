@@ -30,7 +30,7 @@ import net.sfdc.dci.NotifyUtils
 def IS_CARBON = false 
 
 
-env.RELEASE_BRANCHES = ['deploy']
+// env.RELEASE_BRANCHES = ['deploy']
 
 // Parameters for your Jenkins run page
 // Reference as: params.VARIABLE_NAME
