@@ -2,6 +2,33 @@
 // https://jestjs.io/docs/en/configuration.html
 
 module.exports = {
+  // For usage in reports
+  displayName: 'Unit Tests',
+
+  // Defaults for testing LWC with Jest
+  preset: '@lwc/jest-preset',
+
+  // Support writing your tests in Typescript
+  transform: {
+      '^.+\\.tsx?$': 'ts-jest'
+  },
+
+  // References in your module files will need to know where the source
+    // is for those accompanied module files.
+    moduleNameMapper: {
+      '^namespace/(.+)$': '<rootDir>/src/modules/namespace/$1/$1'
+  },
+
+  // For import statements, which extensions should we reference.
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+
+  // Do not run any tests in these directories.
+  testPathIgnorePatterns: ['/node_modules/', '/dist/', '__wdio__/'],
+
+  // Assume any files in these directories have been already compiled
+  // for usage.
+  transformIgnorePatterns: ['.*node_modules/(?!@talon|@salesforce/lwc-jest).*'],
+
   // All imported modules in your tests should be mocked automatically
   // automock: false,
 
@@ -23,13 +50,27 @@ module.exports = {
   // An array of glob patterns indicating a set of files for which coverage information should be collected
   // collectCoverageFrom: null,
 
+  // Which files to include in the Code Coverage Report.
+  collectCoverageFrom: [
+    'src/**/*.ts',
+    'src/**/*.js',
+    'modules/**/*.js',
+
+    // Don't get coverage for wdio tests yet.
+    // '!**/__wdio__/**/*.js'
+],
+
   // The directory where Jest should output its coverage files
-  coverageDirectory: "coverage",
+  // Changed the coverageDirectory to the one in Carbon jest.config.js  
+  coverageDirectory: 'logs/jest-coverage',
+  // coverageDirectory: "coverage",
 
   // An array of regexp pattern strings used to skip coverage collection
-  coveragePathIgnorePatterns: [
-    "/node_modules/"
-  ],
+  // External libraries we don't want to match
+  // This is the default value, so commented out as to not overwrite.
+  // coveragePathIgnorePatterns: [
+  //   "/node_modules/"
+  // ],
   
   // A list of reporter names that Jest uses when writing coverage reports
   // coverageReporters: [
@@ -94,7 +135,31 @@ module.exports = {
   // projects: null,
 
   // Use this configuration option to add custom reporters to Jest
-  // reporters: undefined,
+  // Which types of processors are we going to use for the coverage.
+    // We use jest-junit for processing of the results for pushing to SFCI runs.
+    // Allows us to consolidate our test results and coverage numbers between Java and JavaScript
+    reporters: [
+      'default',
+      [
+          'jest-junit',
+          {
+              suiteName: 'Unit Tests',
+              output: './logs/reports/junit/jest-results.xml'
+          }
+      ],
+      [
+          './node_modules/jest-html-reporter',
+          {
+              pageTitle: 'Carbon Jest Test Report',
+              outputPath: './logs/jest-report/index.html',
+              includeFailureMsg: true,
+              includeConsoleLog: true,
+
+              // Theme options: defaultTheme, lightTheme, darkTheme
+              theme: 'darkTheme'
+          }
+      ]
+  ]
 
   // Automatically reset mock state between every test
   // resetMocks: false,
@@ -182,4 +247,6 @@ module.exports = {
 
   // Whether to use watchman for file crawling
   // watchman: true,
+
+  
 };
