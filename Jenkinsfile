@@ -47,7 +47,7 @@ def buildParameters = {
 }
 
 def envDef = [
-                buildImage: 'ops0-artifactrepo1-0-prd.data.sfdc.net/dci/centos-sfci-nodejs:latest',
+                buildImage: ‘ops0-artifactrepo1-0-prd.data.sfdc.net/dci/sfci-lightning-tools-docker:latest’,                
                 stopSuccessEmail: true
             ]
 
