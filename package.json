@@ -58,6 +58,7 @@
     "grunt-zip": "^0.17.1",
     "jest": "^24.8.0",
     "jest-environment-node": "^24.8.0",
+    "jest-html-reporter": "^2.5.0",
     "jest-junit": "^6.4.0",
     "jest-runner-eslint": "^0.7.4",
     "json-bump": "^0.1.3",
