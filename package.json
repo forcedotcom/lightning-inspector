@@ -7,6 +7,14 @@
   "author": "Kris <kgray@salesforce.com>",
   "license": "MIT",
   "private": true,
+  "jest": {
+    "setupFiles": [
+      "raf/polyfill"
+    ],
+    "transformIgnorePatterns": [
+      "node_modules/?!(react-lds)"
+    ]
+  },
   "scripts": {
     "build": "export NODE_ENV=production; export GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`; yarn build:js;",
     "build:js": "./node_modules/grunt/bin/grunt build",
@@ -21,7 +29,9 @@
     "watch:prod": "export NODE_ENV=production; export GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`;  ./node_modules/grunt/bin/grunt watch"
   },
   "devDependencies": {
+    "@babel/core": "^7.5.4",
     "@babel/plugin-proposal-private-methods": "^7.3.0",
+    "@babel/preset-env": "^7.5.4",
     "@babel/preset-react": "^7.0.0",
     "@babel/preset-typescript": "^7.3.3",
     "@lwc/compiler": "^1.0.0",
@@ -30,7 +40,7 @@
     "@lwc/module-resolver": "^1.0.0",
     "@lwc/synthetic-shadow": "^1.0.0",
     "babel-core": "^6.26.3",
-    "babel-jest": "^23.0.1",
+    "babel-jest": "^24.8.0",
     "babel-loader": "^7.1.2",
     "babel-plugin-lodash": "^3.2.11",
     "babel-plugin-transform-async-to-module-method": "^6.24.1",
@@ -92,6 +102,7 @@
     "fast-deep-equal": "^2.0.1",
     "grunt-strip-json-comments": "^2.2.0",
     "immutable": "^3.8.2",
+    "lodash": "^4.17.14",
     "prettier": "^1.16.0",
     "react": "^16.8.6",
     "react-debounce-render": "^4.0.0",
