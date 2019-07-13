@@ -1,0 +1,21 @@
+ .component-tree { margin: .3em 0 0 1em; padding: 0; font-family: Menlo, monospace; }
+ .component-tree .tree-view li.tree-node-selected > span.tree-view-node {
+   background: rgb(56, 121, 217);
+   color: #fff;
+ }
+ .component-tree .tree-node-selected > span.tree-view-node .component-tagname {
+   color: #fff;
+ }
+ .component-tree .tree-node-selected > span.tree-view-node .component-attribute {
+   color: #9faab5;
+ }
+ 
+ .component-tree .tree-view .auracomponent:hover {
+   background-color: rgba(56, 121, 217, 0.1);
+ }
+ 
+ .component-tree .tree-view li { padding: 0.15em 0 0 0; }
+
+ .componentTreePanel {
+   height: 100%;
+ }

@@ -1,0 +1,183 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`One storage shows 1`] = `
+Array [
+  <menu
+    className="slds-col"
+    type="toolbar"
+  >
+    <li
+      className="slds-p-right_xx-small"
+    >
+      <button
+        className="slds-button  slds-p-around_xx-small"
+        disabled={false}
+        href={null}
+        onClick={[Function]}
+        title="Refresh"
+        value={null}
+      >
+        <svg
+          aria-hidden="true"
+          className="slds-button__icon"
+        >
+          <use
+            xlinkHref="/dist/slds/assets/icons/utility-sprite/svg/symbols.svg#refresh"
+          />
+        </svg>
+      </button>
+    </li>
+    <li
+      className="divider"
+    />
+    <li
+      className="slds-p-left_xx-small slds-p-right_xx-small"
+    >
+      <select
+        className="slds-select"
+      >
+        <option>
+          Select store to destroy
+        </option>
+        <option>
+          --------------------------
+        </option>
+        <option
+          value="__test__"
+        >
+          __test__
+        </option>
+      </select>
+    </li>
+    <li>
+      <button
+        className="slds-button slds-button_destructive"
+        disabled={false}
+        href={null}
+        onClick={[Function]}
+        title="Delete Storage"
+        value={null}
+      >
+        Delete
+      </button>
+    </li>
+  </menu>,
+  <div
+    className="slds-col slds-scrollable_y slds-p-bottom_large inspector-tab-body-content"
+  >
+    <div
+      className="slds-section slds-is-open slds-p-horizontal_x-small"
+    >
+      <h3
+        className="slds-section__title"
+      >
+        <button
+          aria-controls="__test__"
+          aria-expanded={true}
+          className="slds-button  slds-section__title-action"
+          disabled={false}
+          href={null}
+          onClick={[Function]}
+          title={null}
+          value={null}
+        >
+          <svg
+            aria-hidden="true"
+            className="slds-button__icon slds-button__icon_left"
+          >
+            <use
+              xlinkHref="/dist/slds/assets/icons/utility-sprite/svg/symbols.svg#chevrondown"
+            />
+          </svg>
+          <span
+            className="slds-truncate"
+            title="__test__"
+          >
+            __test__
+          </span>
+        </button>
+      </h3>
+      <div
+        aria-hidden={true}
+        className="slds-section__content"
+        id="__test__"
+      >
+        <aurainspector-json
+          expandTo="2"
+        >
+          {"Adapter":"__testname__","sizeEstimate":"2000.0 KB (20% of 10000 KB)","Version":1,"Items":{}}
+        </aurainspector-json>
+      </div>
+    </div>
+  </div>,
+]
+`;
+
+exports[`Snapshot of StoragePanel 1`] = `
+Array [
+  <menu
+    className="slds-col"
+    type="toolbar"
+  >
+    <li
+      className="slds-p-right_xx-small"
+    >
+      <button
+        className="slds-button  slds-p-around_xx-small"
+        disabled={false}
+        href={null}
+        onClick={[Function]}
+        title="Refresh"
+        value={null}
+      >
+        <svg
+          aria-hidden="true"
+          className="slds-button__icon"
+        >
+          <use
+            xlinkHref="/dist/slds/assets/icons/utility-sprite/svg/symbols.svg#refresh"
+          />
+        </svg>
+      </button>
+    </li>
+    <li
+      className="divider"
+    />
+    <li
+      className="slds-p-left_xx-small slds-p-right_xx-small"
+    >
+      <select
+        className="slds-select"
+      >
+        <option>
+          Select store to destroy
+        </option>
+        <option>
+          --------------------------
+        </option>
+      </select>
+    </li>
+    <li>
+      <button
+        className="slds-button slds-button_destructive"
+        disabled={false}
+        href={null}
+        onClick={[Function]}
+        title="Delete Storage"
+        value={null}
+      >
+        Delete
+      </button>
+    </li>
+  </menu>,
+  <div
+    className="slds-col slds-scrollable_y slds-p-bottom_large inspector-tab-body-content"
+  >
+    <div
+      className="slds-box slds-theme_warning slds-m-around_large"
+    >
+      No Aura Storages located on the page
+    </div>
+  </div>,
+]
+`;
