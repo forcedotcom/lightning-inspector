@@ -9,12 +9,10 @@
   "private": true,
   "scripts": {
     "build": "export NODE_ENV=production; export GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`; yarn build:js;",
-    "build:aura": "mvn clean install",
     "build:js": "./node_modules/grunt/bin/grunt build",
     "build:readme": "./node_modules/doctoc/doctoc.js ./*.md",
     "bump": "./bin/bump.js",
     "doc": "./node_modules/.bin/esdoc",
-    "start": "bin/jetty-run.sh",
     "postinstall": "exit 0; git submodule init; git submodule update;",
     "test": "jest",
     "test:prod": "jest --coverage",
