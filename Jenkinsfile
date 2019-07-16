@@ -235,7 +235,7 @@ executePipeline(envDef) {
 
   stage('Deploy') {
     sh "curl --version"
-    // if (env.BRANCH_NAME ==~ /deploy/) {
+    if (env.BRANCH_NAME ==~ /deploy/) {
       
       withCredentials([
         string(credentialsId: 'prod_chrome_client_id', variable: 'CLIENT_ID'),
@@ -268,7 +268,7 @@ executePipeline(envDef) {
         sh "git tag -a deployed-${version} -m \"Build\""
         sh "git push origin deployed-${version}"
       } 
-    // }
+    }
   }
 }
 
