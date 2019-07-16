@@ -1,6 +1,6 @@
 {
   "name": "lightning-inspector",
-  "version": "1.0.9",
+  "version": "1.0.10.0",
   "description": "The Salesforce Lightning Inspector",
   "main": "Gruntfile.js",
   "repository": "git@git.soma.salesforce.com:aura/lightning-inspector.git",
