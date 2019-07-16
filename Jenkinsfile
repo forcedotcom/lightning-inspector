@@ -73,31 +73,6 @@ env.DEFAULT_MAVEN_ARGS = '--batch-mode --lax-checksums --fail-at-end --update-sn
 // Specify as the name of your Slack Channel
 env.SLACK_CHANNEL = "lightning-tools-team";
 
-/**
- * Which NPM Registry are we publishing to?
- * Nexus is our internal registry, anything published here can be utilized internally behind VPN
- * but not by customers.
- */
-def NPM_REGISTRY = '//nexus-proxy-prd.soma.salesforce.com/nexus/content/repositories/npmjs-internal/'
-
-/**
- * Configurations for Pushing to Core
- * More info: https://salesforce.quip.com/3hlSAaags5R4
- */
-// env.GUS_TEAM_NAME = 'Lightning Tooling' // By defining this at the env level, SFCI will publish the code coverage report automatically.
-// def MODULE_NAME = 'ui-carbon-components'
-// def MODULE_PROPERTY_NAME = "${MODULE_NAME}.version" // Which property in the pom to increment.
-// def DEFAULT_SUBMITTER = 'lp_robot' // p4 user to use. Possibly yours, or setup a dummy user.
-// def DEFAULT_REVIEWER = 'kgray' // p4 user to be notified of commits. Pick somebody.
-// def DEFAULT_WORKITEM = 'W-#######' // Must be assigned to the DEFAULT_SUBMITTER
-
-/** 
- * If you have a Heroku instance you would like to Push to as well.
- * You can push your latest branch to heroku.
- */
-// def HEROKU_APP_NAME = "carbon-heroku-app"
-
-
 // We use this latest commit to check for tags to enable certain stages.
 latestCommitMessage = null
 
@@ -184,7 +159,30 @@ executePipeline(envDef) {
                   }
               }
           ])} 
-      stage('JS Code Coverage Reporting') {
+      
+
+        stage('AutoIntegration') {
+            // Generate PRs for commits to patch branches to their parent branches
+            // See .auto-integrate.yaml
+            autoIntegration();
+        }
+        if (BuildUtils.isReleaseBuild(env)) {
+            latestCommitMessage = GitHubUtils.getLatestCommitMessage(this)
+            if (latestCommitMessage.contains('@npm-publish@') || params.NPM_PUBLISH) {
+                stage('Release NPMs') {
+                    publishNPMs()
+                }
+            }
+        }
+    }
+    
+  stage('Run tests') {
+      commitStatusReporter.report('Unit Tests') {
+                        sh 'yarn run test:ci'
+       }
+    }
+
+  stage('JS Code Coverage Reporting') {
           // Publish what Jest outputs
           publishHTML([
               allowMissing: false,
@@ -211,27 +209,6 @@ executePipeline(envDef) {
              */
             CodeCoverageUtils.uploadReportForGusDashboard(this, coverage_config)
         }
-
-        stage('AutoIntegration') {
-            // Generate PRs for commits to patch branches to their parent branches
-            // See .auto-integrate.yaml
-            autoIntegration();
-        }
-        if (BuildUtils.isReleaseBuild(env)) {
-            latestCommitMessage = GitHubUtils.getLatestCommitMessage(this)
-            if (latestCommitMessage.contains('@npm-publish@') || params.NPM_PUBLISH) {
-                stage('Release NPMs') {
-                    publishNPMs()
-                }
-            }
-        }
-    }
-    
-  stage('Run tests') {
-      commitStatusReporter.report('Unit Tests') {
-                        sh 'yarn run test:ci'
-       }
-    }
 
   stage('Deploy') {
     sh "curl --version"

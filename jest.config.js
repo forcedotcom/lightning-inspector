@@ -19,6 +19,19 @@ module.exports = {
    transformIgnorePatterns: ['.*node_modules/(?!@talon|@salesforce/lwc-jest|lodash-es).*'],
 
    reporters: [
-     'default'
-   ]
+     'default', [
+    './node_modules/jest-html-reporter',
+    {
+        pageTitle: 'Carbon Jest Test Report',
+        outputPath: './logs/jest-report/index.html',
+        includeFailureMsg: true,
+        includeConsoleLog: true,
+
+        // Theme options: defaultTheme, lightTheme, darkTheme
+        theme: 'darkTheme'
+    }
+   ]],
+
+   // Where to output the Code Coverage report to.
+   coverageDirectory: 'logs/jest-coverage',
 };  
