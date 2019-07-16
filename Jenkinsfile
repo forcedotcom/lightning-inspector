@@ -159,21 +159,6 @@ executePipeline(envDef) {
                   }
               }
           ])} 
-      
-
-        stage('AutoIntegration') {
-            // Generate PRs for commits to patch branches to their parent branches
-            // See .auto-integrate.yaml
-            autoIntegration();
-        }
-        if (BuildUtils.isReleaseBuild(env)) {
-            latestCommitMessage = GitHubUtils.getLatestCommitMessage(this)
-            if (latestCommitMessage.contains('@npm-publish@') || params.NPM_PUBLISH) {
-                stage('Release NPMs') {
-                    publishNPMs()
-                }
-            }
-        }
     }
     
   stage('Run tests') {
