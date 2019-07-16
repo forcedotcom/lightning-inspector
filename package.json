@@ -23,7 +23,7 @@
     "doc": "./node_modules/.bin/esdoc",
     "postinstall": "exit 0; git submodule init; git submodule update;",
     "test": "jest",
-    "test:prod": "jest --coverage",
+    "test:ci": "jest --coverage --runInBand",
     "watch:dashboard": "export NODE_ENV=development; export GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`;  webpack-dashboard -- ./node_modules/grunt/bin/grunt watch",
     "watch": "export NODE_ENV=development; export GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`; ./node_modules/grunt/bin/grunt watch",
     "watch:prod": "export NODE_ENV=production; export GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`;  ./node_modules/grunt/bin/grunt watch"
