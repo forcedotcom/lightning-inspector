@@ -5,6 +5,7 @@ const DashboardPlugin = require("webpack-dashboard/plugin");
 const FileManagerPlugin = require("filemanager-webpack-plugin");
  
 module.exports = {
+        mode: 'development',
         entry: {
           "contentScript": [
             './src/contentScript.js',
@@ -73,6 +74,7 @@ module.exports = {
           path: path.resolve(__dirname, 'dist')
         },
         node: {
+          fs: 'empty',
           global: true,
           process: false,
           Buffer: false,
