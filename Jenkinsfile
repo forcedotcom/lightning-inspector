@@ -30,7 +30,7 @@ import net.sfdc.dci.NotifyUtils
 def IS_CARBON = false 
 
 
-env.RELEASE_BRANCHES = ['deploy']
+// env.RELEASE_BRANCHES = ['deploy']
 
 // Parameters for your Jenkins run page
 // Reference as: params.VARIABLE_NAME
@@ -47,7 +47,7 @@ def buildParameters = {
 }
 
 def envDef = [
-                buildImage: 'ops0-artifactrepo1-0-prd.data.sfdc.net/dci/centos-sfci-nodejs:latest',
+                buildImage: ‘ops0-artifactrepo1-0-prd.data.sfdc.net/dci/sfci-lightning-tools-docker:latest’,                
                 stopSuccessEmail: true
             ]
 

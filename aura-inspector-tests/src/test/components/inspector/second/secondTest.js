@@ -1,5 +1,0 @@
-({
-    testNothing: {
-        test: function(cmp) {}
-    }
-})

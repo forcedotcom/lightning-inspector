@@ -1,7 +1,0 @@
-<aura:event type="APPLICATION" description="customAppEvent clone">
-    <aura:attribute name="attribute1" type="String"/>
-    <aura:attribute name="attribute2" type="String"/>
-    <aura:attribute name="attribute3" type="String"/>
-    <aura:attribute name="attribute4" type="String"/>
-    <aura:attribute name="attribute5" type="String"/>
-</aura:event>
