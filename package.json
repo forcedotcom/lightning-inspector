@@ -7,14 +7,6 @@
   "author": "Kris <kgray@salesforce.com>",
   "license": "MIT",
   "private": true,
-  "jest": {
-    "setupFiles": [
-      "raf/polyfill"
-    ],
-    "transformIgnorePatterns": [
-      "node_modules/?!(react-lds)"
-    ]
-  },
   "scripts": {
     "build": "export NODE_ENV=production; export GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`; yarn build:js;",
     "build:js": "./node_modules/grunt/bin/grunt build",

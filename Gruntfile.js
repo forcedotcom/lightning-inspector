@@ -48,7 +48,7 @@ module.exports = function(grunt) {
               "_locales/**",
               "manifest.json"
             ],
-            dest: "builds/<%=buildVersion%>/"
+            dest: "builds/"
           }
         ]
       }
@@ -58,12 +58,8 @@ module.exports = function(grunt) {
       build: {
         files: [
           {
-            src: "builds/latest/manifest.json",
-            dest: "builds/latest/manifest.json"
-          },
-          {
-            src: "builds/<%=buildVersion%>/manifest.json",
-            dest: "builds/<%=buildVersion%>/manifest.json"
+            src: "builds/manifest.json",
+            dest: "builds/manifest.json"
           }
         ]
       }
@@ -71,8 +67,8 @@ module.exports = function(grunt) {
 
     zip: {
       build: {
-        cwd: "builds/<%=buildVersion%>",
-        src: ["builds/<%=buildVersion%>/**"],
+        cwd: "builds/",
+        src: ["builds/**"],
         dest: "builds/lightning-inspector-<%=buildVersion%>.zip"
       }
     }
@@ -96,9 +92,7 @@ module.exports = function(grunt) {
    */
   grunt.registerTask("clean_manifest", "Process Manifest.json", function() {
     const path =
-      "builds/" +
-      (grunt.option("version") || grunt.option("current_version") || "latest") +
-      "/manifest.json";
+      "builds/manifest.json";
     const manifest = grunt.file.readJSON(path);
 
     // Future Runs should be able to use...
@@ -108,33 +102,6 @@ module.exports = function(grunt) {
     delete manifest["key"];
 
     grunt.file.write(path, JSON.stringify(manifest));
-  });
-
-  /**
-   * Once we've copied the "latest" build, lets copy the specific version number too.
-   * The "current_version" is set when we clean the manifest in buildLastestVersion.
-   * You should also be able to specify the build number after the task name like, buildSpecificVersion:X.X.X.X.
-   */
-  grunt.registerTask("buildSpecificVersion", function(buildVersion) {
-    const version = buildVersion || grunt.option("current_version");
-
-    grunt.log.writeln("Building Inspector Version: " + version);
-
-    // We don't want to do anything in this case.
-    if (version === "" || version === null || version === "latest") {
-      grunt.log.error("Invalid inspector version specified. (" + version + ")");
-      return;
-    }
-
-    grunt.config.set("buildVersion", version);
-
-    /* 
-         * Run for a specific version.
-         *  - Copy everything to the build specific folder /builds/[version]
-         *  - Strip all the json comments from manifest.json (its not valid and chrome won't allow it in prod builds of the inspector)
-         *  - Remove the dev only "key" property from the manifest. 
-         */
-    grunt.task.run(["copy:build", "stripJsonComments:build", "clean_manifest"]);
   });
 
   /**

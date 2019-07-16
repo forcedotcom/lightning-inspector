@@ -1,9 +1,5 @@
 import LabelData from "../../../_locales/en/messages.json";
 
-const PUBLISH_KEY = "AuraInspector:publish";
-const PUBLISH_BATCH_KEY = "AuraInspector:publishbatch";
-const BOOTSTRAP_KEY = "AuraInspector:bootstrap";
-
 /**
  * Interact with the Browser Extensions API
  * Abstracted so we can normalize browser API differences in the WebExtensions protocol and chrome.
