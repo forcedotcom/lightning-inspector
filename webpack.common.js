@@ -73,6 +73,7 @@ module.exports = {
           path: path.resolve(__dirname, 'dist')
         },
         node: {
+          fs: 'empty',
           global: true,
           process: false,
           Buffer: false,
@@ -87,17 +88,8 @@ module.exports = {
             { from: 'node_modules/@salesforce-ux/design-system/assets/icons', to: 'slds/assets/icons'},
             { from: 'node_modules/@salesforce-ux/design-system/assets/images', to: 'slds/assets/images'},
             { from: 'node_modules/@salesforce-ux/design-system/assets/styles/salesforce-lightning-design-system.min.css', to:'slds/assets/styles/salesforce-lightning-design-system.min.css'}
-          ]),
-          new DashboardPlugin(),
-          // Copy to the testing directory for the local server
-          // this way each change during yarn watch will cause the files to be updated for the aura server.
-          new FileManagerPlugin({
-            onEnd: {
-              copy: [
-                { source: "dist", destination: "aura-inspector-tests/src/main/webapp/dist" }
-              ]
-            }
-          })
+          ])
+
         ],
         context: __dirname,
         module: {

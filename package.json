@@ -1,12 +1,20 @@
 {
   "name": "lightning-inspector",
-  "version": "1.0.9",
+  "version": "1.0.10.0",
   "description": "The Salesforce Lightning Inspector",
   "main": "Gruntfile.js",
   "repository": "git@git.soma.salesforce.com:aura/lightning-inspector.git",
   "author": "Kris <kgray@salesforce.com>",
   "license": "MIT",
   "private": true,
+  "jest": {
+    "setupFiles": [
+      "raf/polyfill"
+    ],
+    "transformIgnorePatterns": [
+      "node_modules/?!(react-lds)"
+    ]
+  },
   "scripts": {
     "build": "export NODE_ENV=production; export GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`; yarn build:js;",
     "build:js": "./node_modules/grunt/bin/grunt build",
@@ -15,16 +23,24 @@
     "doc": "./node_modules/.bin/esdoc",
     "postinstall": "exit 0; git submodule init; git submodule update;",
     "test": "jest",
-    "test:prod": "jest --coverage",
+    "test:ci": "jest --coverage --runInBand",
     "watch:dashboard": "export NODE_ENV=development; export GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`;  webpack-dashboard -- ./node_modules/grunt/bin/grunt watch",
     "watch": "export NODE_ENV=development; export GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`; ./node_modules/grunt/bin/grunt watch",
     "watch:prod": "export NODE_ENV=production; export GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`;  ./node_modules/grunt/bin/grunt watch"
   },
   "devDependencies": {
+    "@babel/core": "^7.5.4",
     "@babel/plugin-proposal-private-methods": "^7.3.0",
+    "@babel/preset-env": "^7.5.4",
+    "@babel/preset-react": "^7.0.0",
     "@babel/preset-typescript": "^7.3.3",
+    "@lwc/compiler": "^1.0.0",
+    "@lwc/engine": "^1.0.0",
+    "@lwc/jest-preset": "^1.0.0",
+    "@lwc/module-resolver": "^1.0.0",
+    "@lwc/synthetic-shadow": "^1.0.0",
     "babel-core": "^6.26.3",
-    "babel-jest": "^23.0.1",
+    "babel-jest": "^24.8.0",
     "babel-loader": "^7.1.2",
     "babel-plugin-lodash": "^3.2.11",
     "babel-plugin-transform-async-to-module-method": "^6.24.1",
@@ -54,6 +70,10 @@
     "grunt-webpack": "^3.0.2",
     "grunt-zip": "^0.17.1",
     "jest": "^24.8.0",
+    "jest-environment-node": "^24.8.0",
+    "jest-html-reporter": "^2.5.0",
+    "jest-junit": "^6.4.0",
+    "jest-runner-eslint": "^0.7.4",
     "json-bump": "^0.1.3",
     "json-loader": "^0.5.7",
     "less": "^3.0.4",
@@ -77,13 +97,16 @@
   "dependencies": {
     "@salesforce-ux/design-system": "^2.7.0",
     "@salesforce/design-system-react": "^0.8.16",
+    "@types/react": "^16.8.23",
+    "@types/react-dom": "^16.8.4",
     "fast-deep-equal": "^2.0.1",
     "grunt-strip-json-comments": "^2.2.0",
     "immutable": "^3.8.2",
+    "lodash": "^4.17.14",
     "prettier": "^1.16.0",
-    "react": "^16.2.0",
+    "react": "^16.8.6",
     "react-debounce-render": "^4.0.0",
-    "react-dom": "^16.2.0",
+    "react-dom": "^16.8.6",
     "react-json-tree": "^0.11.0",
     "react-lds": "^7.1.0",
     "react-split-pane": "^0.1.77",

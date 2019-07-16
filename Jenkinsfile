@@ -47,7 +47,7 @@ def buildParameters = {
 }
 
 def envDef = [
-                buildImage: ‘ops0-artifactrepo1-0-prd.data.sfdc.net/dci/sfci-lightning-tools-docker:latest’,                
+                buildImage: 'ops0-artifactrepo1-0-prd.data.sfdc.net/dci/sfci-lightning-tools-docker:latest',                
                 stopSuccessEmail: true
             ]
 
@@ -72,31 +72,6 @@ env.DEFAULT_MAVEN_ARGS = '--batch-mode --lax-checksums --fail-at-end --update-sn
 // Used currently for reporting the submission of Jars to Precheckin.
 // Specify as the name of your Slack Channel
 env.SLACK_CHANNEL = "lightning-tools-team";
-
-/**
- * Which NPM Registry are we publishing to?
- * Nexus is our internal registry, anything published here can be utilized internally behind VPN
- * but not by customers.
- */
-def NPM_REGISTRY = '//nexus-proxy-prd.soma.salesforce.com/nexus/content/repositories/npmjs-internal/'
-
-/**
- * Configurations for Pushing to Core
- * More info: https://salesforce.quip.com/3hlSAaags5R4
- */
-// env.GUS_TEAM_NAME = 'Lightning Tooling' // By defining this at the env level, SFCI will publish the code coverage report automatically.
-// def MODULE_NAME = 'ui-carbon-components'
-// def MODULE_PROPERTY_NAME = "${MODULE_NAME}.version" // Which property in the pom to increment.
-// def DEFAULT_SUBMITTER = 'lp_robot' // p4 user to use. Possibly yours, or setup a dummy user.
-// def DEFAULT_REVIEWER = 'kgray' // p4 user to be notified of commits. Pick somebody.
-// def DEFAULT_WORKITEM = 'W-#######' // Must be assigned to the DEFAULT_SUBMITTER
-
-/** 
- * If you have a Heroku instance you would like to Push to as well.
- * You can push your latest branch to heroku.
- */
-// def HEROKU_APP_NAME = "carbon-heroku-app"
-
 
 // We use this latest commit to check for tags to enable certain stages.
 latestCommitMessage = null
@@ -184,7 +159,30 @@ executePipeline(envDef) {
                   }
               }
           ])} 
-      stage('JS Code Coverage Reporting') {
+      
+
+        stage('AutoIntegration') {
+            // Generate PRs for commits to patch branches to their parent branches
+            // See .auto-integrate.yaml
+            autoIntegration();
+        }
+        if (BuildUtils.isReleaseBuild(env)) {
+            latestCommitMessage = GitHubUtils.getLatestCommitMessage(this)
+            if (latestCommitMessage.contains('@npm-publish@') || params.NPM_PUBLISH) {
+                stage('Release NPMs') {
+                    publishNPMs()
+                }
+            }
+        }
+    }
+    
+  stage('Run tests') {
+      commitStatusReporter.report('Unit Tests') {
+                        sh 'yarn run test:ci'
+       }
+    }
+
+  stage('JS Code Coverage Reporting') {
           // Publish what Jest outputs
           publishHTML([
               allowMissing: false,
@@ -212,185 +210,9 @@ executePipeline(envDef) {
             CodeCoverageUtils.uploadReportForGusDashboard(this, coverage_config)
         }
 
-        stage('AutoIntegration') {
-            // Generate PRs for commits to patch branches to their parent branches
-            // See .auto-integrate.yaml
-            autoIntegration();
-        }
-        if (BuildUtils.isReleaseBuild(env)) {
-            latestCommitMessage = GitHubUtils.getLatestCommitMessage(this)
-            if (latestCommitMessage.contains('@npm-publish@') || params.NPM_PUBLISH) {
-                stage('Release NPMs') {
-                    publishNPMs()
-                }
-            }
-        }
-    }
-
-    stage('Maven') {
-        stage('Initialize') {
-            mavenInit([staging_profile_id: STAGING_PROFILE_ID])
-        }
-
-        // If this is a release build, we can stage and release the artifacts.
-        if (BuildUtils.isPullRequestBuild(env) || BuildUtils.isReleaseBuild(env)) {
-            stage('Build') {
-                commitStatusReporter.report('Maven Build') {
-                    mavenVersionsSet([managed : true])
-
-                    // from ui-b2b
-                    // Pre-compile LWC and Aura Components. NOTE: precompilation tooling doesn't support Aura .design files at the moment.
-                    //withEnv(["PRECOMPILE_LWC_COMPONENTS=true"]) {
-                        //mavenBuildWithCodeCoverage([maven_args: ''])
-                        mavenBuild();
-
-                        // Process the code coverage reports generated in the "Maven tests" stage.
-                        // junit "**/target/surefire-reports/*.xml"
-                    //}
-                }
-            }
-            if (BuildUtils.isReleaseBuild(env)) {
-                // Capture the triggering commit message (which contains things like the work item and description) before the release process makes any new commits.
-                latestCommitMessage = GitHubUtils.getLatestCommitMessage(this)
-                stage('Stage Artifacts') {
-                    commitStatusReporter.report('Artifact Staging') {
-                        //withEnv(["PRECOMPILE_LWC_COMPONENTS=true"]) {
-                            mavenVersionsSet([managed : true])
-
-                            mavenBuild()
-
-                            // Push Jar to Nexus
-                            if (!IS_CARBON) {
-                                mavenStageArtifacts([staging_profile_id : STAGING_PROFILE_ID])
-                            }
-                        //}
-                    }
-                }
-
-                stage('Release') {
-                    commitStatusReporter.report('Artifact Promotion to Release') {
-                        if (!IS_CARBON) {
-                            mavenPromoteArtifacts()
-                        }
-                    }
-                }
-
-                /**
-                 * Git2gus step scans all the commits between the current time and the time 
-                 * when it was last run successfully. And for all those commits which contains 
-                 * at-mention of GUS work item (@W-123456) in their commit messages, it creates 
-                 * “Change Lists” objects for the corresponding GUS work items.
-                 * More information: https://salesforce.quip.com/A7RBA2kk3b74
-                 */
-                stage('GUS Compliance'){
-                    git2gus()
-                }
-
-                /**
-                * Pushes a Jar to core for each commit  unless 
-                * you specify @skip-core@ in the commit message.
-                */
-                stage('Update Core Version') {
-                    // Do not run this stage as part of Carbon.
-                    // ui-carbon-components is not a real module so we don't want to check it into core.
-                    // Remove the return statement for your own project.
-                    if(IS_CARBON) {
-                        return;
-                    }
-                    
-                    latestCommitMessage = GitHubUtils.getLatestCommitMessage(this)
-                    if (!latestCommitMessage.contains('@skip-core@')) {
-                        def releaseVersion = env.RELEASE_VERSION ?: env.ARTIFACT_VERSION
-                        def gitCommitUrl = "https://git.soma.salesforce.com/${BuildUtils.getOwner(this)}/${BuildUtils.getRepo(this)}/commit/${BuildUtils.getLatestCommitSha(this)}"
-
-                        def p4CLDescription =
-                        "[SFCI] Module update ${MODULE_PROPERTY_NAME}=${releaseVersion}\n" +
-                        "git-commit-link: ${gitCommitUrl}\n" +
-                        "@${DEFAULT_WORKITEM}\n" +
-                        "@rev ${DEFAULT_REVIEWER}@" +
-                        "@nomerge@\n" +
-                        "@testfix@"
-
-                        echo "== p4CLDescription: ${p4CLDescription} =="
-
-                        //If you use SFCI maven release methods, the pipeline is aware of your release version.
-                        def config = [
-                            modules:[
-                                "${MODULE_NAME}":[ // module name
-                                    properties_name: MODULE_PROPERTY_NAME // maven_property_on_core_pom
-                                ]
-                            ],
-                            //If you want to specify the same CL author for all submissions
-                            p4Username: DEFAULT_SUBMITTER,
-                            p4CLDescription: p4CLDescription,
-                            submitToCore: true,
-                            gitP4BranchMappingFilePath: '.sfci/git-perforce-branch-mapping.yaml'
-                        ]
-
-                        try {
-                            commitStatusReporter.report('Update Core Version') {
-                                submitArtifactToPrecheckin(config)
-                                
-                                NotifyUtils.notifySlack(this, "slack", env.SLACK_CHANNEL, "Submitted to precheckin: \n ${p4CLDescription}")
-                            }
-                        }
-                        catch (precheckinError) {
-                            echo "[ERROR] Unable to update the version of ui-carbon-components used by Core due to an error: ${precheckinError.getMessage()}"
-                        }
-                    }
-                    else {
-                        echo "Skipping Core Version Update"
-                    }
-                }
-            }
-        } else {
-            mavenBuildWithCodeCoverage([maven_args: ''])
-
-            // Process the code coverage reports generated in the "Maven tests" stage.
-            junit "**/target/surefire-reports/*.xml"
-        }
-    }
-
-    if (BuildUtils.isReleaseBuild(env)) {
-        stage("Deploy") {
-            // Not currently Enabled, but this is how
-            // you would deploy the latest branch to Heroku
-            // Remove the return for your own deployment.
-            if (IS_CARBON) {
-                return;
-            }
-
-            env.HTTPS_PROXY = "http://public0-proxy1-0-prd.data.sfdc.net:8080"
-            env.HTTP_PROXY = "http://public0-proxy1-0-prd.data.sfdc.net:8080"
-
-            withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: "heroku", usernameVariable: 'HEROKU_USERNAME', passwordVariable: 'HEROKU_PASSWORD']]) {
-                    sh "touch ~/.netrc"
-                    sh "echo 'machine api.heroku.com' >> ~/.netrc"
-                    sh "echo '  login ${HEROKU_USERNAME}' >> ~/.netrc"
-                    sh "echo '  password ${HEROKU_PASSWORD}' >> ~/.netrc"
-                }
-            // sh "heroku whoami"
-            // sh "cat .m2/settings.xml"
-            setupEnv(env);
-            if(vars.GIT_BRANCH == "master") {
-                // -pl : specifies which project to run this command in.
-                // mavenBuild([maven_goals: 'heroku:deploy', maven_args: "-pl ui-lightning-docs-web -Dheroku.appName=${HEROKU_APP_NAME}"]);
-                mavenBuild([maven_goals: 'heroku:deploy', maven_args: "-Dheroku.appName=${HEROKU_APP_NAME}"]);
-            }
-        }
-    }
-
-
-  stage('Run tests') {
-      def pwd = sh(script: 'pwd', returnStdout:true).trim();
-      echo pwd
-      runTests("test:prod", vars);
-      archiveArtifacts artifacts: 'tests/logs/*.log'
-    }
-
   stage('Deploy') {
     sh "curl --version"
-    // if (env.BRANCH_NAME ==~ /deploy/) {
+    if (env.BRANCH_NAME ==~ /deploy/) {
       
       withCredentials([
         string(credentialsId: 'prod_chrome_client_id', variable: 'CLIENT_ID'),
@@ -423,7 +245,7 @@ executePipeline(envDef) {
         sh "git tag -a deployed-${version} -m \"Build\""
         sh "git push origin deployed-${version}"
       } 
-    // }
+    }
   }
 }
 

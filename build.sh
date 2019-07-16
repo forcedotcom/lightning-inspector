@@ -13,7 +13,7 @@ fi
 
 cwd=`pwd`
 filename=`basename $cwd`
-builddir=$cwd/build
+builddir=$cwd
 ctx=$builddir/lightning-inspector.ctx
 staging=$builddir/lightning-inspector
 
