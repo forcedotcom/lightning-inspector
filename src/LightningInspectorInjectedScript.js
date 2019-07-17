@@ -891,6 +891,28 @@ function bootstrapCounters() {
     // });
 }
 
+function bootstrapTransactionReporting() {
+    $A.metricsService.enablePlugins();
+
+    $A.metricsService.transactionStart("AuraInspector", "transactionstab");
+
+    $A.metricsService.onTransactionEnd(function(transaction){
+        setTimeout(() => {
+            $Aura.Inspector.publish("AuraInspector:OnTransactionEnd", transaction);
+        }, 0);
+    });
+
+    $A.metricsService.onTransactionsKilled(function(transactions){
+        if(transactions) {
+            for(var c=0;c<transactions.length;c++) {
+                if(transactions[c].id === "AuraInspector:transactionstab") {
+                    $A.metricsService.transactionStart("AuraInspector", "transactionstab");
+                }
+            }
+        }
+    });
+}
+
 function bootstrapEventInstrumentation() {
 
     $A.installOverride("Event.fire", UnStrictApis.OnEventFire.bind($Aura, output));
