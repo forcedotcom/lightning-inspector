@@ -18,7 +18,8 @@
     "test:ci": "jest --coverage --runInBand",
     "watch:dashboard": "export NODE_ENV=development; export GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`;  webpack-dashboard -- ./node_modules/grunt/bin/grunt watch",
     "watch": "export NODE_ENV=development; export GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`; ./node_modules/grunt/bin/grunt watch",
-    "watch:prod": "export NODE_ENV=production; export GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`;  ./node_modules/grunt/bin/grunt watch"
+    "watch:prod": "export NODE_ENV=production; export GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`;  ./node_modules/grunt/bin/grunt watch",
+    "format": "prettier --write '{docs,src,stylesheets-previewer}/**/*.{js,ts,json,md}'"
   },
   "devDependencies": {
     "@babel/core": "^7.5.4",
@@ -52,6 +53,8 @@
     "esdoc": "^1.0.4",
     "esdoc-jsx-plugin": "^1.0.0",
     "esdoc-standard-plugin": "^1.0.0",
+    "eslint-config-prettier": "^4.3.0",
+    "eslint-plugin-prettier": "^3.1.0",
     "file-loader": "^1.1.5",
     "filemanager-webpack-plugin": "^1.0.26",
     "grunt": "^1.0.1",
@@ -95,7 +98,7 @@
     "grunt-strip-json-comments": "^2.2.0",
     "immutable": "^3.8.2",
     "lodash": "^4.17.14",
-    "prettier": "^1.16.0",
+    "prettier": "^1.18.2",
     "react": "^16.8.6",
     "react-debounce-render": "^4.0.0",
     "react-dom": "^16.8.6",
@@ -105,4 +108,4 @@
     "react-virtualized": "^9.16.1",
     "scroll-into-view-if-needed": "^2.2.4"
   }
-}
+} 

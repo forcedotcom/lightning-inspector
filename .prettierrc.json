@@ -1,7 +1,13 @@
 {
-  "useTabs": false,
   "tabWidth": 4,
   "singleQuote": true,
   "trailingComma": "none",
-  "printWidth": 80
+  "printWidth": 100,
+  "htmlWhitespaceSensitivity": "ignore",
+  "overrides": [
+    {
+      "files": "*.html",
+      "options": { "parser": "lwc" }
+    }
+  ]
 }
