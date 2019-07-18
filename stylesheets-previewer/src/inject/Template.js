@@ -1,5 +1,4 @@
-
-const URL_TEMPLATE = "stylesheets-previewer/src/template/template.html";
+const URL_TEMPLATE = 'stylesheets-previewer/src/template/template.html';
 
 export default class Template {
     static templates = null;
@@ -9,11 +8,15 @@ export default class Template {
      */
     constructor(templateId) {
         if (!Template.templates) {
-            throw new Error('No templates defined. Call await fetchTemplates() before creating any Template objects.');
+            throw new Error(
+                'No templates defined. Call await fetchTemplates() before creating any Template objects.'
+            );
         }
 
         if (!Template.templates.hasOwnProperty(templateId)) {
-            throw new Error(`No template of id '${tempalteId}' defined. Check template.html to ensure you have the correct id.`);
+            throw new Error(
+                `No template of id '${tempalteId}' defined. Check template.html to ensure you have the correct id.`
+            );
         }
 
         this._templateHtml = Template.templates[templateId];
@@ -54,37 +57,32 @@ export default class Template {
                 const wrapper = document.createElement('div');
                 wrapper.innerHTML = response;
 
-                const $templates = wrapper.querySelectorAll("template");
+                const $templates = wrapper.querySelectorAll('template');
                 const templates = {};
 
-                Array.from($templates).forEach(function (template) {
+                Array.from($templates).forEach(function(template) {
                     templates[template.id] = template.innerHTML.trim();
                 });
 
                 Template.templates = templates;
-                
-                return templates;
-            })
-    }
-}
 
+                return templates;
+            });
+    };
+}
 
 /**
-* supplant() does variable substitution on the string. It scans through the string looking for 
-* expressions enclosed in {{}} braces. If an expression is found, use it as a key on the object, 
-* and if the key has a string value or number value, it is substituted for the bracket expression 
-* and it repeats.
-*
-* Written by Douglas Crockford
-* http://www.crockford.com/
-*/
-const supplant = function (string, values) {
-    return string.replace(
-        /{{([^{}]*)}}/g, 
-        function (a, b) {
-            var r = values[b];
-            return typeof r === 'string' || typeof r === 'number' ? r : a;
-        }
-    );
-}
-
+ * supplant() does variable substitution on the string. It scans through the string looking for
+ * expressions enclosed in {{}} braces. If an expression is found, use it as a key on the object,
+ * and if the key has a string value or number value, it is substituted for the bracket expression
+ * and it repeats.
+ *
+ * Written by Douglas Crockford
+ * http://www.crockford.com/
+ */
+const supplant = function(string, values) {
+    return string.replace(/{{([^{}]*)}}/g, function(a, b) {
+        var r = values[b];
+        return typeof r === 'string' || typeof r === 'number' ? r : a;
+    });
+};

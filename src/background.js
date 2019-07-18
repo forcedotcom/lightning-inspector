@@ -17,38 +17,43 @@ function AuraInspectorBackgroundPage() {
     var labels;
     // List of inspectors we want to pair with.
     const EXTERNAL_INSPECTOR_EXTENSION_IDS = {
-        "hmoenmfdbkbjcpiibpfakppdpahlfnpo": true, // Dev Sfdc Inspector,
-        "mmhofgmpfhjnekcfjelmdkjogjildhji": true // Chrome Webstore Sfdc Inspector
+        hmoenmfdbkbjcpiibpfakppdpahlfnpo: true, // Dev Sfdc Inspector,
+        mmhofgmpfhjnekcfjelmdkjogjildhji: true // Chrome Webstore Sfdc Inspector
     };
 
-    const BACKGROUND_KEY = "BackgroundPage:publish";
+    const BACKGROUND_KEY = 'BackgroundPage:publish';
 
     this.init = function() {
         labels = {
-            "devtoolsNotif": chrome.i18n.getMessage("open_devtools_notif")
+            devtoolsNotif: chrome.i18n.getMessage('open_devtools_notif')
         };
 
         chrome.runtime.onConnect.addListener(BackgroundPage_OnConnect.bind(this));
         chrome.runtime.onConnectExternal.addListener(BackgroundPage_OnConnectExternal.bind(this));
         chrome.runtime.onMessageExternal.addListener(BackgroundPage_OnMessageExternal.bind(this));
 
-
         // Consider tying this into the injected set, so we add the context to injected tabs.
         // Might just need to change the documentUrlPatterns in that case.
         chrome.contextMenus.create({
-            title: "Inspect Lightning Component",
-            contexts:["all"],
+            title: 'Inspect Lightning Component',
+            contexts: ['all'],
             onclick: BackgroundPage_OnContextClick.bind(this)
 
-            // Commented out the filter since most pages don't have .app in them anymore. 
+            // Commented out the filter since most pages don't have .app in them anymore.
             // Consider moving this into onConnect, and using the href of the page as the documentUrlPattern
             // ,documentUrlPatterns: ["*://*/*cmp*", "*://*/*app*"]
         });
 
         // Add the external panels to the tabInfo collection.
-        this.subscribe("BackgroundPage:OnExternalMapToConnection", BackgroundPage_OnExternalMapToConnection.bind(this));
-        this.subscribe("BackgroundPage:OpenTab", BackgroundPage_OnOpenTab.bind(this));
-        this.subscribe("BackgroundPage:InjectContentScript", BackgroundPage_OnInjectContentScript.bind(this));
+        this.subscribe(
+            'BackgroundPage:OnExternalMapToConnection',
+            BackgroundPage_OnExternalMapToConnection.bind(this)
+        );
+        this.subscribe('BackgroundPage:OpenTab', BackgroundPage_OnOpenTab.bind(this));
+        this.subscribe(
+            'BackgroundPage:InjectContentScript',
+            BackgroundPage_OnInjectContentScript.bind(this)
+        );
     };
 
     /**
@@ -58,7 +63,9 @@ function AuraInspectorBackgroundPage() {
      * @param  {Object} data any type of data to pass to the subscribe method.
      */
     this.publish = function(key, data) {
-        if(!key) { return; }
+        if (!key) {
+            return;
+        }
 
         callBackgroundPageSubscribers(key, [data]);
     };
@@ -70,7 +77,7 @@ function AuraInspectorBackgroundPage() {
      * @param  {Function} callback function to be executed when the message is published.
      */
     this.subscribe = function(key, callback) {
-        if(!_subscribers.has(key)) {
+        if (!_subscribers.has(key)) {
             _subscribers.set(key, []);
         }
 
@@ -79,82 +86,76 @@ function AuraInspectorBackgroundPage() {
 
     function BackgroundPage_OnExternalMapToConnection(tabId, sender) {
         const externalPort = external.get(sender.frameId);
-        if(externalPort) {
+        if (externalPort) {
             // This is the first one
-            if(TabInfo.count() === 0) {
+            if (TabInfo.count() === 0) {
                 chrome.tabs.onUpdated.addListener(BackgroundPage_OnTabUpdated);
             }
 
             const tabInfo = TabInfo.create(tabId);
             tabInfo.addPanel(externalPort);
-            external.delete(sender.frameId);      
+            external.delete(sender.frameId);
 
-            externalPort.tabId = tabId;              
+            externalPort.tabId = tabId;
         }
     }
 
     function BackgroundPage_OnOpenTab(url, sender) {
-        chrome.tabs.create({"url": url});
+        chrome.tabs.create({ url: url });
     }
 
     function BackgroundPage_OnInjectContentScript(tabId, sender) {
-        chrome.tabs.executeScript(tabId, { file: "dist/contentScript.js" });
+        chrome.tabs.executeScript(tabId, { file: 'dist/contentScript.js' });
     }
 
     function BackgroundPage_OnConnect(port) {
         // It is possible for some reason to not have a tab object from devToolPanels connecting.
         var tabId = getTabId(port);
 
-        if(tabId !== -1) {
-
+        if (tabId !== -1) {
             // This is the first one
-            if(TabInfo.count() === 0) {
+            if (TabInfo.count() === 0) {
                 chrome.tabs.onUpdated.addListener(BackgroundPage_OnTabUpdated);
             }
 
             // Content script (Chrome Tab)
             TabInfo.create(tabId);
             port.onDisconnect.addListener(ContentScript_OnDisconnect.bind(this));
-
         } else {
             port.onDisconnect.addListener(DevTools_OnDisconnect.bind(this));
         }
 
         port.onMessage.addListener(BackgroundPage_OnMessage.bind(this));
-
-        
     }
 
     // Nothing really to do that I can think of.
     function ContentScript_OnDisconnect(port) {}
 
     function DevTools_OnDisconnect(port) {
-        if(!port.name){
+        if (!port.name) {
             return; // Not sure why this would happen.
         }
 
         //var tab = port.sender.tab;
-        
+
         // Delete the stored port on the tab
         var tabInfo = TabInfo.get(port.tabId);
-        if(tabInfo) {
+        if (tabInfo) {
             tabInfo.removePanel(port);
 
             // Happens in removePanel now, if all the panels are cleared, it resets the subscriptions.
             //tabInfo.subscriptions.clear();
 
             // Don't just build up a bunch of messages for tabs that have been unloaded
-            if(!tabInfo.hasPanels()) {
+            if (!tabInfo.hasPanels()) {
                 // Chrome Tab
                 TabInfo.delete(port.tabId);
 
-                if(TabInfo.count() === 0) {
+                if (TabInfo.count() === 0) {
                     chrome.tabs.onUpdated.removeListener(BackgroundPage_OnTabUpdated);
                 }
-
             }
         }
-        
     }
 
     function BackgroundPage_OnContextClick(event, tab) {
@@ -162,109 +163,113 @@ function AuraInspectorBackgroundPage() {
 
         var devToolsIsOpen = tabInfo && !!tabInfo.hasPanels();
 
-        passMessageToDevTools({
-            action  : "AuraInspector:publish",
-            key: "AuraInspector:OnContextMenu"
-        }, tab.id);
+        passMessageToDevTools(
+            {
+                action: 'AuraInspector:publish',
+                key: 'AuraInspector:OnContextMenu'
+            },
+            tab.id
+        );
 
-        if(!devToolsIsOpen){
+        if (!devToolsIsOpen) {
             alert(labels.devtoolsNotif);
         }
     }
 
     function BackgroundPage_OnMessage(message, port) {
         // Should move to this.subscribe
-        if(message.subscribe){
+        if (message.subscribe) {
             var tabId = message.tabId;
             var tabInfo = TabInfo.get(tabId);
 
             // Tab doesn't exist.
             // Can happen when you launch dev tools on dev tools.
-            if(!tabInfo) {
-                if(TabInfo.count() === 0) {
+            if (!tabInfo) {
+                if (TabInfo.count() === 0) {
                     chrome.tabs.onUpdated.addListener(BackgroundPage_OnTabUpdated);
                 }
-                
+
                 tabInfo = TabInfo.create(tabId);
             }
 
             tabInfo.addPanel(port);
             port.tabId = tabId;
 
-            for(var i=0;i<message.subscribe.length;i++){
+            for (var i = 0; i < message.subscribe.length; i++) {
                 var type = message.subscribe[i];
                 var sub = tabInfo.hasSubscription(type);
-                if(!sub){
+                if (!sub) {
                     tabInfo.addSubscription(type);
                 }
             }
 
             tabInfo.queueFilter(function(message) {
-                if(tabInfo.hasSubscription(message.action)) {
+                if (tabInfo.hasSubscription(message.action)) {
                     passMessageToDevTools(message, tabId);
                     return false;
                 }
                 return true;
             });
-        } if(message.action === BACKGROUND_KEY) {
+        }
+        if (message.action === BACKGROUND_KEY) {
             callBackgroundPageSubscribers(message.key, [message.data, port.sender]);
         } else {
             var tabId = getTabId(port);
             if (tabId !== -1) {
                 passMessageToDevTools(message, tabId);
             } else {
-                console.warn("unknown action or tabId", message, tabId);
+                console.warn('unknown action or tabId', message, tabId);
             }
         }
     }
 
     /**
-    *   get release version of the app from server
-    *   @param serverUrl url of server we are running chaos run against, like https://mobile1.t.salesforce.com/sfdc/releaseVersion.jsp
-    */
+     *   get release version of the app from server
+     *   @param serverUrl url of server we are running chaos run against, like https://mobile1.t.salesforce.com/sfdc/releaseVersion.jsp
+     */
     function getAppVersion(serverUrl) {
-            return new Promise((resolve, reject) => {
-                var versionUrl = "";
-                versionUrl = serverUrl.substring(serverUrl.indexOf("lightning.")+"lightning.".length, serverUrl.indexOf("com")+"com".length);
-                versionUrl = "https://" + versionUrl + "/sfdc/releaseVersion.jsp";
-                var xhttp = new XMLHttpRequest();
-                xhttp.onreadystatechange = function() {
-                    if (this.readyState == 4 && this.status == 200) {
-                         var idx = this.responseText.indexOf("AuraJarVersion");
-                         if(idx>=0) {
-                            resolve(this.responseText.substr(idx, 21));
-                        } else {
-                            reject("no AuraJarVersion in response");
-                        }
+        return new Promise((resolve, reject) => {
+            var versionUrl = '';
+            versionUrl = serverUrl.substring(
+                serverUrl.indexOf('lightning.') + 'lightning.'.length,
+                serverUrl.indexOf('com') + 'com'.length
+            );
+            versionUrl = 'https://' + versionUrl + '/sfdc/releaseVersion.jsp';
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    var idx = this.responseText.indexOf('AuraJarVersion');
+                    if (idx >= 0) {
+                        resolve(this.responseText.substr(idx, 21));
+                    } else {
+                        reject('no AuraJarVersion in response');
                     }
-                };
-                xhttp.open("GET", versionUrl, true);
-                xhttp.send();
-            });
-            
-    };
-
+                }
+            };
+            xhttp.open('GET', versionUrl, true);
+            xhttp.send();
+        });
+    }
 
     function BackgroundPage_OnMessageExternal(message, sender) {
-        
         var tabId = message.tabId;
         delete message.tabId;
 
         // Communicate directly to the background script.
-        if(message.action === BACKGROUND_KEY) {
+        if (message.action === BACKGROUND_KEY) {
             callBackgroundPageSubscribers(message.key, [message.data, sender]);
         } else {
             passMessageToDevTools(message, tabId);
         }
     }
 
-    function BackgroundPage_OnConnectExternal(port){
+    function BackgroundPage_OnConnectExternal(port) {
         var id = port.sender.id;
         var frameId = port.sender.frameId;
 
         // Possibly a bit paranoid since they shouldn't be able to connect if we don't have their ID in the manifest
         // But lets just be extra sure who we are communicating with.
-        if(EXTERNAL_INSPECTOR_EXTENSION_IDS[id]) {
+        if (EXTERNAL_INSPECTOR_EXTENSION_IDS[id]) {
             external.set(frameId, port);
             port.onDisconnect.addListener(DevTools_OnDisconnect.bind(this));
         }
@@ -273,8 +278,11 @@ function AuraInspectorBackgroundPage() {
     function BackgroundPage_OnTabUpdated(tabId, changeInfo, tab) {
         // Only happens when we've attached to this tab before.
         const tabInfo = TabInfo.get(tabId);
-        if(changeInfo.status === "loading" && tabInfo && tabInfo.hasPanels()) {
-            chrome.tabs.executeScript(tabId, { file: "dist/contentScript.js",  "runAt": "document_start"});
+        if (changeInfo.status === 'loading' && tabInfo && tabInfo.hasPanels()) {
+            chrome.tabs.executeScript(tabId, {
+                file: 'dist/contentScript.js',
+                runAt: 'document_start'
+            });
         }
     }
 
@@ -282,12 +290,12 @@ function AuraInspectorBackgroundPage() {
         var tabInfo = TabInfo.get(tabId);
 
         // Should only happen when devtools are closed, and we don't care about this case.
-        if(!tabInfo) {
+        if (!tabInfo) {
             return;
         }
 
         //var subscriptions = tabInfo.subscriptions.has(message.action);
-        if(tabInfo.hasSubscription(message.action)){
+        if (tabInfo.hasSubscription(message.action)) {
             tabInfo.sendMessage(message);
         } else {
             // Probably haven't subscribed to this yet, wait till we subscribe to the action then repeat it.
@@ -303,11 +311,11 @@ function AuraInspectorBackgroundPage() {
     }
 
     function callBackgroundPageSubscribers(key, data) {
-        if(_subscribers.has(key)) {
-            _subscribers.get(key).forEach(function(callback){
+        if (_subscribers.has(key)) {
+            _subscribers.get(key).forEach(function(callback) {
                 try {
                     callback.apply(null, data);
-                } catch(e) {
+                } catch (e) {
                     console.error(e);
                 }
             });
@@ -316,7 +324,7 @@ function AuraInspectorBackgroundPage() {
 
     function getTabId(port) {
         const senderTabId = port && port.sender && port.sender.tab ? port.sender.tab.id : null;
-        if(senderTabId === null) {
+        if (senderTabId === null) {
             // Page and Browser actions have their tabId specified on the port.
             return port.tabId || -1;
         }
@@ -331,14 +339,16 @@ function AuraInspectorBackgroundPage() {
 
         // TODO: Should the external ports go in here?
         this.addPanel = function(port) {
-            if(!port.name) { return; }
+            if (!port.name) {
+                return;
+            }
             _panels.set(port.name, port);
         };
 
         this.removePanel = function(port) {
             _panels.delete(port.name);
 
-            if(!this.hasPanels()) {
+            if (!this.hasPanels()) {
                 _subscriptions.clear();
             }
         };
@@ -352,12 +362,16 @@ function AuraInspectorBackgroundPage() {
             _panels.forEach(function(panel, panelName, map) {
                 //console.log("TabInfo:SendMessage", message.key, message.data);
 
-                if(panel.sender && panel.sender.id !== chrome.runtime.id && EXTERNAL_INSPECTOR_EXTENSION_IDS[panel.sender.id]) {
+                if (
+                    panel.sender &&
+                    panel.sender.id !== chrome.runtime.id &&
+                    EXTERNAL_INSPECTOR_EXTENSION_IDS[panel.sender.id]
+                ) {
                     message.tabId = tabId;
                     chrome.runtime.sendMessage(panel.sender.id, message);
                     delete message.tabId;
                 } else {
-                    panel.postMessage(message)
+                    panel.postMessage(message);
                 }
             });
         };
@@ -365,7 +379,7 @@ function AuraInspectorBackgroundPage() {
         this.queueMessage = function(message) {
             _queue.push(message);
 
-            if(_queue.length > MAX_QUEUE_LENGTH) {
+            if (_queue.length > MAX_QUEUE_LENGTH) {
                 _queue.shift();
             }
         };
@@ -389,7 +403,7 @@ function AuraInspectorBackgroundPage() {
     TabInfo.create = function(tabId) {
         var tabInfo = tabs.get(tabId);
 
-        if(!tabInfo){
+        if (!tabInfo) {
             tabInfo = new TabInfo(tabId);
             tabs.set(tabId, tabInfo);
         }
@@ -407,5 +421,4 @@ function AuraInspectorBackgroundPage() {
     TabInfo.count = function() {
         return tabs.size;
     };
-
-}   
+}

@@ -1,50 +1,55 @@
-(function(){
+(function() {
+    var ownerDocument = document.currentScript.ownerDocument;
 
-	var ownerDocument = document.currentScript.ownerDocument;
-
-	var controllerreference = Object.create(HTMLDivElement.prototype);
+    var controllerreference = Object.create(HTMLDivElement.prototype);
 
     controllerreference.createdCallback = function() {
         // Had two different modes, one that works on textContent, the other that works on expression, componentid combination
-        var expression = this.getAttribute("expression");
-        var componentid = this.getAttribute("component");
+        var expression = this.getAttribute('expression');
+        var componentid = this.getAttribute('component');
 
-        if(expression && componentid) {
-            var template = ownerDocument.querySelector("template");
+        if (expression && componentid) {
+            var template = ownerDocument.querySelector('template');
             //console.log(template);
 
             var clone = document.importNode(template.content, true);
 
-            clone.querySelector("aurainspector-auracomponent").setAttribute("globalId", componentid);
+            clone
+                .querySelector('aurainspector-auracomponent')
+                .setAttribute('globalId', componentid);
 
-            var expression_element = clone.querySelector("#expression");
+            var expression_element = clone.querySelector('#expression');
             expression_element.appendChild(document.createTextNode(expression));
-            expression_element.addEventListener("click", ControllerReference_OnClick.bind(this));
+            expression_element.addEventListener('click', ControllerReference_OnClick.bind(this));
 
             var shadowRoot = this.createShadowRoot();
-                shadowRoot.appendChild(clone);
+            shadowRoot.appendChild(clone);
         } else {
-            this.addEventListener("click", ControllerReference_OnClick.bind(this));
+            this.addEventListener('click', ControllerReference_OnClick.bind(this));
         }
-    }
+    };
 
     function parse(reference) {
-        if(!reference) { return null; }
-        var parts = reference.split("$");
+        if (!reference) {
+            return null;
+        }
+        var parts = reference.split('$');
         return {
-            "prefix": parts[0],
-            "component": parts[1],
-            "method": parts[3]
+            prefix: parts[0],
+            component: parts[1],
+            method: parts[3]
         };
     }
 
     function ControllerReference_OnClick(event) {
         var command;
         var reference = this.textContent;
-        var expression = this.getAttribute("expression");
-        if(reference && !expression) {
+        var expression = this.getAttribute('expression');
+        if (reference && !expression) {
             var info = parse(reference);
-            if(!info) { return; }
+            if (!info) {
+                return;
+            }
 
             command = `
                 (function(definition) {
@@ -53,13 +58,13 @@
                     }
                 })($A.componentService.getComponentClass("markup://${info.prefix}:${info.component}"))`;
             chrome.devtools.inspectedWindow.eval(command);
-        } else if(expression) {
+        } else if (expression) {
             // expression, component combination
-            var expression = this.getAttribute("expression");
-            var componentid = this.getAttribute("component");
+            var expression = this.getAttribute('expression');
+            var componentid = this.getAttribute('component');
 
-            if(expression && componentid) {
-                expression = expression.substring(4, expression.length - 1); 
+            if (expression && componentid) {
+                expression = expression.substring(4, expression.length - 1);
                 command = `
                     (function(cmp){
                         if(!cmp){ return; }
@@ -69,13 +74,12 @@
                         }
                     })($A.getComponent("${componentid}"));
                 `;
-                chrome.devtools.inspectedWindow.eval(command)
+                chrome.devtools.inspectedWindow.eval(command);
             }
         }
     }
 
-	document.registerElement("aurainspector-controllerreference", {
-		prototype: controllerreference
-	});
-
+    document.registerElement('aurainspector-controllerreference', {
+        prototype: controllerreference
+    });
 })();

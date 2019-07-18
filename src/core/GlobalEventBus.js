@@ -1,8 +1,8 @@
-import BrowserApi from "../aura/viewer/BrowserApi.js";
+import BrowserApi from '../aura/viewer/BrowserApi.js';
 
-export const PUBLISH_KEY = "AuraInspector:publish";
-export const PUBLISH_BATCH_KEY = "AuraInspector:publishbatch";
-export const BOOTSTRAP_KEY = "AuraInspector:bootstrap";
+export const PUBLISH_KEY = 'AuraInspector:publish';
+export const PUBLISH_BATCH_KEY = 'AuraInspector:publishbatch';
+export const BOOTSTRAP_KEY = 'AuraInspector:bootstrap';
 
 /**
  * You can use the publish and subscribe methods to broadcast messages through to the end points of the architecture.
@@ -55,8 +55,10 @@ export default class GlobalEventBus {
     }
 
     publish(key, data) {
-        if(!key) { return; }
-        const PUBLISH_KEY = "AuraInspector:publish";
+        if (!key) {
+            return;
+        }
+        const PUBLISH_KEY = 'AuraInspector:publish';
 
         const jsonData = JSON.stringify(data);
         const command = `
@@ -69,11 +71,11 @@ export default class GlobalEventBus {
 
         BrowserApi.eval(command);
         this.callSubscribers(key, data);
-    } 
+    }
 
     subscribe(key, callback) {
         const subscribers = this._subscribers;
-        if(!subscribers.has(key)) {
+        if (!subscribers.has(key)) {
             subscribers.set(key, []);
         }
 
@@ -82,24 +84,24 @@ export default class GlobalEventBus {
 
     unsubscribe(key, callback) {
         const subscribers = this._subscribers;
-        if(!subscribers.has(key)) {
+        if (!subscribers.has(key)) {
             return;
         }
         const index = subscribers.get(key).indexOf(callback);
-        if(index !== -1) {
+        if (index !== -1) {
             subscribers.get(key).splice(index, 1);
         }
     }
-    
+
     callSubscribers(key, data) {
         const subscribers = this._subscribers;
         //console.log("GlobalEventBus:callSubscribers", key, data);
-        if(subscribers.has(key)) {
-            subscribers.get(key).forEach((callback) => {
+        if (subscribers.has(key)) {
+            subscribers.get(key).forEach(callback => {
                 try {
                     callback(data);
-                } catch(e) {
-                    console.error("Key: ", key, " resulted in error ", e);
+                } catch (e) {
+                    console.error('Key: ', key, ' resulted in error ', e);
                 }
             });
         }
@@ -134,5 +136,5 @@ export default class GlobalEventBus {
 }
 
 // By default, uses the global version
-// Yes I realize this is kinda messy. 
+// Yes I realize this is kinda messy.
 const globalDefaultBus = new GlobalEventBus();

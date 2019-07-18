@@ -1,15 +1,15 @@
 export default function mergeWith(obj, src, customizer) {
-  if (typeof obj !== 'object') {
-    return obj;
-  }
-
-  for (const key in obj) {
-    if (!obj.hasOwnProperty(key)) {
-      continue;
+    if (typeof obj !== 'object') {
+        return obj;
     }
 
-    obj[key] = customizer(obj[key], src[key])
-  }
+    for (const key in obj) {
+        if (!obj.hasOwnProperty(key)) {
+            continue;
+        }
 
-  return obj;
+        obj[key] = customizer(obj[key], src[key]);
+    }
+
+    return obj;
 }

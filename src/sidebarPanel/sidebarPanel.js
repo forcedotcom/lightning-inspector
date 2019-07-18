@@ -1,25 +1,25 @@
-import "../devtoolsPanel/devtoolsPanel.css"
-import "./sidebarPanel.css";
-import AuraInspectorComponentView from "../devtoolsPanel/AuraInspectorComponentView";
-import DevToolsEncodedId from "../devtoolsPanel/DevToolsEncodedId";
-import WebExtensionsRuntime from "../devtoolsPanel/WebExtensionsRuntime";
+import '../devtoolsPanel/devtoolsPanel.css';
+import './sidebarPanel.css';
+import AuraInspectorComponentView from '../devtoolsPanel/AuraInspectorComponentView';
+import DevToolsEncodedId from '../devtoolsPanel/DevToolsEncodedId';
+import WebExtensionsRuntime from '../devtoolsPanel/WebExtensionsRuntime';
 
 // get Id From URL
-document.addEventListener("DOMContentLoaded", () => {
-	var sidebarPanel = new AuraInspectorSideBarPanel();
-	sidebarPanel.init(document.getElementById("sidebarContainer"));	
+document.addEventListener('DOMContentLoaded', () => {
+    var sidebarPanel = new AuraInspectorSideBarPanel();
+    sidebarPanel.init(document.getElementById('sidebarContainer'));
 });
 
 function AuraInspectorSideBarPanel() {
-	var _container;
-	var _componentView;
+    var _container;
+    var _componentView;
     var _runtime;
 
-	this.init = function(container) {
+    this.init = function(container) {
         _container = container;
-        _runtime = new WebExtensionsRuntime("AuraInspectorSideBarPanel");
+        _runtime = new WebExtensionsRuntime('AuraInspectorSideBarPanel');
 
-        _runtime.connect(()=>{
+        _runtime.connect(() => {
             _componentView = new AuraInspectorComponentView(this);
             _componentView.init(_container);
 
@@ -31,33 +31,40 @@ function AuraInspectorSideBarPanel() {
             // Detect if the content script is injected, if so, update, otherwise inject content script then update.
             this.update();
         });
-	};
+    };
 
-	this.update = function() {
-        _runtime.eval("this.$0 && $0.getAttribute && $0.getAttribute('data-aura-rendered-by')", function(globalId){
-            if(globalId) {
-                _container.classList.remove("hidden");
-                _componentView.setData(globalId);
-            } else {
-                _container.classList.add("hidden");
+    this.update = function() {
+        _runtime.eval(
+            "this.$0 && $0.getAttribute && $0.getAttribute('data-aura-rendered-by')",
+            function(globalId) {
+                if (globalId) {
+                    _container.classList.remove('hidden');
+                    _componentView.setData(globalId);
+                } else {
+                    _container.classList.add('hidden');
+                }
             }
-        });
-	};
+        );
+    };
 
-	this.getComponent = function(globalId, callback, configuration) {
-        if(typeof callback !== "function") { throw new Error("callback is required for - getComponent(globalId, callback)"); }
+    this.getComponent = function(globalId, callback, configuration) {
+        if (typeof callback !== 'function') {
+            throw new Error('callback is required for - getComponent(globalId, callback)');
+        }
         globalId = DevToolsEncodedId.getCleanId(globalId);
-       
+
         _runtime.InjectedScript.getComponent(globalId, callback, configuration);
     };
 
     this.getCount = function(key, callback) {
-        if(typeof callback !== "function") { throw new Error("callback is required for - getCount(key, callback)"); }
+        if (typeof callback !== 'function') {
+            throw new Error('callback is required for - getCount(key, callback)');
+        }
         const command = `window[Symbol.for('AuraDevTools')].Inspector.getCount('${key}');`;
 
         chrome.devtools.inspectedWindow.eval(command, function(response, exceptionInfo) {
-            if(exceptionInfo) {
-                console.error(command, " resulted in ", exceptionInfo);
+            if (exceptionInfo) {
+                console.error(command, ' resulted in ', exceptionInfo);
             }
 
             const count = parseInt(response, 10);
@@ -73,7 +80,9 @@ function AuraInspectorSideBarPanel() {
      * @param  {Object} data any type of data to pass to the subscribe method.
      */
     this.publish = function(key, data) {
-        if(!key) { return; }
+        if (!key) {
+            return;
+        }
 
         const jsonData = JSON.stringify(data);
         const command = `
@@ -88,7 +97,6 @@ function AuraInspectorSideBarPanel() {
     };
 
     function ElementsPanel_OnSelectionChanged() {
-		this.update();
-	}
-
+        this.update();
+    }
 }
