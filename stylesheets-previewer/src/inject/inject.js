@@ -1,21 +1,20 @@
-import "./inject.scss";
-import Template from "./Template";
-import PanelModel from "./PanelModel";
+import './inject.scss';
+import Template from './Template';
+import PanelModel from './PanelModel';
 
 import {
-    SELECTOR_CSS_PROCESSED, 
-    SELECTOR_CSS_DEACTIVATED, 
-    SELECTOR_CSS_SLDS4VF, 
-    SELECTOR_CSS_LINK, 
-    SELECTOR_STYLE_TAG, 
-    WRAPPER_ID, 
-    CATEGORY_CLASSIC, 
-    CATEGORY_LIGHTNING, 
+    SELECTOR_CSS_PROCESSED,
+    SELECTOR_CSS_DEACTIVATED,
+    SELECTOR_CSS_SLDS4VF,
+    SELECTOR_CSS_LINK,
+    SELECTOR_STYLE_TAG,
+    WRAPPER_ID,
+    CATEGORY_CLASSIC,
+    CATEGORY_LIGHTNING,
     CATEGORY_SLDS,
-    LINKS_INLINE_STYLES, 
+    LINKS_INLINE_STYLES,
     LINKS_CUSTOM_STYLES
-} from "./constants";
-
+} from './constants';
 
 if (!window.LightningStylesheets) {
     // Lets attach all our logic to this top level namespace
@@ -41,8 +40,8 @@ if (!window.LightningStylesheets) {
             }
             const panel = document.getElementById(WRAPPER_ID);
             panel.classList.toggle('is-open', force);
-    
-            if(panel.classList.contains('is-open')) {
+
+            if (panel.classList.contains('is-open')) {
                 this.startPolling();
             } else {
                 this.stopPolling();
@@ -50,62 +49,66 @@ if (!window.LightningStylesheets) {
         }
 
         async render() {
-            console.log("TRACE: panel.render()");
-    
+            console.log('TRACE: panel.render()');
+
             await Template.fetchTemplates();
-            const {
-                categoryHeaderContent,
-                templates,
-                themePicklistValues,
-                themeSelected
-            } = model;
-    
+            const { categoryHeaderContent, templates, themePicklistValues, themeSelected } = model;
+
             // If we haven't injected the wrapper yet, inject it.
             if (!document.getElementById(WRAPPER_ID)) {
                 document.body.insertAdjacentHTML('beforeend', `<div id="${WRAPPER_ID}"></div>`);
             } else {
                 document.getElementById(WRAPPER_ID).innerHTML = '';
             }
-    
+
             const containerElement = document.getElementById(WRAPPER_ID);
             const containerTemplate = new Template('container');
             containerTemplate.renderTo(containerElement);
-    
-            const extensionViewContainerElement = containerElement.querySelector(".extension-view-container");
+
+            const extensionViewContainerElement = containerElement.querySelector(
+                '.extension-view-container'
+            );
             const contentTemplate = new Template('content');
             contentTemplate.renderTo(extensionViewContainerElement);
-            
-            const extensionViewContentElement = containerElement.querySelector(".extension-view-content");
+
+            const extensionViewContentElement = containerElement.querySelector(
+                '.extension-view-content'
+            );
             const headerTemplate = new Template('header');
             const bodyTemplate = new Template('body');
             headerTemplate.renderTo(extensionViewContentElement);
             bodyTemplate.renderTo(extensionViewContentElement);
-            
+
             const sldsLinks = renderLinkSection(CATEGORY_SLDS);
             const customLinks = renderLinkSection(LINKS_CUSTOM_STYLES);
             const styleTags = renderLinkSection(LINKS_INLINE_STYLES);
-    
+
             const themePicklistTemplate = new Template('theme_picklist');
             const themePicklist = themePicklistTemplate.render({
-                selected_value: themePicklistValues.find(option => option.category == themeSelected).item_value
+                selected_value: themePicklistValues.find(option => option.category == themeSelected)
+                    .item_value
             });
-    
-            const themesDropdown = themePicklist.querySelector("#listbox-themes ul");
+
+            const themesDropdown = themePicklist.querySelector('#listbox-themes ul');
             const themePicklistOptionTemplate = new Template('theme_picklist_option');
-            
+
             themePicklistValues.map(option =>
-                themePicklistOptionTemplate.renderTo(themesDropdown,             
+                themePicklistOptionTemplate.renderTo(
+                    themesDropdown,
                     Object.assign({}, option, {
                         is_selected: themeSelected == option.category ? 'slds-is-selected' : '',
                         partial_icon_check: templates.icon_check,
                         partial_selected_a11y_label: templates.list_item_partial_selected_a11y_label
-                    }))
+                    })
+                )
             );
-    
-            const dropdownContainer = containerElement.querySelector(".extension-view-dropdown");
+
+            const dropdownContainer = containerElement.querySelector('.extension-view-dropdown');
             dropdownContainer.appendChild(themePicklist);
-    
-            const extensionViewCustomStyles = containerElement.querySelector(".extension-view-custom-styles");
+
+            const extensionViewCustomStyles = containerElement.querySelector(
+                '.extension-view-custom-styles'
+            );
             extensionViewCustomStyles.appendChild(sldsLinks);
             extensionViewCustomStyles.appendChild(customLinks);
             extensionViewCustomStyles.appendChild(styleTags);
@@ -113,58 +116,62 @@ if (!window.LightningStylesheets) {
 
         /**
          * Using one of the constants in PanelModel#themePicklistValues
-         *  CATEGORY_LIGHTNING, 
-         *  CATEGORY_NONE, 
-         *  CATEGORY_CLASSIC 
+         *  CATEGORY_LIGHTNING,
+         *  CATEGORY_NONE,
+         *  CATEGORY_CLASSIC
          * Set the dropdown to one of these values.
-         * 
+         *
          * @param {String} targetCategory One of the Categories specified in PanelModel#themePicklistValues
          */
         async setCategory(targetCategory) {
             model.themeSelected = targetCategory;
-            const elementDataSet = model.data.filter(elementData => [CATEGORY_CLASSIC, CATEGORY_LIGHTNING].includes(elementData.category));
-        
-            const hasLightningStylesheetsCssBeenApplied = elementDataSet.find(elementData => elementData.category == CATEGORY_LIGHTNING);
+            const elementDataSet = model.data.filter(elementData =>
+                [CATEGORY_CLASSIC, CATEGORY_LIGHTNING].includes(elementData.category)
+            );
+
+            const hasLightningStylesheetsCssBeenApplied = elementDataSet.find(
+                elementData => elementData.category == CATEGORY_LIGHTNING
+            );
             if (targetCategory == CATEGORY_LIGHTNING && !hasLightningStylesheetsCssBeenApplied) {
                 applyLightningStylesheetsCss(window);
             }
 
-            elementDataSet.map(elementData => (
+            elementDataSet.map(elementData =>
                 toggleCSSElement(
                     document.getElementById(elementData.id),
                     elementData.category == targetCategory
                 )
-            ));
+            );
 
             return this.render();
         }
     }
-    
+
     const panel = new Panel();
     const model = new PanelModel();
 
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         switch (request.msg) {
-            case "getLightningStylesheetState":
+            case 'getLightningStylesheetState':
                 return sendResponse({
-                    "isLightningStylesheetsActive": model.isLightningStylesheetsActive,
-                    "isPanelOpen": model.isPanelOpen,
-                    "isValidVisualForcePage": model.isValidVisualforcePage
+                    isLightningStylesheetsActive: model.isLightningStylesheetsActive,
+                    isPanelOpen: model.isPanelOpen,
+                    isValidVisualForcePage: model.isValidVisualforcePage
                 });
-            case "activateSlds4Vf":
+            case 'activateSlds4Vf':
                 panel.setCategory(CATEGORY_LIGHTNING);
                 return sendResponse({
                     msg: request.msg,
                     complete: true
                 });
-            case "openPanel":
+            case 'openPanel':
                 return panel.toggle(true);
-            case "isLightningStylesheetsActive":
+            case 'isLightningStylesheetsActive':
                 return sendResponse({
                     msg: request.msg,
                     value: model.isLightningStylesheetsActive
                 });
-            case "isPanelOpen":
+            case 'isPanelOpen':
                 return sendResponse({
                     msg: request.msg,
                     // value: document.getElementById(WRAPPER_ID).classList.contains("is-open")
@@ -173,7 +180,7 @@ if (!window.LightningStylesheets) {
             default:
                 return {
                     msg: `No Extension Message Handler for ${request}`
-                }
+                };
         }
     });
 
@@ -184,7 +191,8 @@ if (!window.LightningStylesheets) {
     function debounce(func, wait, immediate) {
         var timeout;
         return function() {
-            var context = this, args = arguments;
+            var context = this,
+                args = arguments;
             var later = function() {
                 timeout = null;
                 if (!immediate) func.apply(context, args);
@@ -194,25 +202,21 @@ if (!window.LightningStylesheets) {
             timeout = setTimeout(later, wait);
             if (callNow) func.apply(context, args);
         };
-    };
+    }
 
     const getLinks = category => model.data.filter(item => item.category == category);
 
     const renderTemplate = (snippet, container) => {
-        const wrapper = container || document.createElement("div");
+        const wrapper = container || document.createElement('div');
         wrapper.innerHTML = snippet;
         return container ? wrapper : wrapper.firstElementChild;
-    }
+    };
 
-    const renderLinkSection = (category) => {
+    const renderLinkSection = category => {
         const returnFragment = document.createDocumentFragment();
         const { categoryHeaderContent } = model;
-        const {
-            description,
-            activated,
-            title
-        } = categoryHeaderContent[category];
-        
+        const { description, activated, title } = categoryHeaderContent[category];
+
         // Items to show in the link section
         const linksList = getLinks(category);
 
@@ -228,26 +232,33 @@ if (!window.LightningStylesheets) {
             description,
             is_checked: model.data
                 .filter(item => item.category == category)
-                .every(item => item.activated === false) ? '' : 'checked',
+                .every(item => item.activated === false)
+                ? ''
+                : 'checked'
         });
 
         // Render the List Container
         const listBodyTemplate = new Template('list_body');
         listBodyTemplate.renderTo(returnFragment);
 
-        const listBodyElement = returnFragment.querySelector(".extension-view-list-body");
-        
+        const listBodyElement = returnFragment.querySelector('.extension-view-list-body');
+
         // Get all the links for the current category and for each one
         // append to the list container
         const linkItemTemplate = new Template('list_item');
-        linksList.map(link => linkItemTemplate.renderTo(listBodyElement, Object.assign(link, {
-            is_checked: link.activated ? 'checked' : ''
-        })));
+        linksList.map(link =>
+            linkItemTemplate.renderTo(
+                listBodyElement,
+                Object.assign(link, {
+                    is_checked: link.activated ? 'checked' : ''
+                })
+            )
+        );
 
         return returnFragment;
-    }
+    };
 
-    const applyLightningStylesheetsCss = (contentWindow) => {
+    const applyLightningStylesheetsCss = contentWindow => {
         const contentDoc = contentWindow.document;
         const lightningStylesheetLink = contentDoc.querySelector(`.${SELECTOR_CSS_SLDS4VF}`);
         if (lightningStylesheetLink) {
@@ -256,10 +267,10 @@ if (!window.LightningStylesheets) {
 
         model.themeSelected = CATEGORY_LIGHTNING;
 
-        const link = contentDoc.createElement("link");
-        link.rel = "stylesheet";
+        const link = contentDoc.createElement('link');
+        link.rel = 'stylesheet';
         link.href = model.orgLightningStylesheetsCssPath;
-        link.type = "text/css";
+        link.type = 'text/css';
         link.id = SELECTOR_CSS_SLDS4VF;
         link.classList.add(SELECTOR_CSS_SLDS4VF);
         contentDoc.head.appendChild(link);
@@ -268,10 +279,10 @@ if (!window.LightningStylesheets) {
         model.addLightningStylesheetTag(link);
 
         chrome.runtime.sendMessage({
-            msg: "lightningStylesheetsActivated",
+            msg: 'lightningStylesheetsActivated',
             value: true
         });
-    }
+    };
 
     const handleCategoryStateFromChildClick = category => {
         const categoryElements = model.data.filter(item => item.category == category);
@@ -291,22 +302,22 @@ if (!window.LightningStylesheets) {
     };
 
     const deactivateCSSElement = element => {
-        element.setAttribute("media", "max-width: 1px");
+        element.setAttribute('media', 'max-width: 1px');
         element.classList.add(SELECTOR_CSS_DEACTIVATED);
         model.setActivation(element.id, false);
-        console.log("Deactivating:", element.dataset.initCssUrl || element.href);
+        console.log('Deactivating:', element.dataset.initCssUrl || element.href);
         return element;
-    }
+    };
 
     const activateCSSElement = element => {
         element.removeAttribute('media');
         element.classList.remove(SELECTOR_CSS_DEACTIVATED);
         model.setActivation(element.id, true);
-        console.log("Activating:", element.dataset.initCssUrl || element.href);
+        console.log('Activating:', element.dataset.initCssUrl || element.href);
         return element;
-    }
+    };
 
-    const createRandomId = () => `${(new Date()).getTime()}-${Math.random()*10**17}`;
+    const createRandomId = () => `${new Date().getTime()}-${Math.random() * 10 ** 17}`;
 
     const getPageStyleSheets = () => {
         const stylesheetsQuery = Array.from(document.querySelectorAll(SELECTOR_CSS_LINK));
@@ -326,10 +337,10 @@ if (!window.LightningStylesheets) {
             return toProcessStyleSheets;
         }
         return [];
-    }
+    };
 
     /**
-     * Returns the style tags on the page that are not filtered out 
+     * Returns the style tags on the page that are not filtered out
      * and have not been handled by the extension already.
      */
     const getPageStyleTags = () => {
@@ -337,12 +348,16 @@ if (!window.LightningStylesheets) {
         if (styleTagsQuery.length) {
             const toProcessStyleTags = styleTagsQuery
                 .filter(styleTag => {
-                    const isExtensionCss = styleTag.textContent.includes('sfdc-lightning-stylesheets-extension-view');
-                    const hasBeenProcessByExtension = styleTag.classList.contains(SELECTOR_CSS_PROCESSED);
+                    const isExtensionCss = styleTag.textContent.includes(
+                        'sfdc-lightning-stylesheets-extension-view'
+                    );
+                    const hasBeenProcessByExtension = styleTag.classList.contains(
+                        SELECTOR_CSS_PROCESSED
+                    );
                     return !isExtensionCss && !hasBeenProcessByExtension;
                 })
-                .map((styleTag) => {
-                    if (!   styleTag.id) {
+                .map(styleTag => {
+                    if (!styleTag.id) {
                         styleTag.id = createRandomId();
                     }
                     styleTag.classList.add(SELECTOR_CSS_PROCESSED);
@@ -352,26 +367,24 @@ if (!window.LightningStylesheets) {
             return toProcessStyleTags;
         }
         return [];
-    }
+    };
 
-    const handlePickListSelect = (listItem) => {
+    const handlePickListSelect = listItem => {
         const category = listItem.dataset.category;
         panel.setCategory(category);
-    }
+    };
 
     const toggleCSSElement = (element, isChecked) => {
         if (!element) {
-            console.warn("Unable to find the CSS link element to de/activate")
+            console.warn('Unable to find the CSS link element to de/activate');
             return;
         }
-        
-        isChecked ?
-            activateCSSElement(element) :
-            deactivateCSSElement(element);
+
+        isChecked ? activateCSSElement(element) : deactivateCSSElement(element);
     };
 
-    const isExtensionOwned = (element) => {
-        const className = ".sfdc-lightning-stylesheets-extension-view";
+    const isExtensionOwned = element => {
+        const className = '.sfdc-lightning-stylesheets-extension-view';
         let current = element;
         while (current && current instanceof Element) {
             if (current.matches(className)) {
@@ -380,90 +393,100 @@ if (!window.LightningStylesheets) {
             current = current.parentNode;
         }
         return false;
-    }
+    };
 
     //chrome.extension.sendMessage({}, async function (response) {
-    var readyStateCheckInterval = setInterval(function () {
+    var readyStateCheckInterval = setInterval(function() {
         if (model.isPageReady) {
             clearInterval(readyStateCheckInterval);
 
             // ----------------------------------------------------------
             // This part of the script triggers when page is done loading
-            console.log("readyState", window.location.href);
+            console.log('readyState', window.location.href);
             // ----------------------------------------------------------
 
             try {
                 let confirmLoadCSS = null;
-                const { hasVisualforceClasses, hasPageContent, isVisualforceFrame, isValidVisualforcePage } = model;
+                const {
+                    hasVisualforceClasses,
+                    hasPageContent,
+                    isVisualforceFrame,
+                    isValidVisualforcePage
+                } = model;
 
-                document.body.addEventListener("change", e => {
+                document.body.addEventListener('change', e => {
                     if (!isExtensionOwned(e.target)) {
                         return;
                     }
                     const clickedElement = event.target;
-                    if (clickedElement.classList.contains("category-check")) {
+                    if (clickedElement.classList.contains('category-check')) {
                         model.data
-                            .filter(elementData => elementData.category == clickedElement.dataset.cssCategory)
-                            .map(elementData => (
+                            .filter(
+                                elementData =>
+                                    elementData.category == clickedElement.dataset.cssCategory
+                            )
+                            .map(elementData =>
                                 toggleCSSElement(
                                     document.getElementById(elementData.id),
                                     clickedElement.checked
                                 )
-                            ));
-                            panel.render();
+                            );
+                        panel.render();
                     }
 
-                    if (clickedElement.classList.contains("list-item-check")) {
+                    if (clickedElement.classList.contains('list-item-check')) {
                         toggleCSSElement(
                             document.getElementById(clickedElement.dataset.cssNodeId),
                             clickedElement.checked
-                        )
+                        );
                         handleCategoryStateFromChildClick(clickedElement.dataset.cssCategory);
                     }
-                })
+                });
 
-                document.body.addEventListener("click", e => {
+                document.body.addEventListener('click', e => {
                     if (!isExtensionOwned(e.target)) {
                         return;
                     }
-                    if (e.target.classList.contains("button-panel-close")) {
+                    if (e.target.classList.contains('button-panel-close')) {
                         panel.toggle(false);
                     }
-                })
+                });
 
-                document.body.addEventListener("mousedown", e => {
+                document.body.addEventListener('mousedown', e => {
                     if (!isExtensionOwned(e.target)) {
                         return;
                     }
-                    const target = e.target.classList.contains("slds-listbox__option") ? e.target : e.target.closest(".slds-listbox__option");
+                    const target = e.target.classList.contains('slds-listbox__option')
+                        ? e.target
+                        : e.target.closest('.slds-listbox__option');
                     if (target) {
                         handlePickListSelect(target);
                     }
-                })
+                });
 
-                window.addEventListener("focusin", e => {
+                window.addEventListener('focusin', e => {
                     if (!isExtensionOwned(e.target)) {
                         return;
                     }
-                    if (e.target.id == "combobox-theme-select") {
-                        document.querySelector(".slds-combobox").classList.add("slds-is-open");
+                    if (e.target.id == 'combobox-theme-select') {
+                        document.querySelector('.slds-combobox').classList.add('slds-is-open');
                     }
-                })
+                });
 
-                window.addEventListener("focusout", e => {
+                window.addEventListener('focusout', e => {
                     if (!isExtensionOwned(e.target)) {
                         return;
                     }
-                    if (e.target.id == "combobox-theme-select") {
-                        document.querySelector(".slds-combobox").classList.remove("slds-is-open");
+                    if (e.target.id == 'combobox-theme-select') {
+                        document.querySelector('.slds-combobox').classList.remove('slds-is-open');
                     }
-                })
+                });
 
-                if (isValidVisualforcePage) {                    
+                if (isValidVisualforcePage) {
                     if (model.addStyleTags(getPageStyleTags())) {
                         panel.renderDebounced();
                     }
-                    
+
                     if (model.addLinkStyleTags(getPageStyleSheets())) {
                         panel.renderDebounced();
                     }
@@ -471,13 +494,10 @@ if (!window.LightningStylesheets) {
             } catch (e) {
                 console.error(e);
 
-                // Interacting with the page threw an exception. 
+                // Interacting with the page threw an exception.
                 // Lets just bail.
                 return;
             }
         }
     }, 10);
-
-    
 }
-

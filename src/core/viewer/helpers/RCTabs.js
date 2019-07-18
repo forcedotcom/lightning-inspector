@@ -5,8 +5,9 @@ import ScrollableInkTabBar from 'rc-tabs/lib/ScrollableInkTabBar';
 import './RCTabs.scss';
 
 Tabs.defaultProps.renderTabBar = () => <ScrollableInkTabBar />;
-Tabs.defaultProps.renderTabContent = () => <TabContent animated={false}
-                                                       animatedWithMargin={false}/>;
+Tabs.defaultProps.renderTabContent = () => (
+    <TabContent animated={false} animatedWithMargin={false} />
+);
 
 export default Tabs;
 export { Tabs, TabPane };

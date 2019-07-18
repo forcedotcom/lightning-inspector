@@ -1,11 +1,10 @@
-import React from "react";
+import React from 'react';
 import PropTypes from 'prop-types';
 
-import BrowserApi from "../../aura/viewer/BrowserApi.js";
-import GlobalEventBus from "../../core/GlobalEventBus.js";
+import BrowserApi from '../../aura/viewer/BrowserApi.js';
+import GlobalEventBus from '../../core/GlobalEventBus.js';
 
-import { ExpandableSection } from "react-lds";
-
+import { ExpandableSection } from 'react-lds';
 
 export default class StorageCard extends React.Component {
     static childContextTypes = {
@@ -13,8 +12,8 @@ export default class StorageCard extends React.Component {
     };
 
     getChildContext() {
-        return { 
-            'assetBasePath': '/dist/slds/'
+        return {
+            assetBasePath: '/dist/slds/'
         };
     }
 
@@ -23,12 +22,17 @@ export default class StorageCard extends React.Component {
     }
 
     render() {
-        return (<ExpandableSection 
-                    className="slds-p-horizontal_x-small"
-                    id={this.props.storageId} 
-                    title={this.props.storageId} 
-                    defaultOpen={this.props.isExpanded}>
-                    <aurainspector-json expandTo="2">{JSON.stringify(this.props.contents)}</aurainspector-json>
-                </ExpandableSection>);
+        return (
+            <ExpandableSection
+                className="slds-p-horizontal_x-small"
+                id={this.props.storageId}
+                title={this.props.storageId}
+                defaultOpen={this.props.isExpanded}
+            >
+                <aurainspector-json expandTo="2">
+                    {JSON.stringify(this.props.contents)}
+                </aurainspector-json>
+            </ExpandableSection>
+        );
     }
 }

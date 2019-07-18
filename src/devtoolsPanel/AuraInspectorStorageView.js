@@ -11,11 +11,11 @@ export default function AuraInspectorStorageView(devtoolsPanel) {
     var firstLoad = true;
 
     /** Id for this view, must be unique among all views. */
-    this.panelId = "storage";
+    this.panelId = 'storage';
 
     var labels = {
-        "refresh": chrome.i18n.getMessage("menu_refresh"),
-        "kb": chrome.i18n.getMessage("kb") // Kilobytes not knowledgebase
+        refresh: chrome.i18n.getMessage('menu_refresh'),
+        kb: chrome.i18n.getMessage('kb') // Kilobytes not knowledgebase
     };
 
     /** Markup of panel */
@@ -35,21 +35,26 @@ export default function AuraInspectorStorageView(devtoolsPanel) {
         tabBody.innerHTML = markup;
 
         // refresh button
-        var refreshButton = tabBody.querySelector("#refresh-button");
-        refreshButton.addEventListener("click", RefreshButton_OnClick.bind(this));
+        var refreshButton = tabBody.querySelector('#refresh-button');
+        refreshButton.addEventListener('click', RefreshButton_OnClick.bind(this));
 
         // listen for data
-        devtoolsPanel.subscribe("AuraInspector:StorageData", AuraInspector_StorageData.bind(this));
+        devtoolsPanel.subscribe('AuraInspector:StorageData', AuraInspector_StorageData.bind(this));
 
         // listen for removing storage item for action
-        devtoolsPanel.subscribe("AuraInspector:RemoveStorageData", AuraInspector_RemoveData.bind(this));
+        devtoolsPanel.subscribe(
+            'AuraInspector:RemoveStorageData',
+            AuraInspector_RemoveData.bind(this)
+        );
     };
 
     this.render = function() {
-        if (!dirty) { return; }
+        if (!dirty) {
+            return;
+        }
         dirty = false;
 
-        if(firstLoad) {
+        if (firstLoad) {
             firstLoad = false;
             this.refresh();
         } else {
@@ -57,27 +62,29 @@ export default function AuraInspectorStorageView(devtoolsPanel) {
         }
     };
 
-    this.refresh = function(){
+    this.refresh = function() {
         this.clearData();
-        this.getStoresList(function(stores){
-            this.updateStores(stores, function() {
-                drawStoragePanel();
-                dirty = false;
-            });
-        }.bind(this));
+        this.getStoresList(
+            function(stores) {
+                this.updateStores(stores, function() {
+                    drawStoragePanel();
+                    dirty = false;
+                });
+            }.bind(this)
+        );
     };
 
     this.updateStores = function(stores, allDoneCallback) {
         var command;
-        var count = stores && stores.length || 0;
+        var count = (stores && stores.length) || 0;
 
-        if(!count) {
+        if (!count) {
             allDoneCallback();
             return;
         }
 
         var commands = [];
-        for (var c=0;c<count;c++) {
+        for (var c = 0; c < count; c++) {
             var store = stores[c];
             commands.push(`
                     var output = "o_${store}";
@@ -108,28 +115,37 @@ export default function AuraInspectorStorageView(devtoolsPanel) {
                 data;
             }
         `;
-    
-        chrome.devtools.inspectedWindow.eval(command, function(storeKey, response, exceptionInfo) {
-            if(exceptionInfo) { console.error(exceptionInfo); }
-            //this.setData(storeKey, response);
 
-            //if(++processed === count) {
+        chrome.devtools.inspectedWindow.eval(
+            command,
+            function(storeKey, response, exceptionInfo) {
+                if (exceptionInfo) {
+                    console.error(exceptionInfo);
+                }
+                //this.setData(storeKey, response);
+
+                //if(++processed === count) {
                 allDoneCallback();
-            //}
-        }.bind(this, store));
+                //}
+            }.bind(this, store)
+        );
     };
 
     this.getStoresList = function(callback) {
         var stores = [];
 
         // must collect the store names before doing the cache update
-        var command = "Object.keys($A.storageService.getStorages());";
+        var command = 'Object.keys($A.storageService.getStorages());';
         chrome.devtools.inspectedWindow.eval(command, function(response, exceptionInfo) {
-            if(!response) { return; }
+            if (!response) {
+                return;
+            }
             // Replace ' \' '  to '_' so that template strings doesn't break.
-            stores = response.map(function(name){ return name.replace('\'', '_'); });
+            stores = response.map(function(name) {
+                return name.replace("'", '_');
+            });
 
-            if(callback) {
+            if (callback) {
                 callback(stores);
             }
         });
@@ -143,9 +159,9 @@ export default function AuraInspectorStorageView(devtoolsPanel) {
     this.clearData = function() {
         dirty = true;
         data = {};
-    }
+    };
 
-    function drawStoragePanel(){
+    function drawStoragePanel() {
         var formatted = {};
         var f, d;
         for (var i in data) {
@@ -155,10 +171,16 @@ export default function AuraInspectorStorageView(devtoolsPanel) {
             f.Adapter = d.name;
 
             var sizeAsPercent;
-            f.sizeEstimate = "";
+            f.sizeEstimate = '';
             if (d.size !== undefined) {
-                sizeAsPercent = (d.size / d.maxSize * 100).toFixed(0);
-                f.sizeEstimate = d.size.toFixed(1) + " KB (" + sizeAsPercent + "% of " + d.maxSize.toFixed(0) + " KB)";
+                sizeAsPercent = ((d.size / d.maxSize) * 100).toFixed(0);
+                f.sizeEstimate =
+                    d.size.toFixed(1) +
+                    ' KB (' +
+                    sizeAsPercent +
+                    '% of ' +
+                    d.maxSize.toFixed(0) +
+                    ' KB)';
             }
 
             f.Version = d.version;
@@ -182,31 +204,30 @@ export default function AuraInspectorStorageView(devtoolsPanel) {
             formatted[i] = f;
         }
 
-        var output = document.createElement("aurainspector-json");
-        output.setAttribute("expandTo", 2);
+        var output = document.createElement('aurainspector-json');
+        output.setAttribute('expandTo', 2);
         //Lin TODO: make each storage item a single element ?
         output.textContent = JSON.stringify(formatted);
 
-        var node = document.getElementById("storage-viewer");
+        var node = document.getElementById('storage-viewer');
         node.removeChildren();
         node.appendChild(output);
     }
 
     this.removeData = function(key) {
         dirty = true;
-        if(key && key.length > 0 ) {
+        if (key && key.length > 0) {
             //Lin TODO: highlight the storage item we gonna delete in StorageView, and ask for confirmation.
-            if(key in data) {
+            if (key in data) {
                 //console.log("in data[], find & remove storage item for action :", key);
                 delete data[key];
             }
             //  else {
             //     console.log("in data[], no storage item for action :", key);
             // }
-
         }
         this.render();
-    }
+    };
 
     function AuraInspector_StorageData(event) {
         this.setData(event.id, JSON.parse(event.data));
@@ -227,7 +248,7 @@ export default function AuraInspectorStorageView(devtoolsPanel) {
      * @return {String} label in KB.
      */
     function toKb(value, decimals) {
-        return (value / 1024).toFixed(decimals) + " " + labels.kb;
+        return (value / 1024).toFixed(decimals) + ' ' + labels.kb;
     }
 
     /**
@@ -245,7 +266,7 @@ export default function AuraInspectorStorageView(devtoolsPanel) {
      * @param {Number} long number - time stamp.
      * @return {String} localized date string
      */
-     function toDate(long) {
+    function toDate(long) {
         return new Date(long).toLocaleTimeString();
-     }
+    }
 }

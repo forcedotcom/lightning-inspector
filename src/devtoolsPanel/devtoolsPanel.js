@@ -1,17 +1,17 @@
-import "./devtoolsPanel.css";
-import AuraInspectorEventLog from "./AuraInspectorEventLog";
-import AuraInspectorActionsView from "./AuraInspectorActionsView";
-import AuraInspectorComponentTree from "./AuraInspectorComponentTree";
-import AuraInspectorComponentView from "./AuraInspectorComponentView";
-import AuraInspectorPerformanceView from "./AuraInspectorPerformanceView";
-import AuraInspectorDefinitionsList from "./AuraInspectorDefinitionsList.js";
-import AuraInspectorStorageView from "./AuraInspectorStorageView.js";
-import AuraInspectorTransactionGrid from "./AuraInspectorTransactionGrid.js";
-import AuraInspectorTransactionPanel from "./AuraInspectorTransactionPanel.js";
-import AuraInspectorTransactionView from "./AuraInspectorTransactionView.js";
-import DevToolsEncodedId from "./DevToolsEncodedId.js";
-import AuraInspectorOptions from "./optionsProxy.js";
-import JsonSerializer from "../aura/JsonSerializer.js";
+import './devtoolsPanel.css';
+import AuraInspectorEventLog from './AuraInspectorEventLog';
+import AuraInspectorActionsView from './AuraInspectorActionsView';
+import AuraInspectorComponentTree from './AuraInspectorComponentTree';
+import AuraInspectorComponentView from './AuraInspectorComponentView';
+import AuraInspectorPerformanceView from './AuraInspectorPerformanceView';
+import AuraInspectorDefinitionsList from './AuraInspectorDefinitionsList.js';
+import AuraInspectorStorageView from './AuraInspectorStorageView.js';
+import AuraInspectorTransactionGrid from './AuraInspectorTransactionGrid.js';
+import AuraInspectorTransactionPanel from './AuraInspectorTransactionPanel.js';
+import AuraInspectorTransactionView from './AuraInspectorTransactionView.js';
+import DevToolsEncodedId from './DevToolsEncodedId.js';
+import AuraInspectorOptions from './optionsProxy.js';
+import JsonSerializer from '../aura/JsonSerializer.js';
 
 /**
  * You can use the publish and subscribe methods to broadcast messages through to the end points of the architecture.
@@ -60,49 +60,54 @@ var panel = new AuraInspectorDevtoolsPanel();
 
 // Connects to content script
 // and draws the panels.
-panel.init(function(){
+panel.init(function() {
     // Probably the default we want
-    AuraInspectorOptions.getAll({ "activePanel": "transaction" }, function(options) {
-        if(!panel.hasPanel(options["activePanel"])) {
+    AuraInspectorOptions.getAll({ activePanel: 'transaction' }, function(options) {
+        if (!panel.hasPanel(options['activePanel'])) {
             // If the panel we are switching to doesn't exist, use the
             // default which is the Component Tree.
-            options["activePanel"] = "component-tree";
+            options['activePanel'] = 'component-tree';
         }
 
-        panel.showPanel(options["activePanel"]);
+        panel.showPanel(options['activePanel']);
     });
 });
 
-    function AuraInspectorDevtoolsPanel() {
-        //var EXTENSIONID = "mhfgenmncdnmcoonglmkepfdnjjjcpla";
-        var PUBLISH_KEY = "AuraInspector:publish";
-        var PUBLISH_BATCH_KEY = "AuraInspector:publishbatch";
-        var BOOTSTRAP_KEY = "AuraInspector:bootstrap";
-        var runtime = null;
-        var actions = new Map();
-        // For Drawing the Tree, eventually to be moved into it's own component
-        var nodeId = 0;
-        var events = new Map();
-        var panels = new Map();
-        const renderedPanels = new Set();
-        var _name = "AuraInspectorDevtoolsPanel";
-        var _onReadyQueue = [];
-        var _isReady = false;
-        var _initialized = false;
-        var _subscribers = new Map();
-        var tabId;
-        var currentPanel;
+function AuraInspectorDevtoolsPanel() {
+    //var EXTENSIONID = "mhfgenmncdnmcoonglmkepfdnjjjcpla";
+    var PUBLISH_KEY = 'AuraInspector:publish';
+    var PUBLISH_BATCH_KEY = 'AuraInspector:publishbatch';
+    var BOOTSTRAP_KEY = 'AuraInspector:bootstrap';
+    var runtime = null;
+    var actions = new Map();
+    // For Drawing the Tree, eventually to be moved into it's own component
+    var nodeId = 0;
+    var events = new Map();
+    var panels = new Map();
+    const renderedPanels = new Set();
+    var _name = 'AuraInspectorDevtoolsPanel';
+    var _onReadyQueue = [];
+    var _isReady = false;
+    var _initialized = false;
+    var _subscribers = new Map();
+    var tabId;
+    var currentPanel;
 
-
-    this.connect = function(){
-        if(runtime) { return; }
+    this.connect = function() {
+        if (runtime) {
+            return;
+        }
         tabId = chrome.devtools.inspectedWindow.tabId;
 
-        runtime = chrome.runtime.connect({"name": _name });
+        runtime = chrome.runtime.connect({ name: _name });
         runtime.onMessage.addListener(BackgroundScript_OnMessage.bind(this));
         //runtime.onDisconnect.addListener(DevToolsPanel_OnDisconnect.bind(this));
-        runtime.postMessage( { "action": "BackgroundPage:publish", "key": "BackgroundPage:InjectContentScript", "data": tabId } );
-        runtime.postMessage( { "subscribe": ["AuraInspector:bootstrap"], "tabId": tabId });
+        runtime.postMessage({
+            action: 'BackgroundPage:publish',
+            key: 'BackgroundPage:InjectContentScript',
+            data: tabId
+        });
+        runtime.postMessage({ subscribe: ['AuraInspector:bootstrap'], tabId: tabId });
     };
 
     this.disconnect = function(port) {};
@@ -111,12 +116,14 @@ panel.init(function(){
         this.connect();
 
         // Wait for the AuraInjectedScript to finish loading.
-        this.subscribe("AuraInspector:OnBootstrapEnd", () => {
-            if(_initialized) { return; }
+        this.subscribe('AuraInspector:OnBootstrapEnd', () => {
+            if (_initialized) {
+                return;
+            }
 
             //-- Attach Event Listeners
-            var header = document.querySelector("header.tabs");
-            header.addEventListener("click", HeaderActions_OnClick.bind(this));
+            var header = document.querySelector('header.tabs');
+            header.addEventListener('click', HeaderActions_OnClick.bind(this));
 
             // Initialize Panels
             var eventLog = new AuraInspectorEventLog(this);
@@ -126,57 +133,76 @@ panel.init(function(){
             var actions = new AuraInspectorActionsView(this);
             var storage = new AuraInspectorStorageView(this);
 
-            this.addPanel("component-tree", tree, chrome.i18n.getMessage("tabs_componenttree"));
-            this.addPanel("performance", perf, chrome.i18n.getMessage("tabs_performance"));
-            this.addPanel("transaction", transaction, chrome.i18n.getMessage("tabs_transactions"));
-            this.addPanel("event-log", eventLog, chrome.i18n.getMessage("tabs_eventlog"));
-            this.addPanel("actions", actions, chrome.i18n.getMessage("tabs_actions"));
-            this.addPanel(storage.panelId, storage, chrome.i18n.getMessage("tabs_storage"));
+            this.addPanel('component-tree', tree, chrome.i18n.getMessage('tabs_componenttree'));
+            this.addPanel('performance', perf, chrome.i18n.getMessage('tabs_performance'));
+            this.addPanel('transaction', transaction, chrome.i18n.getMessage('tabs_transactions'));
+            this.addPanel('event-log', eventLog, chrome.i18n.getMessage('tabs_eventlog'));
+            this.addPanel('actions', actions, chrome.i18n.getMessage('tabs_actions'));
+            this.addPanel(storage.panelId, storage, chrome.i18n.getMessage('tabs_storage'));
 
             // Sidebar Panel
             // The AuraInspectorComponentView adds the sidebar class
-            this.addPanel("component-view", new AuraInspectorComponentView(this));
+            this.addPanel('component-view', new AuraInspectorComponentView(this));
 
             // Draw the help option
-            fetch(chrome.extension.getURL("configuration.json"), {
-                method: "get"
-            }).then(function(response){
-               response.json().then(function(json){
+            fetch(chrome.extension.getURL('configuration.json'), {
+                method: 'get'
+            }).then(function(response) {
+                response.json().then(function(json) {
                     drawHelp(json.help);
-               });
+                });
             });
 
-            this.subscribe("AuraInspector:OnContextMenu", function() {
-                this.publish("AuraInspector:ContextElementRequest", {});
-            }.bind(this));
+            this.subscribe(
+                'AuraInspector:OnContextMenu',
+                function() {
+                    this.publish('AuraInspector:ContextElementRequest', {});
+                }.bind(this)
+            );
 
-            this.subscribe("AuraInspector:AddPanel", AuraInspector_OnAddPanel.bind(this));
-            this.subscribe("AuraInspector:ShowComponentInTree", AuraInspector_OnShowComponentInTree.bind(this));
-            this.subscribe("AuraInspector:Search", AuraInspector_OnSearch.bind(this));
-            this.subscribe("AuraInspector:CancelSearch", AuraInspector_OnCancelSearch.bind(this));
+            this.subscribe('AuraInspector:AddPanel', AuraInspector_OnAddPanel.bind(this));
+            this.subscribe(
+                'AuraInspector:ShowComponentInTree',
+                AuraInspector_OnShowComponentInTree.bind(this)
+            );
+            this.subscribe('AuraInspector:Search', AuraInspector_OnSearch.bind(this));
+            this.subscribe('AuraInspector:CancelSearch', AuraInspector_OnCancelSearch.bind(this));
 
             // AuraInspector:publish and AuraInspector:publishbash are essentially the only things we listen for anymore.
             // We broadcast one publish message everywhere, and then we have subscribers.
             // We do this here, after we've setup all the subscribers. So now we say send us everything that has been
             // queued up, and start listening going forward.
-            runtime.postMessage({subscribe: [PUBLISH_KEY, PUBLISH_BATCH_KEY], port: runtime.name, tabId: tabId });
+            runtime.postMessage({
+                subscribe: [PUBLISH_KEY, PUBLISH_BATCH_KEY],
+                port: runtime.name,
+                tabId: tabId
+            });
 
             _initialized = true;
 
-            if(typeof finishedCallback === "function") {
+            if (typeof finishedCallback === 'function') {
                 finishedCallback();
             }
         });
 
-        this.subscribe("AuraInspector:OnAuraUnavailable", AuraInspector_OnAuraUnavailable.bind(this));
-        this.subscribe("AuraInspector:OnAuraInitialized", AuraInspector_OnAuraInitialized.bind(this));
+        this.subscribe(
+            'AuraInspector:OnAuraUnavailable',
+            AuraInspector_OnAuraUnavailable.bind(this)
+        );
+        this.subscribe(
+            'AuraInspector:OnAuraInitialized',
+            AuraInspector_OnAuraInitialized.bind(this)
+        );
 
-        this.publish("AuraInspector:OnPanelConnect", "DevtoolsPanel: Devtools loaded." + Date.now());
+        this.publish(
+            'AuraInspector:OnPanelConnect',
+            'DevtoolsPanel: Devtools loaded.' + Date.now()
+        );
 
         //this.subscribe("AuraInspector:RequestReleaseInfo", AuraInspector_OnRequestReleaseInfo.bind(this));
 
-        var tryAgainButton = document.querySelector("#no-aura-available-try-again");
-        tryAgainButton.addEventListener("click", TryAgainButton_OnClick.bind(this));
+        var tryAgainButton = document.querySelector('#no-aura-available-try-again');
+        tryAgainButton.addEventListener('click', TryAgainButton_OnClick.bind(this));
 
         toggleAvailableDialog();
     };
@@ -189,26 +215,26 @@ panel.init(function(){
      * @param {String} title The label which goes in the Tab to select for the panel.
      */
     this.addPanel = function(key, panel, title) {
-        if(!panels.has(key)) {
+        if (!panels.has(key)) {
             // Create Tab Body and Header
-            var tabBody = document.createElement("section");
-                tabBody.className="tab-body";
-                tabBody.id = "tab-body-" + key;
+            var tabBody = document.createElement('section');
+            tabBody.className = 'tab-body';
+            tabBody.id = 'tab-body-' + key;
 
-            if(title) {
-                var tabHeader = document.createElement("button");
-                    tabHeader.appendChild(document.createTextNode(title));
-                    tabHeader.id = "tabs-" + key;
+            if (title) {
+                var tabHeader = document.createElement('button');
+                tabHeader.appendChild(document.createTextNode(title));
+                tabHeader.id = 'tabs-' + key;
 
-                var tabs = document.querySelector("header.tabs");
-                    tabs.appendChild(tabHeader);
+                var tabs = document.querySelector('header.tabs');
+                tabs.appendChild(tabHeader);
             }
 
             // Initialize component with new body
             panel.init(tabBody);
             panels.set(key, panel);
 
-            document.getElementById("devtools-container").appendChild(tabBody);
+            document.getElementById('devtools-container').appendChild(tabBody);
         }
     };
 
@@ -216,57 +242,59 @@ panel.init(function(){
      * Which panel to show to the user in the dev tools.
      */
     this.showPanel = function(key, options) {
-        if(!key) { return; }
-        var buttons = document.querySelectorAll("header.tabs button:not(.trigger)");
-        var sections = document.querySelectorAll("section.tab-body:not(.sidebar)");
-        var panelKey = key.indexOf("tabs-")==0?key.substring(5):key;
-        var buttonKey = "tabs-"+panelKey;
+        if (!key) {
+            return;
+        }
+        var buttons = document.querySelectorAll('header.tabs button:not(.trigger)');
+        var sections = document.querySelectorAll('section.tab-body:not(.sidebar)');
+        var panelKey = key.indexOf('tabs-') == 0 ? key.substring(5) : key;
+        var buttonKey = 'tabs-' + panelKey;
         var current = panels.get(panelKey);
         const isPanelRendered = renderedPanels.has(panelKey);
 
         // When you try to show the panel that already is shown, we don't want to refire render.
         // That does setup stuff and that shouldn't happen while you are using a panel.
-        if(current === currentPanel || !current) {
+        if (current === currentPanel || !current) {
             return;
         } else {
             currentPanel = current;
         }
 
-        for(var c=0;c<buttons.length;c++){
-            if(buttons[c].id===buttonKey) {
-                buttons[c].classList.add("selected");
-                sections[c].classList.add("selected");
+        for (var c = 0; c < buttons.length; c++) {
+            if (buttons[c].id === buttonKey) {
+                buttons[c].classList.add('selected');
+                sections[c].classList.add('selected');
             } else {
-                buttons[c].classList.remove("selected");
-                sections[c].classList.remove("selected");
+                buttons[c].classList.remove('selected');
+                sections[c].classList.remove('selected');
             }
             this.hideSidebar();
         }
 
         // Render the output. Panel is responsible for not redrawing if necessary.
-        if(current) {
+        if (current) {
             this.hideLoading();
             current.render(options);
-            AuraInspectorOptions.set("activePanel", panelKey);
+            AuraInspectorOptions.set('activePanel', panelKey);
         }
 
         // Render the output. Panel is responsible for not redrawing if necessary.
-        if(current) {
+        if (current) {
             this.hideLoading();
-            if(!isPanelRendered) {
+            if (!isPanelRendered) {
                 renderedPanels.add(panelKey);
                 current.render(options);
             }
 
-            if(!current.onShowPanel && isPanelRendered) {
+            if (!current.onShowPanel && isPanelRendered) {
                 current.render(options);
             }
 
-            if(current.onShowPanel) {
+            if (current.onShowPanel) {
                 current.onShowPanel(options);
             }
-            
-            AuraInspectorOptions.set("activePanel", panelKey);
+
+            AuraInspectorOptions.set('activePanel', panelKey);
         }
     };
 
@@ -285,7 +313,9 @@ panel.init(function(){
      * @param  {Object} data any type of data to pass to the subscribe method.
      */
     this.publish = function(key, data) {
-        if(!key) { return; }
+        if (!key) {
+            return;
+        }
 
         var jsonData = JSON.stringify(data);
         var command = `
@@ -297,14 +327,13 @@ panel.init(function(){
         `;
 
         chrome.devtools.inspectedWindow.eval(command, function() {
-            if(_subscribers.has(key)) {
+            if (_subscribers.has(key)) {
                 //console.log(key, _subscribers.get(key).length)
-                _subscribers.get(key).forEach(function(callback){
+                _subscribers.get(key).forEach(function(callback) {
                     callback(data);
                 });
             }
         });
-
     };
 
     /**
@@ -314,7 +343,7 @@ panel.init(function(){
      * @param  {Function} callback function to be executed when the message is published.
      */
     this.subscribe = function(key, callback) {
-        if(!_subscribers.has(key)) {
+        if (!_subscribers.has(key)) {
             _subscribers.set(key, []);
         }
 
@@ -325,28 +354,28 @@ panel.init(function(){
      * Essentially hides the component view. More might go in there, but for now, thats it.
      */
     this.hideSidebar = function() {
-        document.body.classList.remove("sidebar-visible");
+        document.body.classList.remove('sidebar-visible');
     };
 
     /**
      * Shows the component view.
      */
     this.showSidebar = function() {
-        document.body.classList.add("sidebar-visible");
+        document.body.classList.add('sidebar-visible');
     };
 
     /**
      * Shows the little spinning blocks.
      */
     this.showLoading = function() {
-        document.getElementById("loading").style.display="block";
+        document.getElementById('loading').style.display = 'block';
     };
 
     /**
      * Hides the spinning blocks.
      */
     this.hideLoading = function() {
-        document.getElementById("loading").style.display="none";
+        document.getElementById('loading').style.display = 'none';
     };
 
     /**
@@ -359,20 +388,22 @@ panel.init(function(){
      * this.getMode(function(mode){ console.log("The mode is: " + mode)});
      */
     this.getMode = function(callback) {
-        chrome.devtools.inspectedWindow.eval("$A.getContext().getMode();", callback);
+        chrome.devtools.inspectedWindow.eval('$A.getContext().getMode();', callback);
     };
 
     this.updateComponentView = function(globalId) {
-        panels.get("component-view").setData(globalId);
+        panels.get('component-view').setData(globalId);
     };
 
     this.getCount = function(key, callback) {
-        if(typeof callback !== "function") { throw new Error("callback is required for - getCount(key, callback)"); }
+        if (typeof callback !== 'function') {
+            throw new Error('callback is required for - getCount(key, callback)');
+        }
         const command = `window[Symbol.for('AuraDevTools')].Inspector.getCount('${key}');`;
 
         chrome.devtools.inspectedWindow.eval(command, function(response, exceptionInfo) {
-            if(exceptionInfo) {
-                console.error(command, " resulted in ", exceptionInfo);
+            if (exceptionInfo) {
+                console.error(command, ' resulted in ', exceptionInfo);
             }
 
             const count = parseInt(response, 10);
@@ -382,11 +413,15 @@ panel.init(function(){
     };
 
     this.getComponent = function(globalId, callback, configuration) {
-        if(typeof callback !== "function") { throw new Error("callback is required for - getComponent(globalId, callback)"); }
-        if(DevToolsEncodedId.isComponentId(globalId)) { globalId = DevToolsEncodedId.getCleanId(globalId); }
+        if (typeof callback !== 'function') {
+            throw new Error('callback is required for - getComponent(globalId, callback)');
+        }
+        if (DevToolsEncodedId.isComponentId(globalId)) {
+            globalId = DevToolsEncodedId.getCleanId(globalId);
+        }
         var command;
 
-        if(configuration && typeof configuration === "object") {
+        if (configuration && typeof configuration === 'object') {
             var configParameter = JSON.stringify(configuration);
             command = `window[Symbol.for('AuraDevTools')].Inspector.getComponent('${globalId}', ${configParameter});`;
         } else {
@@ -394,10 +429,12 @@ panel.init(function(){
         }
 
         chrome.devtools.inspectedWindow.eval(command, function(response, exceptionInfo) {
-            if(exceptionInfo) {
-                console.error(command, " resulted in ", exceptionInfo);
+            if (exceptionInfo) {
+                console.error(command, ' resulted in ', exceptionInfo);
             }
-            if(!response) { return; }
+            if (!response) {
+                return;
+            }
 
             const component = JsonSerializer.parse(response);
 
@@ -406,32 +443,43 @@ panel.init(function(){
     };
 
     this.getComponents = function(globalIds, callback) {
-        if(!Array.isArray(globalIds)) { throw new Error("globalIds was not an array - getComponents(globalIds, callback)");}
+        if (!Array.isArray(globalIds)) {
+            throw new Error('globalIds was not an array - getComponents(globalIds, callback)');
+        }
         var count = globalIds.length;
         var processed = 0;
         var returnValue = [];
-        for(var c=0;c<count;c++) {
-            this.getComponent(globalIds[c], function(index, component){
-                returnValue[index] = component;
-                if(++processed == count) {
-                    callback(returnValue);
-                }
-            }.bind(this, c));
+        for (var c = 0; c < count; c++) {
+            this.getComponent(
+                globalIds[c],
+                function(index, component) {
+                    returnValue[index] = component;
+                    if (++processed == count) {
+                        callback(returnValue);
+                    }
+                }.bind(this, c)
+            );
         }
     };
 
     this.getRootComponents = function(callback) {
-        if(typeof callback !== "function") { throw new Error("callback is required for - getRootComponent(callback)"); }
+        if (typeof callback !== 'function') {
+            throw new Error('callback is required for - getRootComponent(callback)');
+        }
 
-        chrome.devtools.inspectedWindow.eval("window.$A && $A.getRoot() && window[Symbol.for('AuraDevTools')].Inspector.getRootComponents();", function(rootNodes, exceptionInfo) {
-            if(exceptionInfo) {
-                console.error(exceptionInfo);
+        chrome.devtools.inspectedWindow.eval(
+            "window.$A && $A.getRoot() && window[Symbol.for('AuraDevTools')].Inspector.getRootComponents();",
+            function(rootNodes, exceptionInfo) {
+                if (exceptionInfo) {
+                    console.error(exceptionInfo);
+                }
+                if (!rootNodes) {
+                    return;
+                }
+                const component = JsonSerializer.parse(rootNodes);
+                callback(component);
             }
-            if(!rootNodes) { return; }
-            const component = JsonSerializer.parse(rootNodes);
-            callback(component);
-        });
-
+        );
     };
 
     /**
@@ -439,7 +487,7 @@ panel.init(function(){
      * Should probably just move to the publish and subscribe methods.
      */
     this.attach = function(eventName, eventHandler) {
-        if(!events.has(eventName)) {
+        if (!events.has(eventName)) {
             events.set(eventName, new Set());
         }
         events.get(eventName).add(eventHandler);
@@ -450,12 +498,12 @@ panel.init(function(){
      * Should probably be replaced with pub/sub.
      */
     this.notify = function(eventName, data) {
-         if(events.has(eventName)) {
-            var eventInfo = { "data": data };
-            events.get(eventName).forEach(function(item){
+        if (events.has(eventName)) {
+            var eventInfo = { data: data };
+            events.get(eventName).forEach(function(item) {
                 item(eventInfo);
             });
-         }
+        }
     };
 
     /*
@@ -463,15 +511,15 @@ panel.init(function(){
      Can we move some of these to the individual panels themselves?
      */
     this.highlightElement = function(globalId) {
-        this.publish("AuraInspector:OnHighlightComponent", globalId);
+        this.publish('AuraInspector:OnHighlightComponent', globalId);
     };
 
     this.removeHighlightElement = function() {
-        this.publish("AuraInspector:OnHighlightComponentEnd");
+        this.publish('AuraInspector:OnHighlightComponentEnd');
     };
 
     this.addLogMessage = function(msg) {
-        this.publish("AuraInspector:ConsoleLog", msg);
+        this.publish('AuraInspector:ConsoleLog', msg);
     };
 
     /**
@@ -482,13 +530,21 @@ panel.init(function(){
     };
 
     this.openTab = function(url) {
-        if(url.startsWith("/")) {
+        if (url.startsWith('/')) {
             // Resolve to be absolute first.
-            chrome.devtools.inspectedWindow.eval("window.location.origin", function(origin) {
-                runtime.postMessage({ "action": "BackgroundPage:publish", "key":"BackgroundPage:OpenTab", "data": origin + url });
+            chrome.devtools.inspectedWindow.eval('window.location.origin', function(origin) {
+                runtime.postMessage({
+                    action: 'BackgroundPage:publish',
+                    key: 'BackgroundPage:OpenTab',
+                    data: origin + url
+                });
             });
         } else {
-            runtime.postMessage({ "action": "BackgroundPage:publish", "key":"BackgroundPage:OpenTab", "data": url });
+            runtime.postMessage({
+                action: 'BackgroundPage:publish',
+                key: 'BackgroundPage:OpenTab',
+                data: url
+            });
         }
     };
 
@@ -507,9 +563,9 @@ panel.init(function(){
         runtime.postMessage({"chaos": message, "tabId": chrome.devtools.inspectedWindow.tabId});
     }*/
 
-    function HeaderActions_OnClick(event){
+    function HeaderActions_OnClick(event) {
         var target = event.target;
-        if(target.id.indexOf("tabs-") === 0) {
+        if (target.id.indexOf('tabs-') === 0) {
             this.showPanel(target.id);
         }
     }
@@ -519,30 +575,35 @@ panel.init(function(){
     }
 
     function BackgroundScript_OnMessage(message) {
-        if(!message) { return; }
-        if(message.action === "AuraInspector:bootstrap") {
-            this.publish("AuraInspector:OnBootstrapEnd", "DevtoolsPanel: AuraInspector:bootstrap was called.");
-        } else if(message.action === PUBLISH_KEY) {
+        if (!message) {
+            return;
+        }
+        if (message.action === 'AuraInspector:bootstrap') {
+            this.publish(
+                'AuraInspector:OnBootstrapEnd',
+                'DevtoolsPanel: AuraInspector:bootstrap was called.'
+            );
+        } else if (message.action === PUBLISH_KEY) {
             callSubscribers(message.key, message.data);
-        } else if(message.action === PUBLISH_BATCH_KEY) {
+        } else if (message.action === PUBLISH_BATCH_KEY) {
             var data = message.data || [];
-            for(var c=0,length=data.length;c<length;c++) {
+            for (var c = 0, length = data.length; c < length; c++) {
                 callSubscribers(data[c].key, data[c].data);
             }
         } else {
-            console.warn("BackgroundScript_OnMessage, unknown message:", message.action);
+            console.warn('BackgroundScript_OnMessage, unknown message:', message.action);
         }
     }
 
     function callSubscribers(key, data) {
         //console.log("Calling Subscribers For: ", key);
-        if(_subscribers.has(key)) {
-            _subscribers.get(key).forEach(function(callback){
+        if (_subscribers.has(key)) {
+            _subscribers.get(key).forEach(function(callback) {
                 try {
                     //console.log("DevtoolsPanel:CallSubscribers", key, data);
                     callback(data);
-                } catch(e) {
-                    console.error("Key: ", key, " resulted in error ", e);
+                } catch (e) {
+                    console.error('Key: ', key, ' resulted in error ', e);
                 }
             });
         } else {
@@ -551,7 +612,7 @@ panel.init(function(){
     }
 
     function AuraInspector_OnShowComponentInTree() {
-        this.showPanel("component-tree");
+        this.showPanel('component-tree');
     }
 
     function AuraInspector_OnAddPanel(message) {
@@ -560,7 +621,7 @@ panel.init(function(){
         // in which case they would have full access to the page.
         // By limiting it to chrome-extension url's only, we are assuming
         // the extension trying to add the panel is already trusted and has access to the page.
-        if(message.scriptUrl.indexOf("chrome-extension://") !== 0) {
+        if (message.scriptUrl.indexOf('chrome-extension://') !== 0) {
             return;
         }
 
@@ -568,41 +629,43 @@ panel.init(function(){
         // We instantiate a panel using a global window[] reference,
         // and we don't want people to call any function, just the panel
         // constructors.
-        if(!message.classConstructor.startsWith("InspectorPanel")) {
+        if (!message.classConstructor.startsWith('InspectorPanel')) {
             return;
         }
 
-        var script = document.createElement("script");
-            script.src = message.scriptUrl;
-            script.onload = function() {
-                var panelConstructor = window[message.classConstructor];
-                if(!panelConstructor) {
-                    this.addLogMessage(`Tried to create the panel ${message.panelId} with constructor ${message.classConstructor} which did not exist.`);
-                    return;
-                }
-                this.addPanel(message.panelId, new panelConstructor(this), message.title);
-            }.bind(this);
+        var script = document.createElement('script');
+        script.src = message.scriptUrl;
+        script.onload = function() {
+            var panelConstructor = window[message.classConstructor];
+            if (!panelConstructor) {
+                this.addLogMessage(
+                    `Tried to create the panel ${message.panelId} with constructor ${message.classConstructor} which did not exist.`
+                );
+                return;
+            }
+            this.addPanel(message.panelId, new panelConstructor(this), message.title);
+        }.bind(this);
 
         document.body.appendChild(script);
 
-        if(message.hasOwnProperty("stylesheetUrl")) {
-            var link = document.createElement("link");
-            link.setAttribute("rel", "stylesheet");
-            link.setAttribute("href", message.stylesheetUrl);
+        if (message.hasOwnProperty('stylesheetUrl')) {
+            var link = document.createElement('link');
+            link.setAttribute('rel', 'stylesheet');
+            link.setAttribute('href', message.stylesheetUrl);
 
             document.head.appendChild(link);
         }
     }
 
     function AuraInspector_OnAuraUnavailable() {
-        toggleAvailableDialog()
+        toggleAvailableDialog();
     }
 
     function AuraInspector_OnAuraInitialized() {
         // The initialize script ran.
-        this.publish("AuraInspector:OnPanelConnect", "DevtoolsPanel:OnAuraInitialized");
+        this.publish('AuraInspector:OnPanelConnect', 'DevtoolsPanel:OnAuraInitialized');
 
-        toggleAvailableDialog()
+        toggleAvailableDialog();
     }
 
     function TryAgainButton_OnClick() {
@@ -616,31 +679,31 @@ panel.init(function(){
     }
 
     function AuraInspector_OnCancelSearch() {
-        if(currentPanel && currentPanel.onCancelSearch) {
+        if (currentPanel && currentPanel.onCancelSearch) {
             currentPanel.onCancelSearch();
         }
     }
 
     function AuraInspector_OnSearch(searchTerm) {
-        if(currentPanel && currentPanel.onSearch) {
+        if (currentPanel && currentPanel.onSearch) {
             currentPanel.onSearch(searchTerm);
         }
     }
 
     /**  BEGIN HELP BUTTON */
     function Dropdown_OnClick(event) {
-            if(this.classList.contains("is-open")) {
-                hideHelp(this);
-            } else {
-                showHelp(this);
-            }
+        if (this.classList.contains('is-open')) {
+            hideHelp(this);
+        } else {
+            showHelp(this);
+        }
     }
 
     function Body_OnClick(event) {
         var target = event.target;
         var current = target;
-        while(current != null && current != current.parentNode) {
-            if(current == this) {
+        while (current != null && current != current.parentNode) {
+            if (current == this) {
                 return;
             }
             current = current.parentNode;
@@ -650,168 +713,178 @@ panel.init(function(){
     }
 
     function Help_OnClick(event) {
-        if(event.target.tagName === "A") {
+        if (event.target.tagName === 'A') {
             event.stopPropagation();
             event.preventDefault();
-            var url = event.target.getAttribute("href");
+            var url = event.target.getAttribute('href');
             panel.openTab(url);
         }
     }
 
-    function Dropdown_OnKey(event){
-      if(event.keyCode){
-        if(event.keyCode === 27 || event.keyCode === 40 || event.keyCode === 9 || event.keyCode === 38){
+    function Dropdown_OnKey(event) {
+        if (event.keyCode) {
+            if (
+                event.keyCode === 27 ||
+                event.keyCode === 40 ||
+                event.keyCode === 9 ||
+                event.keyCode === 38
+            ) {
+                if (this.classList.contains('is-open')) {
+                    event.stopPropagation();
+                    event.preventDefault();
 
-            if(this.classList.contains("is-open")) {
-              event.stopPropagation();
-              event.preventDefault();
-
-              if(event.keyCode === 27){
-                //Close the menu.
-                hideHelp(this);
-                this.getElementsByClassName("trigger")[0].focus();
-
-              } else {
-                //Focus next item.
-                var offset = 0;
-                if((event.keyCode === 40) || (event.keyCode === 9)) {
-                    // Down
-                    offset = 1;
-                } else if((event.keyCode === 38) || (event.keyCode === 9 && event.shiftKey)) {
-                    // Up
-                    offset = -1;
-                }
-                // var d = 0;
-                // d = (event.keyCode === 40) || (event.keyCode === 9) ? 1 : d; //down
-                // d = (event.keyCode === 38) || (event.keyCode === 9 && event.shiftKey) ? -1 : d; //up
-                if(offset != 0) {
-                    var links = Array.from(this.getElementsByTagName("a"));
-                    var currentIndex = links.indexOf(document.activeElement);
-                    var link = links[currentIndex+offset];
-                    if(link) {
-                        link.focus();
+                    if (event.keyCode === 27) {
+                        //Close the menu.
+                        hideHelp(this);
+                        this.getElementsByClassName('trigger')[0].focus();
+                    } else {
+                        //Focus next item.
+                        var offset = 0;
+                        if (event.keyCode === 40 || event.keyCode === 9) {
+                            // Down
+                            offset = 1;
+                        } else if (
+                            event.keyCode === 38 ||
+                            (event.keyCode === 9 && event.shiftKey)
+                        ) {
+                            // Up
+                            offset = -1;
+                        }
+                        // var d = 0;
+                        // d = (event.keyCode === 40) || (event.keyCode === 9) ? 1 : d; //down
+                        // d = (event.keyCode === 38) || (event.keyCode === 9 && event.shiftKey) ? -1 : d; //up
+                        if (offset != 0) {
+                            var links = Array.from(this.getElementsByTagName('a'));
+                            var currentIndex = links.indexOf(document.activeElement);
+                            var link = links[currentIndex + offset];
+                            if (link) {
+                                link.focus();
+                            }
+                        }
                     }
+                } else if (event.keyCode != 27 && event.keyCode != 9) {
+                    //Open the menu if it is closed.
+                    Dropdown_OnClick.call(this, event);
                 }
-              }
-
-            } else if(event.keyCode != 27 && event.keyCode != 9){
-                //Open the menu if it is closed.
-                Dropdown_OnClick.call(this,event);
-              }
             }
         }
     }
 
-    function Dropdown_OnHover(event){
-      event.target.focus();
+    function Dropdown_OnHover(event) {
+        event.target.focus();
     }
 
     function drawHelp(helpLinks) {
-        var header = document.querySelector("header.tabs");
-        var dropdown = document.createElement("div");
-        dropdown.id = "help";
-        dropdown.className = "dropdown-trigger dropdown-trigger--click";
-        dropdown.addEventListener("click", Dropdown_OnClick);
-        dropdown.addEventListener("keydown", Dropdown_OnKey, false);
+        var header = document.querySelector('header.tabs');
+        var dropdown = document.createElement('div');
+        dropdown.id = 'help';
+        dropdown.className = 'dropdown-trigger dropdown-trigger--click';
+        dropdown.addEventListener('click', Dropdown_OnClick);
+        dropdown.addEventListener('keydown', Dropdown_OnKey, false);
 
-        var trigger = document.createElement("button");
-        trigger.className = "trigger";
-        trigger.setAttribute("aria-haspopup","true");
-        trigger.insertAdjacentHTML('beforeend', '<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" viewBox="0 0 52 52"><path d="m28.4 38h-5c-0.8 0-1.4-0.6-1.4-1.4v-1.5c0-4.2 2.7-8 6.7-9.4 1.2-0.4 2.3-1.1 3.2-2.1 5-6 0.4-13.2-5.6-13.4-2.2-0.1-4.3 0.7-5.9 2.2-1.3 1.2-2.1 2.7-2.3 4.4-0.1 0.6-0.7 1.1-1.5 1.1h-5c-0.9 0-1.6-0.7-1.5-1.6 0.4-3.8 2.1-7.2 4.8-9.9 3.2-3 7.3-4.6 11.7-4.5 8.3 0.3 15.1 7.1 15.4 15.4 0.3 7-4 13.3-10.5 15.7-0.9 0.4-1.5 1.1-1.5 2v1.5c0 0.9-0.8 1.5-1.6 1.5z m1.6 10.5c0 0.8-0.7 1.5-1.5 1.5h-5c-0.8 0-1.5-0.7-1.5-1.5v-5c0-0.8 0.7-1.5 1.5-1.5h5c0.8 0 1.5 0.7 1.5 1.5v5z"></path></svg>');
+        var trigger = document.createElement('button');
+        trigger.className = 'trigger';
+        trigger.setAttribute('aria-haspopup', 'true');
+        trigger.insertAdjacentHTML(
+            'beforeend',
+            '<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" viewBox="0 0 52 52"><path d="m28.4 38h-5c-0.8 0-1.4-0.6-1.4-1.4v-1.5c0-4.2 2.7-8 6.7-9.4 1.2-0.4 2.3-1.1 3.2-2.1 5-6 0.4-13.2-5.6-13.4-2.2-0.1-4.3 0.7-5.9 2.2-1.3 1.2-2.1 2.7-2.3 4.4-0.1 0.6-0.7 1.1-1.5 1.1h-5c-0.9 0-1.6-0.7-1.5-1.6 0.4-3.8 2.1-7.2 4.8-9.9 3.2-3 7.3-4.6 11.7-4.5 8.3 0.3 15.1 7.1 15.4 15.4 0.3 7-4 13.3-10.5 15.7-0.9 0.4-1.5 1.1-1.5 2v1.5c0 0.9-0.8 1.5-1.6 1.5z m1.6 10.5c0 0.8-0.7 1.5-1.5 1.5h-5c-0.8 0-1.5-0.7-1.5-1.5v-5c0-0.8 0.7-1.5 1.5-1.5h5c0.8 0 1.5 0.7 1.5 1.5v5z"></path></svg>'
+        );
 
-        var label = document.createElement("span");
-        label.className = "slds-assistive-text";
-        label.textContent = chrome.i18n.getMessage("tabs_help");
+        var label = document.createElement('span');
+        label.className = 'slds-assistive-text';
+        label.textContent = chrome.i18n.getMessage('tabs_help');
 
         trigger.appendChild(label);
         dropdown.appendChild(trigger);
 
-        var menu = document.createElement("div");
-            menu.className = "dropdown dropdown--right";
-            menu.addEventListener("click", Help_OnClick);
+        var menu = document.createElement('div');
+        menu.className = 'dropdown dropdown--right';
+        menu.addEventListener('click', Help_OnClick);
 
-        var menuList = document.createElement("ul");
-            menuList.className = "dropdown__list";
-            menuList.setAttribute("role","menu");
+        var menuList = document.createElement('ul');
+        menuList.className = 'dropdown__list';
+        menuList.setAttribute('role', 'menu');
 
         var menuitem;
         var link;
-        for(var c=0;c<helpLinks.length;c++) {
-            menuitem = document.createElement("li");
-            menuitem.className = "dropdown__item";
+        for (var c = 0; c < helpLinks.length; c++) {
+            menuitem = document.createElement('li');
+            menuitem.className = 'dropdown__item';
             menuitem.label = helpLinks[c].text;
 
-            link = document.createElement("a");
-            link.setAttribute("role","menuitem");
+            link = document.createElement('a');
+            link.setAttribute('role', 'menuitem');
             link.href = helpLinks[c].href;
             link.textContent = helpLinks[c].text;
-            link.addEventListener("mousemove",Dropdown_OnHover);
+            link.addEventListener('mousemove', Dropdown_OnHover);
 
             menuitem.appendChild(link);
             menuList.appendChild(menuitem);
         }
 
-        menu.appendChild(menuList)
+        menu.appendChild(menuList);
         dropdown.appendChild(menu);
         header.appendChild(dropdown);
     }
 
     function showHelp(dropdown) {
-        document.body.addEventListener("click", Body_OnClick.bind(dropdown));
-        dropdown.classList.add("is-open");
-        dropdown.setAttribute("aria-expanded","true");
-        dropdown.getElementsByTagName("a")[0].focus();
+        document.body.addEventListener('click', Body_OnClick.bind(dropdown));
+        dropdown.classList.add('is-open');
+        dropdown.setAttribute('aria-expanded', 'true');
+        dropdown.getElementsByTagName('a')[0].focus();
     }
 
     function hideHelp(dropdown) {
-        document.body.removeEventListener("click", Body_OnClick.bind(dropdown));
-        dropdown.classList.remove("is-open");
-        dropdown.setAttribute("aria-expanded","false");
+        document.body.removeEventListener('click', Body_OnClick.bind(dropdown));
+        dropdown.classList.remove('is-open');
+        dropdown.setAttribute('aria-expanded', 'false');
     }
 
     /** END HELP BUTTON */
 
     function toggleAvailableDialog() {
         // Check if Aura is present, but not the InjectedScript
-        chrome.devtools.inspectedWindow.eval("!!(window.$A || window.Aura)", function(isAuraPresent) {
+        chrome.devtools.inspectedWindow.eval('!!(window.$A || window.Aura)', function(
+            isAuraPresent
+        ) {
             // const isAuraPresent = availability[0];
             // const isContentScriptPresent = availability[1];
-            const noAuraAvailable = document.querySelector("#no-aura-available-container");
-            const container = document.querySelector("#devtools-container");
+            const noAuraAvailable = document.querySelector('#no-aura-available-container');
+            const container = document.querySelector('#devtools-container');
 
-            if(isAuraPresent) {
+            if (isAuraPresent) {
                 hide(noAuraAvailable);
                 show(container);
             } else {
                 show(noAuraAvailable);
                 hide(container);
             }
-
         });
     }
 
     function show(element) {
-        if(Array.isArray(element) || element instanceof NodeList){
+        if (Array.isArray(element) || element instanceof NodeList) {
             element.forEach(show);
             return;
         }
-        element.classList.remove("slds-hide");
+        element.classList.remove('slds-hide');
     }
 
     function hide(element) {
-        if(Array.isArray(element) || element instanceof NodeList){
+        if (Array.isArray(element) || element instanceof NodeList) {
             element.forEach(hide);
             return;
         }
-        element.classList.add("slds-hide");
+        element.classList.add('slds-hide');
     }
 
     function stripDescriptorProtocol(descriptor) {
-        if(typeof descriptor != 'string') { return descriptor; }
-        if(descriptor.indexOf("://") === -1) {
+        if (typeof descriptor != 'string') {
             return descriptor;
         }
-        return descriptor.split("://")[1];
+        if (descriptor.indexOf('://') === -1) {
+            return descriptor;
+        }
+        return descriptor.split('://')[1];
     }
-
 }

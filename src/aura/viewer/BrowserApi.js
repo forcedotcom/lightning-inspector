@@ -1,4 +1,4 @@
-import LabelData from "../../../_locales/en/messages.json";
+import LabelData from '../../../_locales/en/messages.json';
 
 /**
  * Interact with the Browser Extensions API
@@ -7,19 +7,22 @@ import LabelData from "../../../_locales/en/messages.json";
 export default class BrowserApi {
     static async eval(command) {
         return new Promise((resolve, reject) => {
-            if(inBrowser()) {
+            if (inBrowser()) {
                 try {
                     const indirectEval = eval;
                     const result = indirectEval(command);
                     resolve(result);
-                } catch(e) {
+                } catch (e) {
                     reject(e);
                 }
                 return;
             }
 
-            getBrowserApi().devtools.inspectedWindow.eval(command, function(returnValue, exceptionInfo) {
-                if(exceptionInfo) {
+            getBrowserApi().devtools.inspectedWindow.eval(command, function(
+                returnValue,
+                exceptionInfo
+            ) {
+                if (exceptionInfo) {
                     reject(exceptionInfo);
                 }
                 resolve(returnValue);
@@ -28,26 +31,26 @@ export default class BrowserApi {
     }
 
     static getLabel(key) {
-        if(inBrowser()) {
-            if(LabelData.hasOwnProperty(key)) {
+        if (inBrowser()) {
+            if (LabelData.hasOwnProperty(key)) {
                 return LabelData[key].message;
             }
             return `[${key}]`;
         }
-        
+
         const message = getBrowserApi().i18n.getMessage(key);
-        if(message === undefined || message === null) {
+        if (message === undefined || message === null) {
             return `[${key}]`;
         }
         return message;
     }
 
     static runtime = {
-        connect: (config) => {
-            if(inBrowser()) {
+        connect: config => {
+            if (inBrowser()) {
                 return {
                     onMessage: {
-                        addListener: (listener) => {
+                        addListener: listener => {
                             listeners.push(listener);
                         }
                     },
@@ -61,31 +64,35 @@ export default class BrowserApi {
     static devtools = {
         inspectedWindow: {
             get tabId() {
-                if(inBrowser()) {
+                if (inBrowser()) {
                     return -1;
                 }
                 return getBrowserApi().devtools.inspectedWindow.tabId;
             },
             eval: (command, callback) => {
-                return BrowserApi.eval(command).then(callback).catch(callback);
+                return BrowserApi.eval(command)
+                    .then(callback)
+                    .catch(callback);
             }
         }
-    }
+    };
 }
 
 const listeners = [];
 
 function getBrowserApi() {
-    if(typeof browser !== "undefined") {
+    if (typeof browser !== 'undefined') {
         return browser;
-    } else if(typeof chrome !== "undefined" && chrome.devtools !== undefined) {
+    } else if (typeof chrome !== 'undefined' && chrome.devtools !== undefined) {
         return chrome;
     }
 
     return null;
 }
 
-
 function inBrowser() {
-    return typeof global !== "object" && (typeof chrome === "undefined" || chrome.devtools === undefined);
+    return (
+        typeof global !== 'object' &&
+        (typeof chrome === 'undefined' || chrome.devtools === undefined)
+    );
 }
