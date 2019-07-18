@@ -121,7 +121,8 @@ export default class ComponentSerializer {
                     "elementCount": 0,
                     // TODO: Implement properly or remove.
                     "rerender_count": 0, //this.getCount(component._$getSelfGlobalId$() + "_rerendered")
-                    "isModule": isTypeModule
+                    "isModule": isTypeModule,
+                    "supers": getSupers(component)
 
                     // Added Later
                     //,"super": ""
@@ -330,7 +331,7 @@ function isModule(component) {
     }
 
     const toString = component.toString();
-    
+
     return (
         toString === 'InteropComponent' ||
         toString.startsWith('InteropComponent:')
