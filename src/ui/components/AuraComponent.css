@@ -1,0 +1,12 @@
+.auracomponent::before { content: "<"; }
+.auracomponent::after { content: ">"; padding: 0 0 0 .25em; }
+.auracomponent { font-family: Menlo, monospace; }
+.auracomponent span { cursor: pointer; white-space: normal; overflow-wrap: break-word; }
+.auracomponent .component-prefix { color: maroon; }
+.auracomponent .component-attribute { padding: 0 0 0 .5em; }
+.auracomponent .component-attribute-key { color: maroon;}
+.auracomponent .component-attribute-value { color: #333; }
+.auracomponent .component-facet-property { color: maroon; }
+.auracomponent .component-tagname { color: blue; padding: 0 0 0 .1em; }
+.auracomponent .component-attribute { color: purple; }
+.auracomponent .component-array-length { color: teal; font-size: .9em; font-style: normal; }
