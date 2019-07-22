@@ -1,10 +1,8 @@
 import JsonSerializer from '../JsonSerializer.js';
-import fastDeepEqual from 'fast-deep-equal';
 
-/**
- * Serializes Components in the Aura Framework to a JSON representation.
- */
 export default class ComponentSerializer {
+    'use strict';
+
     /**
      * Get all the top level elements.
      * This obviously includes $A.getRoot(), but for Lightning Out that is empty.
@@ -21,7 +19,9 @@ export default class ComponentSerializer {
             });
 
             if (app.isInstanceOf('ltng:outApp')) {
-                topLevelDomNodes = document.querySelectorAll('[data-ltngout-rendered-by]');
+                topLevelDomNodes = document.querySelectorAll(
+                    '[data-ltngout-rendered-by]'
+                );
 
                 var map = {};
                 var parentNodes = [];
@@ -63,8 +63,14 @@ export default class ComponentSerializer {
                         return component._$getSelfGlobalId$();
                     }
                 };
-                $A.componentService.getAttributeExpression = function(component, key) {
-                    if (component !== undefined && $A.util.isComponent(component)) {
+                $A.componentService.getAttributeExpression = function(
+                    component,
+                    key
+                ) {
+                    if (
+                        component !== undefined &&
+                        $A.util.isComponent(component)
+                    ) {
                         var value = component._$getRawValue$(key);
                         if ($A.util.isExpression(value)) {
                             return value.toString();
@@ -88,8 +94,6 @@ export default class ComponentSerializer {
                 model: false, // Serialize the model data as well
                 valueProviders: false, // Should we serialize the attribute and facet value providers to the output? Could be a little slow now since we serialize passthrough value keys which could be big objects.
                 handlers: false // Do we serialize the event handlers this component is subscribed to?
-                // Possible other configuration values
-                // onlyChangedAttributes: true|false, only serialized attributes that have changed. This way we don't see all the defaults
             },
             options
         );
@@ -114,11 +118,10 @@ export default class ComponentSerializer {
                     valid: component.isValid(),
                     expressions: {},
                     attributes: {},
-                    attributesChanged: {},
                     __proto__: null, // no inherited properties
                     elementCount: 0,
                     // TODO: Implement properly or remove.
-                    rerender_count: 0, //this.getCount(component._$getSelfGlobalId$() + "_rerendered")
+                    rerender_count: 0, //this.getCount($A.componentService.getSelfGlobalId(component) + "_rerendered")
                     isModule: isTypeModule,
                     supers: getSupers(component)
 
@@ -156,51 +159,55 @@ export default class ComponentSerializer {
 
                         // Track Access Check failure on attribute access
                         $A.error = function(message, error) {
-                            const errorMessage = message || (error && error.message) || '';
-                            if (errorMessage.indexOf('Access Check Failed!') === 0) {
+                            if (message.indexOf('Access Check Failed!') === 0) {
                                 accessCheckFailed = true;
                             }
                         };
 
                         attributes.each(
                             function(attributeDef) {
-                                var key = attributeDef.getDescriptor().getName();
-                                var value;
-                                var rawValue;
+                                const key = attributeDef
+                                    .getDescriptor()
+                                    .getName();
+                                let value;
+                                let expression;
                                 accessCheckFailed = false;
 
-                                // BODY
-                                // If we don't want the body serialized, skip it.
-                                // We would only want the body if we are going to show
-                                // the components children.
-                                if (key === 'body' && !configuration.body) {
-                                    return;
-                                }
                                 try {
-                                    rawValue = component._$getRawValue$(key);
+                                    // BODY
+                                    // If we don't want the body serialized, skip it.
+                                    // We would only want the body if we are going to show
+                                    // the components children.
+                                    if (key === 'body') {
+                                        if (!configuration.body) {
+                                            return;
+                                        }
+                                        const body = getBody(component);
+                                        output.attributes['body'] =
+                                            body.attributes;
+                                        output.expressions['body'] =
+                                            body.expressions;
+                                        return;
+                                    }
+
+                                    expression = $A.componentService.getAttributeExpression(
+                                        component,
+                                        key
+                                    );
                                     value = component.get('v.' + key);
                                 } catch (e) {
                                     value = undefined;
                                 }
-
                                 if (value === undefined || value === null) {
                                     value = value + '';
                                 }
+                                output.attributes[key] = accessCheckFailed
+                                    ? '[ACCESS CHECK FAILED]'
+                                    : value;
 
-                                if ($A.util.isExpression(rawValue)) {
-                                    output.expressions[key] = rawValue + '';
-                                    output.attributes[key] = accessCheckFailed
-                                        ? '[ACCESS CHECK FAILED]'
-                                        : value;
-                                } else {
-                                    output.attributes[key] = rawValue;
+                                if (expression !== null) {
+                                    output.expressions[key] = expression;
                                 }
-                                // This isn't accounting for Expressions
-                                // What if the expression is the same, but the value is different?
-                                output.attributesChanged[key] = !fastDeepEqual(
-                                    output.attributes[key],
-                                    attributeDef.getDefault()
-                                );
                             }.bind(this)
                         );
                     } catch (e) {
@@ -209,7 +216,6 @@ export default class ComponentSerializer {
                         $A.error = auraError;
                     }
                 }
-                // BODY
                 // BODY
                 else if (configuration.body) {
                     const body = getBody(component);
@@ -226,7 +232,9 @@ export default class ComponentSerializer {
                     for (var c = 0, length = elements.length; c < length; c++) {
                         if (elements[c] instanceof HTMLElement) {
                             // Its child components, plus itself.
-                            elementCount += elements[c].getElementsByTagName('*').length + 1;
+                            elementCount +=
+                                elements[c].getElementsByTagName('*').length +
+                                1;
                         }
                     }
                     output.elementCount = elementCount;
@@ -248,16 +256,26 @@ export default class ComponentSerializer {
                     var apiSupported = true; // 204+ only. Don't want to error in 202. Should remove this little conditional in 204 after R2.
                     for (var eventName in events) {
                         current = events[eventName];
-                        if (Array.isArray(current) && current.length && apiSupported) {
+                        if (
+                            Array.isArray(current) &&
+                            current.length &&
+                            apiSupported
+                        ) {
                             handlers[eventName] = [];
                             for (var c = 0; c < current.length; c++) {
-                                if (!current[c].hasOwnProperty('actionExpression')) {
+                                if (
+                                    !current[c].hasOwnProperty(
+                                        'actionExpression'
+                                    )
+                                ) {
                                     apiSupported = false;
                                     break;
                                 }
                                 handlers[eventName][c] = {
                                     expression: current[c]['actionExpression'],
-                                    valueProvider: getValueProvider(current[c]['valueProvider'])
+                                    valueProvider: getValueProvider(
+                                        current[c]['valueProvider']
+                                    )
                                 };
                             }
                         }
@@ -331,7 +349,10 @@ function getComponentForLtngOut(components) {
         return;
     }
     let owner = components[0].getOwner();
-    while (!owner.getOwner().isInstanceOf('aura:application') && owner.getOwner() !== owner) {
+    while (
+        !owner.getOwner().isInstanceOf('aura:application') &&
+        owner.getOwner() !== owner
+    ) {
         owner = owner.getOwner();
     }
     return owner;
@@ -344,7 +365,10 @@ function isModule(component) {
 
     const toString = component.toString();
 
-    return toString === 'InteropComponent' || toString.startsWith('InteropComponent:');
+    return (
+        toString === 'InteropComponent' ||
+        toString.startsWith('InteropComponent:')
+    );
 }
 
 function getSupers(component) {
@@ -368,8 +392,12 @@ function getBody(component) {
 
     try {
         do {
-            let selfGlobalId = $A.componentService.getSelfGlobalId(currentComponent);
-            bodyMapExpressions[selfGlobalId] = $A.componentService.getAttributeExpression(
+            let selfGlobalId = $A.componentService.getSelfGlobalId(
+                currentComponent
+            );
+            bodyMapExpressions[
+                selfGlobalId
+            ] = $A.componentService.getAttributeExpression(
                 currentComponent,
                 'body'
             );
@@ -381,9 +409,11 @@ function getBody(component) {
             }
         } while ((currentComponent = currentComponent.getSuper()));
     } catch (e) {
-        console.error(`Error Serializing body for component ${component.getGlobalId()}`, e);
+        console.error(
+            `Error Serializing body for component ${component.getGlobalId()}`,
+            e
+        );
     }
-
     return {
         attributes: bodyMapValues,
         expressions: bodyMapExpressions
