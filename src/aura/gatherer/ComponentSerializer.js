@@ -19,9 +19,7 @@ export default class ComponentSerializer {
             });
 
             if (app.isInstanceOf('ltng:outApp')) {
-                topLevelDomNodes = document.querySelectorAll(
-                    '[data-ltngout-rendered-by]'
-                );
+                topLevelDomNodes = document.querySelectorAll('[data-ltngout-rendered-by]');
 
                 var map = {};
                 var parentNodes = [];
@@ -63,14 +61,8 @@ export default class ComponentSerializer {
                         return component._$getSelfGlobalId$();
                     }
                 };
-                $A.componentService.getAttributeExpression = function(
-                    component,
-                    key
-                ) {
-                    if (
-                        component !== undefined &&
-                        $A.util.isComponent(component)
-                    ) {
+                $A.componentService.getAttributeExpression = function(component, key) {
+                    if (component !== undefined && $A.util.isComponent(component)) {
                         var value = component._$getRawValue$(key);
                         if ($A.util.isExpression(value)) {
                             return value.toString();
@@ -166,9 +158,7 @@ export default class ComponentSerializer {
 
                         attributes.each(
                             function(attributeDef) {
-                                const key = attributeDef
-                                    .getDescriptor()
-                                    .getName();
+                                const key = attributeDef.getDescriptor().getName();
                                 let value;
                                 let expression;
                                 accessCheckFailed = false;
@@ -183,10 +173,8 @@ export default class ComponentSerializer {
                                             return;
                                         }
                                         const body = getBody(component);
-                                        output.attributes['body'] =
-                                            body.attributes;
-                                        output.expressions['body'] =
-                                            body.expressions;
+                                        output.attributes['body'] = body.attributes;
+                                        output.expressions['body'] = body.expressions;
                                         return;
                                     }
 
@@ -232,9 +220,7 @@ export default class ComponentSerializer {
                     for (var c = 0, length = elements.length; c < length; c++) {
                         if (elements[c] instanceof HTMLElement) {
                             // Its child components, plus itself.
-                            elementCount +=
-                                elements[c].getElementsByTagName('*').length +
-                                1;
+                            elementCount += elements[c].getElementsByTagName('*').length + 1;
                         }
                     }
                     output.elementCount = elementCount;
@@ -256,26 +242,16 @@ export default class ComponentSerializer {
                     var apiSupported = true; // 204+ only. Don't want to error in 202. Should remove this little conditional in 204 after R2.
                     for (var eventName in events) {
                         current = events[eventName];
-                        if (
-                            Array.isArray(current) &&
-                            current.length &&
-                            apiSupported
-                        ) {
+                        if (Array.isArray(current) && current.length && apiSupported) {
                             handlers[eventName] = [];
                             for (var c = 0; c < current.length; c++) {
-                                if (
-                                    !current[c].hasOwnProperty(
-                                        'actionExpression'
-                                    )
-                                ) {
+                                if (!current[c].hasOwnProperty('actionExpression')) {
                                     apiSupported = false;
                                     break;
                                 }
                                 handlers[eventName][c] = {
                                     expression: current[c]['actionExpression'],
-                                    valueProvider: getValueProvider(
-                                        current[c]['valueProvider']
-                                    )
+                                    valueProvider: getValueProvider(current[c]['valueProvider'])
                                 };
                             }
                         }
@@ -349,10 +325,7 @@ function getComponentForLtngOut(components) {
         return;
     }
     let owner = components[0].getOwner();
-    while (
-        !owner.getOwner().isInstanceOf('aura:application') &&
-        owner.getOwner() !== owner
-    ) {
+    while (!owner.getOwner().isInstanceOf('aura:application') && owner.getOwner() !== owner) {
         owner = owner.getOwner();
     }
     return owner;
@@ -365,10 +338,7 @@ function isModule(component) {
 
     const toString = component.toString();
 
-    return (
-        toString === 'InteropComponent' ||
-        toString.startsWith('InteropComponent:')
-    );
+    return toString === 'InteropComponent' || toString.startsWith('InteropComponent:');
 }
 
 function getSupers(component) {
@@ -392,12 +362,8 @@ function getBody(component) {
 
     try {
         do {
-            let selfGlobalId = $A.componentService.getSelfGlobalId(
-                currentComponent
-            );
-            bodyMapExpressions[
-                selfGlobalId
-            ] = $A.componentService.getAttributeExpression(
+            let selfGlobalId = $A.componentService.getSelfGlobalId(currentComponent);
+            bodyMapExpressions[selfGlobalId] = $A.componentService.getAttributeExpression(
                 currentComponent,
                 'body'
             );
@@ -409,10 +375,7 @@ function getBody(component) {
             }
         } while ((currentComponent = currentComponent.getSuper()));
     } catch (e) {
-        console.error(
-            `Error Serializing body for component ${component.getGlobalId()}`,
-            e
-        );
+        console.error(`Error Serializing body for component ${component.getGlobalId()}`, e);
     }
     return {
         attributes: bodyMapValues,
