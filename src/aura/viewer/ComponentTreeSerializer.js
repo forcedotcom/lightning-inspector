@@ -115,7 +115,7 @@ function getBodyFromComponent(component, callback = () => {}) {
         var id;
 
         // Start body building at the base component level and work your way up to the concrete.
-        var currentId = component.supers ? component.supers.reverse()[0] : component.globalId;
+        var currentId = (component.supers ? component.supers.reverse()[0] : component.globalId) || component.globalId; 
         var currentBody = body[currentId];
 
         getBodyFromIds(currentBody, function(bodyNodes) {
