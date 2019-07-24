@@ -152,8 +152,8 @@ export default class ComponentSerializer {
 
                         // Track Access Check failure on attribute access
                         $A.error = function(message, error) {
-                            const errorMessage = message || error && error.message || "";
-                            if(errorMessage.indexOf("Access Check Failed!")===0){
+                            const errorMessage = message || (error && error.message) || '';
+                            if (errorMessage.indexOf('Access Check Failed!') === 0) {
                                 accessCheckFailed = true;
                             }
                         };
