@@ -1,12 +1,19 @@
+[![CircleCI](https://circleci.com/gh/forcedotcom/lightning-inspector.svg?style=svg)](https://circleci.com/gh/forcedotcom/lightning-inspector)
+
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [The Lightning Inspector](#the-lightning-inspector)
-  - [Key Differences from the Aura Inspector](#key-differences-from-the-aura-inspector)
-  - [Updating the Lightning Inspector for the next version](#updating-the-lightning-inspector-for-the-next-version)
-    - [Update Repository](#update-repository)
-    - [Update Google Chrome Dev Extension](#update-google-chrome-dev-extension)
+  - [How to run from Source](#how-to-run-from-source)
+    - [Steps](#steps)
+    - [Environment](#environment)
+    - [Setup](#setup)
+    - [Development](#development)
+    - [Distribution](#distribution)
+  - [How to Use](#how-to-use)
+  - [Contribute](#contribute)
+  - [Backlog](#backlog)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
