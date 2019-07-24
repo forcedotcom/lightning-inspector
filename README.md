@@ -1,73 +1,23 @@
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+# Lightning Inspector - Mirror Repository
 
-- [The Lightning Inspector](#the-lightning-inspector)
-  - [Key Differences from the Aura Inspector](#key-differences-from-the-aura-inspector)
-  - [Updating the Lightning Inspector for the next version](#updating-the-lightning-inspector-for-the-next-version)
-    - [Update Repository](#update-repository)
-    - [Update Google Chrome Dev Extension](#update-google-chrome-dev-extension)
+This repository is an internal mirror of the Lightning Inspector primary repository at [https://github.com/forcedotcom/lightning-inspector](https://github.com/forcedotcom/lightning-inspector).
 
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+## Access to the Primary Repository
 
-# The Lightning Inspector
+You can access the full Lightning Inspector source code from this mirrored repository. You likely want the [master branch](https://git.soma.salesforce.com/lightning-tools/lightning-inspector/tree/master).
 
-## How to run from Source
+The [primary Inspector repository](https://github.com/forcedotcom/lightning-inspector) is not available to the public. Only the lightning tooling team members have access to the primary repository.
 
-The previous builds of the Lightning Inspector are pushed in the builds directory. To use a specific version, simply follow the steps below and when asked for the directory, point it at the version in the builds directory that you wish to use. 
+If you are planning to contribute regularly or you have a PR ready we will happily grant you access to the primary repository. Or you can issue a PR to this repository and we'll handle the rest.
 
-**You can also use "latest" to always be on the latest built and pushed version of the inspector.**
+## Synchronized Branches
 
-### Steps ###
-* Navigate to the page chrome://extensions
-* Toggle the Developer mode in the top right corner
-* Click Load Unpacked Extension...
-* Select the [Lightning Inspector Directory]/builds/[version||latest]
+The [master](https://git.soma.salesforce.com/lightning-tools/lightning-inspector/tree/master) branch and other release branches are in sync with the primary repository.
 
+## Pull Requests
 
-### Environment
-```sh
-nvm install 5.0.0       # >= 5.0.0 is ok (don't install anything with sudo)
-npm install yarn -g     # install yarn package manager
-```
+You are always welcome to submit a pull request! We will figure out the logistics depending on the changes.
 
-### Setup
-```sh
-yarn install            # install project dependencies (and submodules)
-```
-### Development
-```sh
-yarn watch              # watches for changes in submodules
-```
+## Security
 
-- **Plugin**: Open load the unpacked extension and changes should be reflected once `yarn watch` is issued
-
-### Distribution
-```sh
-yarn build              # should output crx, xpi, zip files
-```
-
-## How to Use ##
-The google sites page and public documentation are still great resources.
-https://sites.google.com/a/salesforce.com/user-interface/aura/aura-dev-tools
-
-
-
-## Contribute
-Fork the repo and send the pull request. 
-
-Please add Kris Gray as the reviewer.
-
-
-## Backlog
-
-* Fix Slds being included in its entirety.
- - Pull in just the bits that we need.
-* Convert the Component Tree to a React Component
- - I wanted to rewrite the tree anyway. 
- - This allows the UIPerf tool to leverage the Component Tree when they want.
-* Convert more of the plugin to use Slds 
- - Fixes bugs in my css
- - Unifies styles across the app.
-
-
+we will maintain this repository synchronized for pushing security bugs and other internal requirements.
