@@ -1,0 +1,18 @@
+/**
+ * This file is being used by the elements sidebar panel. 
+ * Not the Lightning Tab.
+ */
+BODY .sidebar { display: block; }
+BODY .component-view {
+    width: 100%;
+    left: 0;
+}
+BODY .hidden,
+#sidebarContainer .hidden {
+    display: none;
+}
+
+#empty {
+    text-align: center;
+    padding: 2em;
+}

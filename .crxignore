@@ -1,0 +1,13 @@
+node_modules/
+.git
+*~
+.DS_Store
+*.pem
+*.zip
+*.xpi
+*.crx
+.idea/
+build/
+keys/
+src/
+scripts/

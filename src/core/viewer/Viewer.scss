@@ -1,0 +1,117 @@
+@import url('https://fonts.googleapis.com/css?family=Source+Code+Pro');
+
+.viewer {
+  &.full, .full {
+    width: 100%;
+    height: 100%;
+  }
+
+  background: #FFF;
+
+  &.dark {
+    color: rgb(189, 198, 207);
+    background: #222;
+  }
+}
+
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border: none;
+  padding: 0;
+  outline: none;
+  font-size: 11px;
+  font-family: 'Helvetica', 'Helvetica Neue', Arial, sans-serif;
+}
+
+code, pre {
+  font-family: Menlo, 'Source Code Pro', monospace;
+  font-size: 10px;
+  line-height: 12px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+svg * {
+  font-family: 'Helvetica', 'Helvetica Neue', 'Open Sans', sans-serif;
+  user-select: none;
+}
+
+button.generic {
+  font-weight: bold;
+  background-image: linear-gradient(hsl(0, 0%, 100%), hsl(0, 0%, 99%) 38%, hsl(0, 0%, 94%));
+  border: 1px solid hsla(0, 0%, 0%, 0.25);
+  border-radius: 3px;
+  box-shadow: 0 1px 0 hsla(0, 0%, 0%, 0.08), inset 0 1px 2px hsla(0, 100%, 100%, 0.75);
+  color: hsl(0, 0%, 27%);
+  font-size: 11px;
+  text-shadow: 0 1px 0 hsl(0, 0%, 94%);
+  padding: 2px 10px;
+  user-select: none;
+  flex: none;
+  outline: none;
+  margin: 1px 0 1px 2px;
+  height: 18px;
+  line-height: 10px;
+}
+
+.dark button.generic {
+  background-image: linear-gradient(rgb(44, 44, 44), rgb(44, 44, 44) 38%, rgb(52, 52, 52));
+  border-color: rgba(230, 230, 230, 0.247059);
+  box-shadow: rgba(230, 230, 230, 0.0784314) 0px 1px 0px, rgba(0, 0, 0, 0.74902) 0px 1px 2px inset;
+  color: rgb(186, 186, 186);
+  text-shadow: rgb(15, 15, 15) 0px 1px 0px
+}
+
+button.generic:disabled {
+  background-image: linear-gradient(#f1f1f1, #f1f1f1 38%, #e6e6e6);
+  border-color: rgba(80, 80, 80, 0.2);
+  box-shadow: 0 1px 0 rgba(80, 80, 80, 0.08), inset 0 1px 2px rgba(255, 255, 255, 0.75);
+  color: #aaa;
+}
+
+.dark button.generic:disabled {
+  background-image: linear-gradient(rgb(43, 43, 43), rgb(43, 43, 43) 38%, rgb(48, 48, 48));
+  border-color: rgba(175, 175, 175, 0.2);
+  box-shadow: rgba(175, 175, 175, 0.0784314) 0px 1px 0px, rgba(0, 0, 0, 0.74902) 0px 1px 2px inset;
+  color: rgb(85, 85, 85);
+}
+
+button.generic:not(:disabled):hover {
+  background-image: linear-gradient(hsl(0, 0%, 94%), hsl(0, 0%, 94%) 38%, hsl(0, 0%, 88%));
+  border-color: hsla(0, 0%, 0%, 0.3);
+  box-shadow: 0 1px 0 hsla(0, 0%, 0%, 0.12), inset 0 1px 2px hsla(0, 100%, 100%, 0.95);
+  color: hsl(0, 0%, 0%);
+}
+
+.dark button.generic:not(:disabled):hover {
+  background-image: linear-gradient(rgb(43, 43, 43), rgb(43, 43, 43) 38%, rgb(51, 51, 51));
+  border-color: rgba(230, 230, 230, 0.298039);
+  box-shadow: rgba(230, 230, 230, 0.117647) 0px 1px 0px, rgba(0, 0, 0, 0.952941) 0px 1px 2px inset;
+  color: rgb(230, 230, 230);
+}
+
+button.generic:not(:disabled):active {
+  background-image: linear-gradient(hsl(0, 0%, 91%), hsl(0, 0%, 91%) 38%, hsl(0, 0%, 84%));
+  box-shadow: none;
+  text-shadow: none;
+}
+
+.dark button.generic:not(:disabled):active {
+  background-image: linear-gradient(rgb(47, 47, 47), rgb(47, 47, 47) 38%, rgb(56, 56, 56));
+}
+
+button.generic:not(:disabled):focus {
+  transition: border-color 200ms;
+  border-color: rgb(77, 144, 254);
+  outline: none;
+}
+
+.dark button.generic:not(:disabled):focus {
+  border-color: rgb(1, 68, 178);
+}

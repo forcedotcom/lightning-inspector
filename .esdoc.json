@@ -1,0 +1,12 @@
+{
+    "source": "./src",
+    "destination": "./docs",
+    "excludes": [
+        "\\.config\\.js$",
+        "devtoolsPanel/perfpanel/js/(\\w)+.js",
+        "devtoolsPanel/external/(\\w|\\-|\\.min)+.js"],
+    "plugins": [
+        {"name": "esdoc-standard-plugin"},
+        {"name": "esdoc-jsx-plugin", "option": {"enable": true}}
+    ]
+}

@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="../../styles/inject.css" />
+    <style>
+        body { 
+            margin: 0; 
+            padding: 0; 
+        }
+        .extension-view-container.extension-popup-container {
+            min-width: 24rem; 
+        }
+        .extension-view-container.extension-popup-container .extension-view-heading {
+            color: #1589ee;
+            background: #f7f7f7;
+            border-bottom: 1px solid #dddbda;
+        }
+    </style>
+</head>
+
+<body class="extension-view-container extension-popup-container">
+    <div class="slds-align_absolute-center slds-show">
+        <h1 class="extension-view-heading slds-align-middle slds-text-heading_medium  slds-p-horizontal_medium slds-p-vertical_small">Lightning Inspector</h1>
+        <div id="mainPopup" class="slds-p-horizontal_medium slds-p-vertical_medium">
+            <div class="visualforce-detected slds-hide">
+                <h3 class="slds-text-heading_small slds-m-bottom_small slds-text-align_center">We've detected a
+                    Visualforce page here</h3>
+                <div class="slds-grid">
+                    <button class="slds-button slds-button_brand button-deactivate">Apply Lightning Stylesheets</button>
+                    <button class="slds-button slds-button_neutral button-panel-toggle">Show CSS files</button>
+                </div>
+            </div>
+            <div class="visualforce-not-present">
+                <h3 class="slds-text-heading_small slds-m-bottom_small slds-text-align_center">Visualforce not
+                    detected.</h3>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../../dist/BrowserAction.js"></script>
+</body>
+
+</html>

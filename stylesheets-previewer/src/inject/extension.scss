@@ -1,0 +1,109 @@
+#sfdc-lightning-stylesheets-extension-view {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 40%;
+  background: $color-background-docked-panel;
+  z-index: 99999;
+  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2),
+              0 25px 50px 0 rgba(0, 0, 0, 0.1);
+  transform: translateX(110%);
+  transition: transform $duration-slowly ease-in-out;
+
+  &.is-open {
+    transform: translateX(0);
+  }
+}
+
+.extension-view-container {
+  position: relative;
+  height: 100%;
+
+  &.extension-popup-container {
+    padding: $spacing-small;
+    min-width: 24rem;
+  }
+  
+  &.extension-popup-container .extension-view-heading {
+    border-bottom: 1px solid #efefef;
+  }
+
+  ul li,
+  ol li {
+    margin-left: unset;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: unset;
+    display: block;
+  }
+
+  .extension-view-content {
+    height: 100%;
+  }
+
+  .extension-view-body {
+    flex: 1 1 auto;
+    overflow: auto;
+    padding-bottom: $spacing-large;  
+  }
+  
+  .extension-view-body h2 {
+    font-weight: 500;
+    font-size: 18px;
+    color: #080807;
+  }
+
+  .extension-view-body,
+  .extension-view-header {
+    padding: $spacing-x-small $spacing-small;
+  }
+
+  .extension-view-header,
+  .extension-view-list-body {
+    margin-bottom: $spacing-large;
+  }
+
+  .extension-view-list-body .list-item {
+    margin-left: $spacing-large;
+  }
+  ul.extension-view-list-body .list-item:last-child {
+    border-bottom: 0px none;
+  }
+
+  .button-apply-lss,
+  .list-description {
+    margin-bottom: $spacing-x-small;
+  }
+
+  .section_slds + .extension-view-list-body .list-item {
+      display: none;
+  }
+
+  .list-description {
+    font-size: $font-size-small;
+    color: $color-text-weak;
+  }
+
+  .list-item-content {
+    // padding: $spacing-xx-small 0;
+  }
+
+  .list-item-label_static {
+    display: inline-block;
+  }
+
+  .has-mixed-checks + .slds-checkbox__label .slds-checkbox_faux {
+    border-color: red;
+  }
+
+  .slds-checkbox .slds-form-element__label {
+    padding: 0px;
+  }
+}
