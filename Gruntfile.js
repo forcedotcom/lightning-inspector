@@ -69,7 +69,7 @@ module.exports = function(grunt) {
       build: {
         cwd: "builds/",
         src: ["builds/**"],
-        dest: "builds/lightning-inspector-<%=buildVersion%>.zip"
+        dest: "lightning-inspector-<%=buildVersion%>.zip"
       }
     }
   });

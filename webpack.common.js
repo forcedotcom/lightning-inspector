@@ -85,8 +85,8 @@ module.exports = {
           // Still means we're importing all the icons.
           // Ideally we want to only import the ones we use, but I wasn't able to get that copying right.
           new CopyWebpackPlugin([ 
-            { from: 'node_modules/@salesforce-ux/design-system/assets/icons', to: 'slds/assets/icons'},
-            { from: 'node_modules/@salesforce-ux/design-system/assets/images', to: 'slds/assets/images'},
+            { from: 'node_modules/@salesforce-ux/design-system/assets/icons/utility', to: 'slds/assets/icons/utility'},
+            { from: 'node_modules/@salesforce-ux/design-system/assets/icons/utility-sprite', to: 'slds/assets/icons/utility-sprite'},
             { from: 'node_modules/@salesforce-ux/design-system/assets/styles/salesforce-lightning-design-system.min.css', to:'slds/assets/styles/salesforce-lightning-design-system.min.css'}
           ])
 
