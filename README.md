@@ -5,9 +5,7 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [The Lightning Inspector](#the-lightning-inspector)
-  - [What is the Inspector](#how-to-run-from-source)
-    - [Steps](#steps)
-    - [Environment](#environment)
+  - [What is the Inspector](#what-is-the-inspector)
   - [Installs and Set-up](#installs-and-set-up)
   - [Running the Inspector](#running-the-inspector)
   - [How to Use](#how-to-use)
@@ -17,6 +15,7 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # The Lightning Inspector
+
 
 ## What is the Inspector? 
 
@@ -30,16 +29,16 @@ The Lightning Inspector lives in the aura public open source repo so it must be 
 1. Download or clone (git clone git@git.soma.salesforce.com:aura/lightning-inspector.git) the Lightning Inspector code from Github and unzip the file.
 2. Set up the Environment
 ```sh
-    1. nvm install --lts
-    2. npm install yarn -g 
+  1. nvm install --lts
+  2. npm install yarn -g 
 ```
 3. Set up
 ```sh
-yarn install 
+  yarn install 
 ```
 4. Development 
 ```sh
-yarn watch 
+  yarn watch 
 ```
 
 ## Running the Inspector   
@@ -48,12 +47,13 @@ yarn watch
 2. Click the Developer Mode checkbox in the top right
 3. Click the "Load unpacked Extensions" button on the left 
 4. Select the directory for the aura-inspector
-5. On a website you wish to use the inspector, right click on page and click on 'inspect'. You could also do this by pressing command + option + i  from your keyboard.
+5. On a website you wish to use the inspector, right click on page and click on 'inspect' (ctrl/cmd + option + i).
 6. From there, navigate on the top bar with tabs to access the Lightning Inspector tool
 
 ## How to Use 
 
 The google sites page and public documentation are still great resources.
+
 https://developer.salesforce.com/docs/atlas.en-us.lightning.meta/lightning/inspector_use.htm
 
 
@@ -64,8 +64,8 @@ https://developer.salesforce.com/docs/atlas.en-us.lightning.meta/lightning/inspe
 3. If you wrote a unit test for the changes, your test and the current unit tests in the code base should all pass. You can do this by running yarn test on the terminal. 
 4. The inspector should build without any errors. You can do this by running ‘yarn build’ on the terminal. 
 5. The inspector should also pass with manual testing. 
-    1. Go to the chrome extension page (chrome://extensions/) and press the reload button for the Lightning Inspector extension. 
-    2. The inspector should work with Lightning Experience (one.app (http://one.app/)), Lightning Out, and non aura pages should still show a message. Go through all the tabs under the Lightning Inspector, and if you see an error there needs to be a fix. 
+    1. Go to the chrome extension page, chrome://extensions/, and press the reload button for the Lightning Inspector extension. 
+    2. The inspector should work with Lightning Experience [one.app](http://one.app/), Lightning Out, and non aura pages should still show a message. Go through all the tabs under the Lightning Inspector, and if you see an error there needs to be a fix. 
     3. Test the inspection panel on the elements detail section and make sure there are no errors that occur. 
 6. Lastly, when all the previous steps pass, make sure the code passes with Circle CI when you push to Github. If the build fails, you should debug the error, and push the code again to see if it builds successfully.
 7. Code coverage must be increased or stay the same.
