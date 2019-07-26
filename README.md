@@ -24,9 +24,10 @@ The Lightning Inspector allows users to view and navigate the component tree, in
 The Lightning Inspector lives in the aura public open source repo so it must be Aura specific; no Salesforce-specific entries. To allow you to also debug Salesforce-specific features we've added the Sfdc Inspector extension to the Lightning Inspector. It adds panels for Salesforce-specific features such as Aura Data Service (ADS and RLB tabs). You do not need to install the Sfdc Inspector but it's suggested.
 
 
+
 ## Installs and Set-up  
 
-1. Download or clone (git clone git@git.soma.salesforce.com:aura/lightning-inspector.git) the Lightning Inspector code from Github and unzip the file.
+1. Download or clone the Lightning Inspector code from Github and unzip the file.
 2. Set up the Environment
 ```sh
   1. nvm install --lts
@@ -41,6 +42,7 @@ The Lightning Inspector lives in the aura public open source repo so it must be 
   yarn watch 
 ```
 
+
 ## Running the Inspector   
 
 1. Open up a browser like Google Chrome and type in chrome://extensions/ 
@@ -50,11 +52,14 @@ The Lightning Inspector lives in the aura public open source repo so it must be 
 5. On a website you wish to use the inspector, right click on page and click on 'inspect' (ctrl/cmd + option + i).
 6. From there, navigate on the top bar with tabs to access the Lightning Inspector tool
 
+
+
 ## How to Use 
 
 The google sites page and public documentation are still great resources.
 
 https://developer.salesforce.com/docs/atlas.en-us.lightning.meta/lightning/inspector_use.htm
+
 
 
 ## PR Requirements and Testing Specifics 
