@@ -105,5 +105,8 @@
     "react-split-pane": "^0.1.77",
     "react-virtualized": "^9.16.1",
     "scroll-into-view-if-needed": "^2.2.4"
+  }, 
+  "engines": {
+    "node": ">=10.0.0"
   }
 } 

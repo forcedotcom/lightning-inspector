@@ -5,76 +5,78 @@
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [The Lightning Inspector](#the-lightning-inspector)
-  - [How to run from Source](#how-to-run-from-source)
-    - [Steps](#steps)
-    - [Environment](#environment)
-    - [Setup](#setup)
-    - [Development](#development)
-    - [Distribution](#distribution)
+  - [What is the Inspector](#what-is-the-inspector)
+  - [Installs and Set-up](#installs-and-set-up)
+  - [Running the Inspector](#running-the-inspector)
   - [How to Use](#how-to-use)
-  - [Contribute](#contribute)
-  - [Backlog](#backlog)
+  - [PR Requirements and Testing Specifics](#PR-requirements-and-testing-specifics)
+
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # The Lightning Inspector
 
-## How to run from Source
 
-The previous builds of the Lightning Inspector are pushed in the builds directory. To use a specific version, simply follow the steps below and when asked for the directory, point it at the version in the builds directory that you wish to use. 
+## What is the Inspector? 
 
-**You can also use "latest" to always be on the latest built and pushed version of the inspector.**
+The Lightning Inspector allows users to view and navigate the component tree, inspect attributes of components, and investigate the performance of component life cycles. 
 
-### Steps ###
-* Navigate to the page chrome://extensions
-* Toggle the Developer mode in the top right corner
-* Click Load Unpacked Extension...
-* Select the [Lightning Inspector Directory]/builds/[version||latest]
+The Lightning Inspector lives in the aura public open source repo so it must be Aura specific; no Salesforce-specific entries. To allow you to also debug Salesforce-specific features we've added the Sfdc Inspector extension to the Lightning Inspector. It adds panels for Salesforce-specific features such as Aura Data Service (ADS and RLB tabs). You do not need to install the Sfdc Inspector but it's suggested.
 
 
-### Environment
+
+## Installs and Set-up  
+
+1. Download or clone the Lightning Inspector code from Github and unzip the file.
+2. Set up the Environment
 ```sh
-nvm install 5.0.0       # >= 5.0.0 is ok (don't install anything with sudo)
-npm install yarn -g     # install yarn package manager
+  1. nvm install --lts
+  2. npm install yarn -g 
+```
+3. Set up
+```sh
+  yarn install 
+```
+4. Development 
+```sh
+  yarn watch 
 ```
 
-### Setup
-```sh
-yarn install            # install project dependencies (and submodules)
-```
-### Development
-```sh
-yarn watch              # watches for changes in submodules
-```
 
-- **Plugin**: Open load the unpacked extension and changes should be reflected once `yarn watch` is issued
+## Running the Inspector   
 
-### Distribution
-```sh
-yarn build              # should output crx, xpi, zip files
-```
+1. Open up a browser like Google Chrome and type in chrome://extensions/ 
+2. Click the Developer Mode checkbox in the top right
+3. Click the "Load unpacked Extensions" button on the left 
+4. Select the directory for the aura-inspector
+5. On a website you wish to use the inspector, right click on page and click on 'inspect' (ctrl/cmd + option + i).
+6. From there, navigate on the top bar with tabs to access the Lightning Inspector tool
 
-## How to Use ##
+
+
+## How to Use 
+
 The google sites page and public documentation are still great resources.
-https://sites.google.com/a/salesforce.com/user-interface/aura/aura-dev-tools
+
+https://developer.salesforce.com/docs/atlas.en-us.lightning.meta/lightning/inspector_use.htm
 
 
 
-## Contribute
-Fork the repo and send the pull request. 
+## PR Requirements and Testing Specifics 
 
-Please add Kris Gray as the reviewer.
-
-
-## Backlog
-
-* Fix Slds being included in its entirety.
- - Pull in just the bits that we need.
-* Convert the Component Tree to a React Component
- - I wanted to rewrite the tree anyway. 
- - This allows the UIPerf tool to leverage the Component Tree when they want.
-* Convert more of the plugin to use Slds 
- - Fixes bugs in my css
- - Unifies styles across the app.
+1. When making changes to the Lightning Inspector code, there are a set of requirements that must pass before sending a PR. 
+2. First, fork the repository on Github. 
+3. If you wrote a unit test for the changes, your test and the current unit tests in the code base should all pass. You can do this by running yarn test on the terminal. 
+4. The inspector should build without any errors. You can do this by running ‘yarn build’ on the terminal. 
+5. The inspector should also pass with manual testing. 
+    1. Go to the chrome extension page, chrome://extensions/, and press the reload button for the Lightning Inspector extension. 
+    2. The inspector should work with Lightning Experience [one.app](http://one.app/), Lightning Out, and non aura pages should still show a message. Go through all the tabs under the Lightning Inspector, and if you see an error there needs to be a fix. 
+    3. Test the inspection panel on the elements detail section and make sure there are no errors that occur. 
+6. Lastly, when all the previous steps pass, make sure the code passes with Circle CI when you push to Github. If the build fails, you should debug the error, and push the code again to see if it builds successfully.
+7. Code coverage must be increased or stay the same.
+8. Please add Kris Gray as the reviewer for the PR 
+    
 
 
+
+ 
