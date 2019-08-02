@@ -70,7 +70,7 @@ https://developer.salesforce.com/docs/atlas.en-us.lightning.meta/lightning/inspe
 4. The inspector should build without any errors. You can do this by running ‘yarn build’ on the terminal. 
 5. The inspector should also pass with manual testing. 
     1. Go to the chrome extension page, chrome://extensions/, and press the reload button for the Lightning Inspector extension. 
-    2. The inspector should work with Lightning Experience [one.app](http://one.app/), Lightning Out, and non aura pages should still show a message. Go through all the tabs under the Lightning Inspector, and if you see an error there needs to be a fix. 
+    2. The inspector should work with a complex application like the Lightning Experience, Lightning Out, and non aura pages should still show a message. Go through all the tabs under the Lightning Inspector, and if you see an error, verify against master. If there is still an error, file an issue to the repo and you may proceed with your PR.
     3. Test the inspection panel on the elements detail section and make sure there are no errors that occur. 
 6. Lastly, when all the previous steps pass, make sure the code passes with Circle CI when you push to Github. If the build fails, you should debug the error, and push the code again to see if it builds successfully.
 7. Code coverage must be increased or stay the same.
