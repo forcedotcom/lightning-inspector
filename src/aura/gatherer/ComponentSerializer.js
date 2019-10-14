@@ -384,6 +384,10 @@ function getAttributeExpression(component, attribute) {
     try {
         expression = $A.componentService.getAttributeExpression(component, attribute);
     } catch (e) {
+        // getAttributeExpression() in 222 does not support interop component
+        // lucily the attributes property is not minified, giving us
+        // the ability to monkey patch it.
+        // In 224 getAttributeExpression() should support interop and we can remove this.
         if (component && component.attributes) {
             if ($A.util.isExpression(component.attributes[attribute])) {
                 return component.attributes[attribute].toString();
