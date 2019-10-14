@@ -180,10 +180,7 @@ export default class ComponentSerializer {
                                         return;
                                     }
 
-                                    expression = $A.componentService.getAttributeExpression(
-                                        component,
-                                        key
-                                    );
+                                    expression = getAttributeExpression(component, key);
                                     value = component.get('v.' + key);
                                 } catch (e) {
                                     value = undefined;
@@ -209,7 +206,7 @@ export default class ComponentSerializer {
                 // BODY
                 else if (configuration.body) {
                     const body = getBody(component);
-                    output.attrbiutes['body'] = body.attributes;
+                    output.attributes['body'] = body.attributes;
                     output.expressions['body'] = body.expressions;
                 }
 
@@ -229,7 +226,7 @@ export default class ComponentSerializer {
                 }
 
                 // MODEL
-                if (configuration.model) {
+                if (!isTypeModule && configuration.model) {
                     var model = component.getModel();
                     if (model) {
                         output['model'] = model.data;
@@ -365,10 +362,7 @@ function getBody(component) {
     try {
         do {
             let selfGlobalId = $A.componentService.getSelfGlobalId(currentComponent);
-            bodyMapExpressions[selfGlobalId] = $A.componentService.getAttributeExpression(
-                currentComponent,
-                'body'
-            );
+            bodyMapExpressions[selfGlobalId] = getAttributeExpression(currentComponent, 'body');
 
             bodyMapValues[selfGlobalId] = currentComponent.get('v.body');
 
@@ -383,4 +377,18 @@ function getBody(component) {
         attributes: bodyMapValues,
         expressions: bodyMapExpressions
     };
+}
+
+function getAttributeExpression(component, attribute) {
+    let expression = null;
+    try {
+        expression = $A.componentService.getAttributeExpression(component, attribute);
+    } catch (e) {
+        if (component && component.attributes) {
+            if ($A.util.isExpression(component.attributes[attribute])) {
+                return component.attributes[attribute].toString();
+            }
+        }
+    }
+    return expression;
 }
