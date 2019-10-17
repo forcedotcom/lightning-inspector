@@ -142,7 +142,7 @@ executePipeline(envDef) {
                 def clientIdString = "client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&refresh_token=${REFRESH_TOKEN}&grant_type=refresh_token"
                 def cmd = "curl --tlsv1.2 \"https://accounts.google.com/o/oauth2/token\" -d \"${clientIdString}\" | ./dev/jq-linux64 -r .access_token"
                 def ACCESS_TOKEN = sh(script: cmd, returnStdout: true).trim()
-                def FILE = "builds/lightning-inspector-latest.zip"
+                def FILE = "lightning-inspector-latest.zip"
                 def APP_ID = "pejdccfkffdknpcamoboeiadblmbofjd"
                 
                 def upload  = sh(script: "curl --tlsv1.2 -H \"Authorization: Bearer ${ACCESS_TOKEN}\" -H \"x-goog-api-version: 2\" -X PUT -T ${FILE} -v \"https://www.googleapis.com/upload/chromewebstore/v1.1/items/${APP_ID}\"", returnStdout: true).trim()  
