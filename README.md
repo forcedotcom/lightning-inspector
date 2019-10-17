@@ -1,3 +1,5 @@
+[![Build Status](https://sfcirelease.dop.sfdc.net/buildStatus/icon?job=lightning-tools%2Flightning-tools-lightning-inspector%2Flightning-inspector%2Fmaster&build=8)](https://sfcirelease.dop.sfdc.net/job/lightning-tools/job/lightning-tools-lightning-inspector/job/lightning-inspector/job/master/8/)
+
 # Lightning Inspector - Mirror Repository
 
 This repository is an internal mirror of the Lightning Inspector primary repository at [https://github.com/forcedotcom/lightning-inspector](https://github.com/forcedotcom/lightning-inspector).
