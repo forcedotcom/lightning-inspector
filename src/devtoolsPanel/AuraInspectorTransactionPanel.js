@@ -28,7 +28,8 @@ export default function AuraInspectorTransactionPanel(devtoolsPanel) {
             ms: chrome.i18n.getMessage('ms'),
             toggle_recording: chrome.i18n.getMessage('actions_menu_record_tooltip'),
             clear: '[Clear]',
-            refresh: '[Refresh]'
+            refresh: '[Refresh]',
+            filter: chrome.i18n.getMessage('menu_filter')
         };
 
         _markup = `
@@ -38,8 +39,10 @@ export default function AuraInspectorTransactionPanel(devtoolsPanel) {
                 <li><button class="refresh-transactions-bar-item status-bar-item" title="${labels.refresh}"><div class="glyph"></div><div class="glyph shadow"></div></button></li>
                 <li><button id="clear-button" class="clear-status-bar-item status-bar-item" title="${labels.clear}"><div class="glyph"></div><div class="glyph shadow"></div></button></li>
                 <li class="divider" style="margin-left: -3px;"></li>
-               <li><button id="marks-button" class="transaction-tabs-button selected" title="[Marks]">[Marks]</button></li>
-               <li><button id="custom-transactions-button" class="transaction-tabs-button" title="[Custom Transactions]">[Custom Transactions]</button></li>
+                <li><input id="filter-text" type="search" placeholder="${labels.filter}"/></li>
+                <li class="divider"></li>
+                <li><button id="marks-button" class="transaction-tabs-button selected" title="[Marks]">[Marks]</button></li>
+                <li><button id="custom-transactions-button" class="transaction-tabs-button" title="[Custom Transactions]">[Custom Transactions]</button></li>
             </menu>
 
             <div id="transaction-view"></div>
@@ -93,6 +96,11 @@ export default function AuraInspectorTransactionPanel(devtoolsPanel) {
 
         var refreshButton = _tabBody.querySelector('.refresh-transactions-bar-item');
         refreshButton.addEventListener('click', RefreshTransactions_OnClick.bind(this), false);
+
+        // Listen filter changes
+        var filterText = _tabBody.querySelector('#filter-text');
+        filterText.addEventListener('change', FilterText_OnChange.bind(this));
+        filterText.addEventListener('keyup', debounce(FilterText_OnChange.bind(this), 200));
 
         var recordButton = _tabBody.querySelector('.record-button');
         recordButton.addEventListener('click', RecordButton_OnClick.bind(this), false);
@@ -164,6 +172,25 @@ export default function AuraInspectorTransactionPanel(devtoolsPanel) {
         if (event.target.classList.contains('circle')) {
             _recording = event.target.classList.contains('on');
         }
+    }
+
+    function FilterText_OnChange(event) {
+        
+    }
+
+    function debounce(func, wait, immediate) {
+        var timeout;
+        return function() {
+            var context = this, args = arguments;
+            var later = function() {
+                timeout = null;
+                if (!immediate) func.apply(context, args);
+            };
+            var callNow = immediate && !timeout;
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+            if (callNow) func.apply(context, args);
+        };
     }
 
     /* ------------------- Event related functions ---------------------*/
