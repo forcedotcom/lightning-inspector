@@ -111,18 +111,25 @@ export default function AuraInspectorTransactionView() {
 
         var children;
         // Add a row for each Transport
-        for (var c = 0; c < items.length; c++) {
-            if (items[c] instanceof TransportDataRow) {
-                transactionGrid.addRow(items[c]);
-                children = _processor.getActions(items[c].id);
+        for(var c=0, row, contextColumn; c<items.length; c++) {
+			row = items[c];
+			contextColumn = row.columns[0];
 
-                for (var d = 0; d < children.length; d++) {
-                    transactionGrid.addRow(children[d]);
-                }
-            } else {
-                transactionGrid.addRow(items[c]);
-            }
-        }
+			if (_filterText && contextColumn.indexOf(_filterText) < 0) {
+				continue;
+			}
+
+			if(row instanceof TransportDataRow) {
+				transactionGrid.addRow(row);
+				children = _processor.getActions(row.id);
+
+				for(var d=0;d<children.length;d++) {
+					transactionGrid.addRow(children[d]);
+				}
+			} else {
+				transactionGrid.addRow(row);
+			}
+		}
     }
 
     function outputActionServerData(action) {
