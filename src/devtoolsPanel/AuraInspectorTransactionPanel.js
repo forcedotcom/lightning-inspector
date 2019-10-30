@@ -175,7 +175,9 @@ export default function AuraInspectorTransactionPanel(devtoolsPanel) {
     }
 
     function FilterText_OnChange(event) {
-        
+        var text = event.srcElement;
+
+        transactionView.setFilter(text.value);
     }
 
     function debounce(func, wait, immediate) {

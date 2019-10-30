@@ -23,6 +23,7 @@ export default function AuraInspectorTransactionView() {
     // Start live recording marks
     var _marks;
     var _processor;
+    var _filterText;
 
     /* --------- Controller and listener methods -------------- */
 
@@ -87,6 +88,11 @@ export default function AuraInspectorTransactionView() {
     this.render = function(container) {
         transactionGrid.render(container);
     };
+
+    this.setFilter = function(filterText) {
+		_filterText = filterText;
+		updateGrid();
+	}
 
     function updateGrid() {
         var marks = {};
