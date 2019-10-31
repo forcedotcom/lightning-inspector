@@ -35,4 +35,5 @@ aura-inspector-tests/src/main/webapp/dist/
 coverage/
 logs/
 .vscode/settings.json
+.history
 lightning-inspector-latest.zip
