@@ -90,9 +90,9 @@ export default function AuraInspectorTransactionView() {
     };
 
     this.setFilter = function(filterText) {
-		_filterText = filterText;
-		updateGrid();
-	}
+        _filterText = filterText;
+        updateGrid();
+    };
 
     function updateGrid() {
         var marks = {};
@@ -111,25 +111,25 @@ export default function AuraInspectorTransactionView() {
 
         var children;
         // Add a row for each Transport
-        for(var c=0, row, contextColumn; c<items.length; c++) {
-			row = items[c];
-			contextColumn = row.columns[0];
+        for (var c = 0, row, contextColumn; c < items.length; c++) {
+            row = items[c];
+            contextColumn = row.columns[0];
 
-			if (_filterText && contextColumn.indexOf(_filterText) < 0) {
-				continue;
-			}
+            if (_filterText && contextColumn.indexOf(_filterText) < 0) {
+                continue;
+            }
 
-			if(row instanceof TransportDataRow) {
-				transactionGrid.addRow(row);
-				children = _processor.getActions(row.id);
+            if (row instanceof TransportDataRow) {
+                transactionGrid.addRow(row);
+                children = _processor.getActions(row.id);
 
-				for(var d=0;d<children.length;d++) {
-					transactionGrid.addRow(children[d]);
-				}
-			} else {
-				transactionGrid.addRow(row);
-			}
-		}
+                for (var d = 0; d < children.length; d++) {
+                    transactionGrid.addRow(children[d]);
+                }
+            } else {
+                transactionGrid.addRow(row);
+            }
+        }
     }
 
     function outputActionServerData(action) {
