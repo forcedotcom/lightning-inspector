@@ -163,6 +163,13 @@ function AuraInspector() {
             console.error('Lightning Inspector: Error initializing page hooks', e);
         }
 
+        try {
+            // Transactions Tab
+            bootstrapTransactionReporting();
+        } catch (e) {
+            console.error('Lightning Inspector: Error initializing page hooks for transactions', e);
+        }
+
         window.postMessage(
             {
                 action: 'AuraInspector:bootstrap',
