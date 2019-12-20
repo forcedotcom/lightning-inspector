@@ -1,3 +1,5 @@
+import ReactDOM from 'react-dom';
+import React from 'react';
 import './devtoolsPanel.css';
 import AuraInspectorEventLog from './AuraInspectorEventLog';
 import AuraInspectorActionsView from './AuraInspectorActionsView';
@@ -93,6 +95,8 @@ function AuraInspectorDevtoolsPanel() {
     var tabId;
     var currentPanel;
 
+    this.handleHeaderActions_OnClick = HeaderActions_OnClick.bind(this);
+
     this.connect = function() {
         if (runtime) {
             return;
@@ -122,8 +126,9 @@ function AuraInspectorDevtoolsPanel() {
             }
 
             //-- Attach Event Listeners
-            var header = document.querySelector('header.tabs');
-            header.addEventListener('click', HeaderActions_OnClick.bind(this));
+            // var header = document.querySelector('header.tabs');
+            const headerTabs = document.querySelector('.header-tabs');
+            headerTabs.addEventListener('click', HeaderActions_OnClick.bind(this));
 
             // Initialize Panels
             var eventLog = new AuraInspectorEventLog(this);
@@ -149,7 +154,7 @@ function AuraInspectorDevtoolsPanel() {
                 method: 'get'
             }).then(function(response) {
                 response.json().then(function(json) {
-                    drawHelp(json.help);
+                    // drawHelp(json.help);
                 });
             });
 
@@ -216,25 +221,48 @@ function AuraInspectorDevtoolsPanel() {
      */
     this.addPanel = function(key, panel, title) {
         if (!panels.has(key)) {
+            const container = document.getElementById('devtools-container');
+
             // Create Tab Body and Header
             var tabBody = document.createElement('section');
-            tabBody.className = 'tab-body';
+            tabBody.className = 'tab-body slds-hide slds-col';
             tabBody.id = 'tab-body-' + key;
+            tabBody.role = 'tabpanel';
+            tabBody.class = 'slds-tabs-default__content';
+            tabBody.setAttribute('aria-labelledby', 'tabs-' + key);
 
             if (title) {
-                var tabHeader = document.createElement('button');
-                tabHeader.appendChild(document.createTextNode(title));
-                tabHeader.id = 'tabs-' + key;
-
-                var tabs = document.querySelector('header.tabs');
-                tabs.appendChild(tabHeader);
+                const tabId = 'tabs-' + key;
+                const fragment = document.createDocumentFragment();
+                ReactDOM.render(
+                    <li
+                        className="slds-tabs--default__item"
+                        title={title}
+                        role="presentation"
+                        data-tabid={tabId}
+                    >
+                        <a
+                            className="slds-tabs--default__link"
+                            href="javascript:void(0);"
+                            role="tab"
+                            tabIndex="0"
+                            aria-selected="false"
+                            aria-controls={'tab-body-' + key}
+                            id={tabId}
+                        >
+                            {title}
+                        </a>
+                    </li>,
+                    fragment
+                );
+                container.querySelector('.header-tabs > ul').appendChild(fragment);
             }
 
             // Initialize component with new body
             panel.init(tabBody);
             panels.set(key, panel);
 
-            document.getElementById('devtools-container').appendChild(tabBody);
+            container.appendChild(tabBody);
         }
     };
 
@@ -245,7 +273,7 @@ function AuraInspectorDevtoolsPanel() {
         if (!key) {
             return;
         }
-        var buttons = document.querySelectorAll('header.tabs button:not(.trigger)');
+        var buttons = document.querySelectorAll('.header-tabs > ul > li');
         var sections = document.querySelectorAll('section.tab-body:not(.sidebar)');
         var panelKey = key.indexOf('tabs-') == 0 ? key.substring(5) : key;
         var buttonKey = 'tabs-' + panelKey;
@@ -261,22 +289,25 @@ function AuraInspectorDevtoolsPanel() {
         }
 
         for (var c = 0; c < buttons.length; c++) {
-            if (buttons[c].id === buttonKey) {
-                buttons[c].classList.add('selected');
-                sections[c].classList.add('selected');
+            console.log(buttons[c], buttons[c].getAttribute('data-tabId'), buttonKey);
+            if (buttons[c].getAttribute('data-tabId') === buttonKey) {
+                buttons[c].classList.add('slds-is-active');
+                sections[c].classList.add('slds-show');
+                sections[c].classList.remove('slds-hide');
             } else {
-                buttons[c].classList.remove('selected');
-                sections[c].classList.remove('selected');
+                buttons[c].classList.remove('slds-is-active');
+                sections[c].classList.remove('slds-show');
+                sections[c].classList.add('slds-hide');
             }
             this.hideSidebar();
         }
 
         // Render the output. Panel is responsible for not redrawing if necessary.
-        if (current) {
-            this.hideLoading();
-            current.render(options);
-            AuraInspectorOptions.set('activePanel', panelKey);
-        }
+        // if (current) {
+        //     this.hideLoading();
+        //     current.render(options);
+        //     AuraInspectorOptions.set('activePanel', panelKey);
+        // }
 
         // Render the output. Panel is responsible for not redrawing if necessary.
         if (current) {
@@ -564,9 +595,11 @@ function AuraInspectorDevtoolsPanel() {
     }*/
 
     function HeaderActions_OnClick(event) {
-        var target = event.target;
+        const target = event.srcElement;
+        console.log(target.id);
         if (target.id.indexOf('tabs-') === 0) {
             this.showPanel(target.id);
+            event.preventDefault();
         }
     }
 
@@ -775,7 +808,7 @@ function AuraInspectorDevtoolsPanel() {
     }
 
     function drawHelp(helpLinks) {
-        var header = document.querySelector('header.tabs');
+        var header = document.querySelector('.header-tabs > ul > li');
         var dropdown = document.createElement('div');
         dropdown.id = 'help';
         dropdown.className = 'dropdown-trigger dropdown-trigger--click';

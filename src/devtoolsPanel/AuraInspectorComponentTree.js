@@ -114,9 +114,8 @@ export default function AuraInspectorComponentTree(devtoolsPanel) {
         );
 
         try {
-            console.log('a');
             devtoolsPanel.showLoading();
-
+            console.count('componenttreeview');
             // TODO: Fix the options stuff.
             AuraInspectorOptions.getAll({ showGlobalIds: false }, function(options) {
                 ComponentTreeSerializer.getRootComponents().then(function(rootNodes) {

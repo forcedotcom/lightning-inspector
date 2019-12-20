@@ -154,6 +154,7 @@ class ComponentTreeViewRootNode extends React.Component {
         if (components && components.length) {
             for (var c = 0; c < components.length; c++) {
                 let component = JsonSerializer.parse(components[c]);
+                console.log('ComponentTreeViewNode', component);
                 nodes.push(
                     <ComponentTreeViewNode
                         key={component.globalId}
@@ -173,6 +174,7 @@ class ComponentTreeViewRootNode extends React.Component {
         }
 
         if (this.props.component.dom) {
+            console.log('ComponentTreeViewNode', component);
             return (
                 <ul className="tree-view collapsable">
                     <DomTreeViewNode
