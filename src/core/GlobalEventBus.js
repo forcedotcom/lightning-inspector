@@ -95,15 +95,32 @@ export default class GlobalEventBus {
 
     callSubscribers(key, data) {
         const subscribers = this._subscribers;
-        //console.log("GlobalEventBus:callSubscribers", key, data);
+
+        const isDev = process.env.NODE_ENV !== 'production';
+        const groupLabel = 'Aura Inspector Background Messages';
+
+        // Reporting when not in production mode
+        if (isDev) {
+            console.group(groupLabel);
+            console.groupCollapsed(groupLabel);
+        }
+
         if (subscribers.has(key)) {
             subscribers.get(key).forEach(callback => {
                 try {
+                    if (isDev) {
+                        console.log(key, callback, data);
+                    }
+
                     callback(data);
                 } catch (e) {
                     console.error('Key: ', key, ' resulted in error ', e);
                 }
             });
+        }
+
+        if (isDev) {
+            console.groupEnd(groupLabel);
         }
     }
 

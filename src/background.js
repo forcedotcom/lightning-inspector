@@ -312,13 +312,30 @@ function AuraInspectorBackgroundPage() {
 
     function callBackgroundPageSubscribers(key, data) {
         if (_subscribers.has(key)) {
+            const isDev = process.env.NODE_ENV !== 'production';
+            const groupLabel = 'Aura Inspector Background Messages';
+
+            // Reporting when not in production mode
+            if (isDev) {
+                console.group(groupLabel);
+                console.groupCollapsed(groupLabel);
+            }
+
             _subscribers.get(key).forEach(function(callback) {
+                // Reporting when not in production mode
+                if (isDev) {
+                    console.log(key, callback, data);
+                }
                 try {
                     callback.apply(null, data);
                 } catch (e) {
                     console.error(e);
                 }
             });
+            
+            if(isDev) {
+                console.groupEndgroupLabel);
+            }
         }
     }
 

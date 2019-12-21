@@ -46,6 +46,7 @@ import JsonSerializer from '../aura/JsonSerializer.js';
  * AuraInspector:OnDescriptorSelect             A descriptor was clicked on, we may want to take some action here such as showing a panel that has more information.
  * AuraInspector:OnInjectionScriptInitialized   The AuraInspectorInjectionScript has been injected and initialized. (Usable by external plugins to know when they can wire into the script on the hosted page.)
  * AuraInspector:OnActionStateChange            When an action is enqueued, fired, running we fire this message with the current status of the action. Includes just changed data on the action that we care about.
+ * AuraInspector:Sidebar:ViewComponent          Show a Component in the Sidebar. Pass the globalId as the first parameter.
 
  // ChaosManager stuff, move to SfdcInspector:
  * AuraInspector:OnStartChaosRun                User has click button "Start Chaos Run" in chaos tab, let's start randomly clicking through the app
@@ -147,7 +148,11 @@ function AuraInspectorDevtoolsPanel() {
 
             // Sidebar Panel
             // The AuraInspectorComponentView adds the sidebar class
-            this.addPanel('component-view', new AuraInspectorComponentView(this));
+
+            this.sidebar = new AuraInspectorComponentView(this);
+            // Render into the proper element
+            this.sidebar.init(document.getElementById('sidebar-container'));
+            this.sidebar.render();
 
             // Draw the help option
             fetch(chrome.extension.getURL('configuration.json'), {
@@ -172,6 +177,10 @@ function AuraInspectorDevtoolsPanel() {
             );
             this.subscribe('AuraInspector:Search', AuraInspector_OnSearch.bind(this));
             this.subscribe('AuraInspector:CancelSearch', AuraInspector_OnCancelSearch.bind(this));
+            this.subscribe(
+                'AuraInspector:Sidebar:ViewComponent',
+                AuraInspector_Sidebar_OnViewComponent.bind(this)
+            );
 
             // AuraInspector:publish and AuraInspector:publishbash are essentially the only things we listen for anymore.
             // We broadcast one publish message everywhere, and then we have subscribers.
@@ -289,7 +298,6 @@ function AuraInspectorDevtoolsPanel() {
         }
 
         for (var c = 0; c < buttons.length; c++) {
-            console.log(buttons[c], buttons[c].getAttribute('data-tabId'), buttonKey);
             if (buttons[c].getAttribute('data-tabId') === buttonKey) {
                 buttons[c].classList.add('slds-is-active');
                 sections[c].classList.add('slds-show');
@@ -384,16 +392,7 @@ function AuraInspectorDevtoolsPanel() {
     /**
      * Essentially hides the component view. More might go in there, but for now, thats it.
      */
-    this.hideSidebar = function() {
-        document.body.classList.remove('sidebar-visible');
-    };
-
-    /**
-     * Shows the component view.
-     */
-    this.showSidebar = function() {
-        document.body.classList.add('sidebar-visible');
-    };
+    this.hideSidebar = hideSidebar;
 
     /**
      * Shows the little spinning blocks.
@@ -422,8 +421,9 @@ function AuraInspectorDevtoolsPanel() {
         chrome.devtools.inspectedWindow.eval('$A.getContext().getMode();', callback);
     };
 
-    this.updateComponentView = function(globalId) {
-        panels.get('component-view').setData(globalId);
+    this.showComponentByIdInSidebar = function(globalId) {
+        //panels.get('component-view').setData(globalId);
+        this.publish('AuraInspector:Sidebar:ViewComponent', globalId);
     };
 
     this.getCount = function(key, callback) {
@@ -585,18 +585,9 @@ function AuraInspectorDevtoolsPanel() {
 
     /* Event Handlers */
 
-    /**
-        event handlers for AuraInspector:RequestReleaseInfo
-        this will send message to lightning-inspector's background.js
-        @param message obj {'serverUrl': String like "https://ap1.lightning.mobile1.t.force.com/one/one.app"}
-    */
-    /*function AuraInspector_OnRequestReleaseInfo(message) {
-        runtime.postMessage({"chaos": message, "tabId": chrome.devtools.inspectedWindow.tabId});
-    }*/
-
     function HeaderActions_OnClick(event) {
         const target = event.srcElement;
-        console.log(target.id);
+
         if (target.id.indexOf('tabs-') === 0) {
             this.showPanel(target.id);
             event.preventDefault();
@@ -721,6 +712,11 @@ function AuraInspectorDevtoolsPanel() {
         if (currentPanel && currentPanel.onSearch) {
             currentPanel.onSearch(searchTerm);
         }
+    }
+
+    function AuraInspector_Sidebar_OnViewComponent(globalId) {
+        this.sidebar.setData(globalId);
+        showSidebar();
     }
 
     /**  BEGIN HELP BUTTON */
@@ -911,13 +907,11 @@ function AuraInspectorDevtoolsPanel() {
         element.classList.add('slds-hide');
     }
 
-    function stripDescriptorProtocol(descriptor) {
-        if (typeof descriptor != 'string') {
-            return descriptor;
-        }
-        if (descriptor.indexOf('://') === -1) {
-            return descriptor;
-        }
-        return descriptor.split('://')[1];
+    function showSidebar() {
+        document.body.classList.add('sidebar-visible');
+    }
+
+    function hideSidebar() {
+        document.body.classList.remove('sidebar-visible');
     }
 }

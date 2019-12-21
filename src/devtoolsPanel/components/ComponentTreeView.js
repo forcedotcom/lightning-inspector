@@ -154,7 +154,6 @@ class ComponentTreeViewRootNode extends React.Component {
         if (components && components.length) {
             for (var c = 0; c < components.length; c++) {
                 let component = JsonSerializer.parse(components[c]);
-                console.log('ComponentTreeViewNode', component);
                 nodes.push(
                     <ComponentTreeViewNode
                         key={component.globalId}

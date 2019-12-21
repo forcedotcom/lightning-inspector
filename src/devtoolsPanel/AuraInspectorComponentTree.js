@@ -115,7 +115,6 @@ export default function AuraInspectorComponentTree(devtoolsPanel) {
 
         try {
             devtoolsPanel.showLoading();
-            console.count('componenttreeview');
             // TODO: Fix the options stuff.
             AuraInspectorOptions.getAll({ showGlobalIds: false }, function(options) {
                 ComponentTreeSerializer.getRootComponents().then(function(rootNodes) {
@@ -150,8 +149,7 @@ export default function AuraInspectorComponentTree(devtoolsPanel) {
                     tree.setSelectedId(id);
                 }
 
-                devtoolsPanel.updateComponentView(id);
-                devtoolsPanel.showSidebar();
+                devtoolsPanel.showComponentByIdInSidebar(id);
 
                 selectedNodeId = id;
             });
@@ -179,8 +177,7 @@ export default function AuraInspectorComponentTree(devtoolsPanel) {
         if (selectedNodeId && selectedNodeId.startsWith('data-')) {
             devtoolsPanel.hideSidebar();
         } else {
-            devtoolsPanel.updateComponentView(selectedNodeId);
-            devtoolsPanel.showSidebar();
+            devtoolsPanel.showComponentByIdInSidebar(selectedNodeId);
         }
 
         BrowserApi.eval(`$auraTemp = $A.getCmp('${selectedNodeId}'); undefined;`);
@@ -249,8 +246,7 @@ export default function AuraInspectorComponentTree(devtoolsPanel) {
                 var command = "$auraTemp = $A.getCmp('" + globalId + "'); undefined;";
                 chrome.devtools.inspectedWindow.eval(command);
 
-                devtoolsPanel.updateComponentView(globalId);
-                devtoolsPanel.showSidebar();
+                devtoolsPanel.showComponentByIdInSidebar(globalId);
             }
         }
     }
