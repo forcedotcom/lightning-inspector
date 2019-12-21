@@ -332,9 +332,9 @@ function AuraInspectorBackgroundPage() {
                     console.error(e);
                 }
             });
-            
-            if(isDev) {
-                console.groupEndgroupLabel);
+
+            if (isDev) {
+                console.groupEnd(groupLabel);
             }
         }
     }

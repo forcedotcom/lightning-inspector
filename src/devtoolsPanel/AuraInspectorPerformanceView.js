@@ -30,7 +30,8 @@ export default function AuraInspectorPerformanceView(devtoolsPanel) {
 
     this.render = function() {
         if (!initialLoad) {
-            var command = '$A.PerfDevTools.getComponentCreationProfile()';
+            var command =
+                'window[Symbol.for("AuraDevTools")].Inspector.PerfDevTools.getComponentCreationProfile()';
             chrome.devtools.inspectedWindow.eval(command, function(payload, exception) {
                 perfPanel = new AuraPerfPanel(payload, 'flamechart');
             });
