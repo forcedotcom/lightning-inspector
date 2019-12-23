@@ -173,7 +173,6 @@ class ComponentTreeViewRootNode extends React.Component {
         }
 
         if (this.props.component.dom) {
-            console.log('ComponentTreeViewNode', component);
             return (
                 <ul className="tree-view collapsable">
                     <DomTreeViewNode

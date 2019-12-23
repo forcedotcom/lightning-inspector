@@ -159,7 +159,7 @@ function AuraInspectorDevtoolsPanel() {
                 method: 'get'
             }).then(function(response) {
                 response.json().then(function(json) {
-                    // drawHelp(json.help);
+                    drawHelp(json.help);
                 });
             });
 
@@ -311,13 +311,6 @@ function AuraInspectorDevtoolsPanel() {
         }
 
         // Render the output. Panel is responsible for not redrawing if necessary.
-        // if (current) {
-        //     this.hideLoading();
-        //     current.render(options);
-        //     AuraInspectorOptions.set('activePanel', panelKey);
-        // }
-
-        // Render the output. Panel is responsible for not redrawing if necessary.
         if (current) {
             this.hideLoading();
             if (!isPanelRendered) {
@@ -422,7 +415,6 @@ function AuraInspectorDevtoolsPanel() {
     };
 
     this.showComponentByIdInSidebar = function(globalId) {
-        //panels.get('component-view').setData(globalId);
         this.publish('AuraInspector:Sidebar:ViewComponent', globalId);
     };
 
