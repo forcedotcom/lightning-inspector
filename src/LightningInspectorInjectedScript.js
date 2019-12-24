@@ -171,7 +171,7 @@ function AuraInspector() {
         }
 
         try {
-            bootstrapPerfDevTools.call(this);
+            bootstrapPerfDevTools(this);
 
             // Need a way to conditionally do this based on a user setting.
             this.PerfDevTools.init();
@@ -1050,7 +1050,7 @@ function bootstrapEventInstrumentation() {
     }
 }
 
-function bootstrapPerfDevTools() {
+function bootstrapPerfDevTools(api) {
     var OPTIONS = {
             componentCreation: true,
             componentRendering: true,
@@ -1063,7 +1063,7 @@ function bootstrapPerfDevTools() {
         CMP_CREATE_END = CMP_CREATE_MARK + END_SUFIX,
         SAMPLING_INTERVAL = 0.025;
 
-    this.PerfDevTools = {
+    api.PerfDevTools = {
         init: function(cfg) {
             cfg || (cfg = {});
             this._initializeOptions(cfg);
