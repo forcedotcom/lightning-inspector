@@ -39,7 +39,7 @@ export default function TabBar(props) {
     return (
         <ul className="slds-tabs--default__nav" role="tablist">
             {tabs}
-            <HelpTab></HelpTab>
+            <HelpTab onHelpLinkClick={props.onHelpLinkClick}></HelpTab>
         </ul>
     );
 }

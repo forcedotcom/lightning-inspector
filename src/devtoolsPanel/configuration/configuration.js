@@ -1,14 +1,13 @@
 import configuration from '../../../configuration.json';
 
+Object.freeze(configuration);
+
 export default class Configuration {
     /**
      * Returns the contents of the configuration.json file as JSON.
      */
-    static async getApplicationConfiguration() {
-        const response = await fetch(chrome.extension.getURL('configuration.json'), {
-            method: 'get'
-        });
-        return await response.json();
+    static getApplicationConfiguration() {
+        return configuration;
     }
 
     /**
