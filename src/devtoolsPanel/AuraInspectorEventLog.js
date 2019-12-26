@@ -44,6 +44,8 @@ export default function AuraInspectorEventLog(devtoolsPanel) {
         </div>
     `;
 
+    this.title = chrome.i18n.getMessage('tabs_eventlog');
+
     this.init = function(tabBody) {
         tabBody.innerHTML = markup;
 

@@ -56,6 +56,8 @@ export default function AuraInspectorComponentTree(devtoolsPanel) {
         </di>
     `;
 
+    this.title = chrome.i18n.getMessage('tabs_componenttree');
+
     this.init = function(tabBody) {
         tabBody.innerHTML = markup;
         treeElement = tabBody.querySelector('#tree');

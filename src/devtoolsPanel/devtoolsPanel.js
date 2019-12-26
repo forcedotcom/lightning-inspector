@@ -14,6 +14,7 @@ import AuraInspectorTransactionView from './AuraInspectorTransactionView.js';
 import DevToolsEncodedId from './DevToolsEncodedId.js';
 import AuraInspectorOptions from './optionsProxy.js';
 import JsonSerializer from '../aura/JsonSerializer.js';
+import TabBar from './components/TabBar';
 
 /**
  * You can use the publish and subscribe methods to broadcast messages through to the end points of the architecture.
@@ -86,7 +87,7 @@ function AuraInspectorDevtoolsPanel() {
     // For Drawing the Tree, eventually to be moved into it's own component
     var nodeId = 0;
     var events = new Map();
-    var panels = new Map();
+    const panels = {};
     const renderedPanels = new Set();
     var _name = 'AuraInspectorDevtoolsPanel';
     var _onReadyQueue = [];
@@ -126,42 +127,26 @@ function AuraInspectorDevtoolsPanel() {
                 return;
             }
 
-            //-- Attach Event Listeners
-            // var header = document.querySelector('header.tabs');
-            const headerTabs = document.querySelector('.header-tabs');
-            headerTabs.addEventListener('click', HeaderActions_OnClick.bind(this));
-
             // Initialize Panels
-            var eventLog = new AuraInspectorEventLog(this);
-            var tree = new AuraInspectorComponentTree(this);
-            var perf = new AuraInspectorPerformanceView(this);
-            var transaction = new AuraInspectorTransactionPanel(this);
-            var actions = new AuraInspectorActionsView(this);
-            var storage = new AuraInspectorStorageView(this);
-
-            this.addPanel('component-tree', tree, chrome.i18n.getMessage('tabs_componenttree'));
-            this.addPanel('performance', perf, chrome.i18n.getMessage('tabs_performance'));
-            this.addPanel('transaction', transaction, chrome.i18n.getMessage('tabs_transactions'));
-            this.addPanel('event-log', eventLog, chrome.i18n.getMessage('tabs_eventlog'));
-            this.addPanel('actions', actions, chrome.i18n.getMessage('tabs_actions'));
-            this.addPanel(storage.panelId, storage, chrome.i18n.getMessage('tabs_storage'));
+            this.addPanel('component-tree', new AuraInspectorComponentTree(this));
+            this.addPanel('performance', new AuraInspectorPerformanceView(this));
+            this.addPanel('transaction', new AuraInspectorTransactionPanel(this));
+            this.addPanel('event-log', new AuraInspectorEventLog(this));
+            this.addPanel('actions', new AuraInspectorActionsView(this));
+            this.addPanel('storage', new AuraInspectorStorageView(this));
 
             // Sidebar Panel
             // The AuraInspectorComponentView adds the sidebar class
-
             this.sidebar = new AuraInspectorComponentView(this);
+
             // Render into the proper element
             this.sidebar.init(document.getElementById('sidebar-container'));
             this.sidebar.render();
 
-            // Draw the help option
-            fetch(chrome.extension.getURL('configuration.json'), {
-                method: 'get'
-            }).then(function(response) {
-                response.json().then(function(json) {
-                    drawHelp(json.help);
-                });
-            });
+            //-- Draw Header Tab Bar
+            const headerTabs = document.querySelector('.header-tabs');
+            headerTabs.addEventListener('click', HeaderActions_OnClick.bind(this));
+            ReactDOM.render(<TabBar panels={panels}></TabBar>, headerTabs);
 
             this.subscribe(
                 'AuraInspector:OnContextMenu',
@@ -228,8 +213,8 @@ function AuraInspectorDevtoolsPanel() {
      * @param {Object} panel Instance of the panel you are adding.
      * @param {String} title The label which goes in the Tab to select for the panel.
      */
-    this.addPanel = function(key, panel, title) {
-        if (!panels.has(key)) {
+    this.addPanel = function(key, panel) {
+        if (!panels.hasOwnProperty(key)) {
             const container = document.getElementById('devtools-container');
 
             // Create Tab Body and Header
@@ -240,36 +225,9 @@ function AuraInspectorDevtoolsPanel() {
             tabBody.class = 'slds-tabs-default__content';
             tabBody.setAttribute('aria-labelledby', 'tabs-' + key);
 
-            if (title) {
-                const tabId = 'tabs-' + key;
-                const fragment = document.createDocumentFragment();
-                ReactDOM.render(
-                    <li
-                        className="slds-tabs--default__item"
-                        title={title}
-                        role="presentation"
-                        data-tabid={tabId}
-                    >
-                        <a
-                            className="slds-tabs--default__link"
-                            href="javascript:void(0);"
-                            role="tab"
-                            tabIndex="0"
-                            aria-selected="false"
-                            aria-controls={'tab-body-' + key}
-                            id={tabId}
-                        >
-                            {title}
-                        </a>
-                    </li>,
-                    fragment
-                );
-                container.querySelector('.header-tabs > ul').appendChild(fragment);
-            }
-
             // Initialize component with new body
             panel.init(tabBody);
-            panels.set(key, panel);
+            panels[key] = panel;
 
             container.appendChild(tabBody);
         }
@@ -284,9 +242,10 @@ function AuraInspectorDevtoolsPanel() {
         }
         var buttons = document.querySelectorAll('.header-tabs > ul > li');
         var sections = document.querySelectorAll('section.tab-body:not(.sidebar)');
+
         var panelKey = key.indexOf('tabs-') == 0 ? key.substring(5) : key;
         var buttonKey = 'tabs-' + panelKey;
-        var current = panels.get(panelKey);
+        var current = panels[panelKey];
         const isPanelRendered = renderedPanels.has(panelKey);
 
         // When you try to show the panel that already is shown, we don't want to refire render.
@@ -300,12 +259,16 @@ function AuraInspectorDevtoolsPanel() {
         for (var c = 0; c < buttons.length; c++) {
             if (buttons[c].getAttribute('data-tabId') === buttonKey) {
                 buttons[c].classList.add('slds-is-active');
-                sections[c].classList.add('slds-show');
-                sections[c].classList.remove('slds-hide');
+                if (sections[c]) {
+                    sections[c].classList.add('slds-show');
+                    sections[c].classList.remove('slds-hide');
+                }
             } else {
                 buttons[c].classList.remove('slds-is-active');
-                sections[c].classList.remove('slds-show');
-                sections[c].classList.add('slds-hide');
+                if (sections[c]) {
+                    sections[c].classList.remove('slds-show');
+                    sections[c].classList.add('slds-hide');
+                }
             }
             this.hideSidebar();
         }
@@ -335,7 +298,7 @@ function AuraInspectorDevtoolsPanel() {
      * Depending on the mode, some panels will not be added.
      */
     this.hasPanel = function(key) {
-        return panels.has(key);
+        return panels.hasOwnProperty(key);
     };
 
     /**
@@ -659,7 +622,10 @@ function AuraInspectorDevtoolsPanel() {
                 );
                 return;
             }
-            this.addPanel(message.panelId, new panelConstructor(this), message.title);
+            const panel = new panelConstructor(this);
+            panel.title = message.title;
+
+            this.addPanel(message.panelId, panel, message.title);
         }.bind(this);
 
         document.body.appendChild(script);
@@ -798,8 +764,8 @@ function AuraInspectorDevtoolsPanel() {
     function drawHelp(helpLinks) {
         const header = document.querySelector('.header-tabs > ul');
         const li = document.createElement('li');
-        li.className = "slds-tabs--default__item";
-        li.title="help";
+        li.className = 'slds-tabs--default__item';
+        li.title = 'help';
         header.appendChild(li);
 
         var dropdown = document.createElement('div');
@@ -815,7 +781,7 @@ function AuraInspectorDevtoolsPanel() {
         //     'beforeend',
         //     '<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" viewBox="0 0 52 52"><path d="m28.4 38h-5c-0.8 0-1.4-0.6-1.4-1.4v-1.5c0-4.2 2.7-8 6.7-9.4 1.2-0.4 2.3-1.1 3.2-2.1 5-6 0.4-13.2-5.6-13.4-2.2-0.1-4.3 0.7-5.9 2.2-1.3 1.2-2.1 2.7-2.3 4.4-0.1 0.6-0.7 1.1-1.5 1.1h-5c-0.9 0-1.6-0.7-1.5-1.6 0.4-3.8 2.1-7.2 4.8-9.9 3.2-3 7.3-4.6 11.7-4.5 8.3 0.3 15.1 7.1 15.4 15.4 0.3 7-4 13.3-10.5 15.7-0.9 0.4-1.5 1.1-1.5 2v1.5c0 0.9-0.8 1.5-1.6 1.5z m1.6 10.5c0 0.8-0.7 1.5-1.5 1.5h-5c-0.8 0-1.5-0.7-1.5-1.5v-5c0-0.8 0.7-1.5 1.5-1.5h5c0.8 0 1.5 0.7 1.5 1.5v5z"></path></svg>'
         // );
-        trigger.innerHTML = "Help";
+        trigger.innerHTML = 'Help';
 
         var label = document.createElement('span');
         label.className = 'slds-assistive-text';
