@@ -1,3 +1,5 @@
+import ReactDOM from 'react-dom';
+import React from 'react';
 import './devtoolsPanel.css';
 import AuraInspectorEventLog from './AuraInspectorEventLog';
 import AuraInspectorActionsView from './AuraInspectorActionsView';
@@ -12,6 +14,7 @@ import AuraInspectorTransactionView from './AuraInspectorTransactionView.js';
 import DevToolsEncodedId from './DevToolsEncodedId.js';
 import AuraInspectorOptions from './optionsProxy.js';
 import JsonSerializer from '../aura/JsonSerializer.js';
+import TabBar from './components/TabBar';
 
 /**
  * You can use the publish and subscribe methods to broadcast messages through to the end points of the architecture.
@@ -44,6 +47,7 @@ import JsonSerializer from '../aura/JsonSerializer.js';
  * AuraInspector:OnDescriptorSelect             A descriptor was clicked on, we may want to take some action here such as showing a panel that has more information.
  * AuraInspector:OnInjectionScriptInitialized   The AuraInspectorInjectionScript has been injected and initialized. (Usable by external plugins to know when they can wire into the script on the hosted page.)
  * AuraInspector:OnActionStateChange            When an action is enqueued, fired, running we fire this message with the current status of the action. Includes just changed data on the action that we care about.
+ * AuraInspector:Sidebar:ViewComponent          Show a Component in the Sidebar. Pass the globalId as the first parameter.
 
  // ChaosManager stuff, move to SfdcInspector:
  * AuraInspector:OnStartChaosRun                User has click button "Start Chaos Run" in chaos tab, let's start randomly clicking through the app
@@ -83,7 +87,7 @@ function AuraInspectorDevtoolsPanel() {
     // For Drawing the Tree, eventually to be moved into it's own component
     var nodeId = 0;
     var events = new Map();
-    var panels = new Map();
+    const panels = {};
     const renderedPanels = new Set();
     var _name = 'AuraInspectorDevtoolsPanel';
     var _onReadyQueue = [];
@@ -92,6 +96,8 @@ function AuraInspectorDevtoolsPanel() {
     var _subscribers = new Map();
     var tabId;
     var currentPanel;
+
+    this.handleHeaderActions_OnClick = HeaderActions_OnClick.bind(this);
 
     this.connect = function() {
         if (runtime) {
@@ -121,37 +127,32 @@ function AuraInspectorDevtoolsPanel() {
                 return;
             }
 
-            //-- Attach Event Listeners
-            var header = document.querySelector('header.tabs');
-            header.addEventListener('click', HeaderActions_OnClick.bind(this));
-
             // Initialize Panels
-            var eventLog = new AuraInspectorEventLog(this);
-            var tree = new AuraInspectorComponentTree(this);
-            var perf = new AuraInspectorPerformanceView(this);
-            var transaction = new AuraInspectorTransactionPanel(this);
-            var actions = new AuraInspectorActionsView(this);
-            var storage = new AuraInspectorStorageView(this);
-
-            this.addPanel('component-tree', tree, chrome.i18n.getMessage('tabs_componenttree'));
-            this.addPanel('performance', perf, chrome.i18n.getMessage('tabs_performance'));
-            this.addPanel('transaction', transaction, chrome.i18n.getMessage('tabs_transactions'));
-            this.addPanel('event-log', eventLog, chrome.i18n.getMessage('tabs_eventlog'));
-            this.addPanel('actions', actions, chrome.i18n.getMessage('tabs_actions'));
-            this.addPanel(storage.panelId, storage, chrome.i18n.getMessage('tabs_storage'));
+            this.addPanel('component-tree', new AuraInspectorComponentTree(this));
+            this.addPanel('performance', new AuraInspectorPerformanceView(this));
+            this.addPanel('transaction', new AuraInspectorTransactionPanel(this));
+            this.addPanel('event-log', new AuraInspectorEventLog(this));
+            this.addPanel('actions', new AuraInspectorActionsView(this));
+            this.addPanel('storage', new AuraInspectorStorageView(this));
 
             // Sidebar Panel
             // The AuraInspectorComponentView adds the sidebar class
-            this.addPanel('component-view', new AuraInspectorComponentView(this));
+            this.sidebar = new AuraInspectorComponentView(this);
 
-            // Draw the help option
-            fetch(chrome.extension.getURL('configuration.json'), {
-                method: 'get'
-            }).then(function(response) {
-                response.json().then(function(json) {
-                    drawHelp(json.help);
-                });
-            });
+            // Render into the proper element
+            this.sidebar.init(document.getElementById('sidebar-container'));
+            this.sidebar.render();
+
+            //-- Draw Header Tab Bar
+            const headerTabs = document.querySelector('.header-tabs');
+            headerTabs.addEventListener('click', HeaderActions_OnClick.bind(this));
+            ReactDOM.render(
+                <TabBar
+                    panels={panels}
+                    onHelpLinkClick={HandleHelpLink_OnClick.bind(this)}
+                ></TabBar>,
+                headerTabs
+            );
 
             this.subscribe(
                 'AuraInspector:OnContextMenu',
@@ -167,6 +168,10 @@ function AuraInspectorDevtoolsPanel() {
             );
             this.subscribe('AuraInspector:Search', AuraInspector_OnSearch.bind(this));
             this.subscribe('AuraInspector:CancelSearch', AuraInspector_OnCancelSearch.bind(this));
+            this.subscribe(
+                'AuraInspector:Sidebar:ViewComponent',
+                AuraInspector_Sidebar_OnViewComponent.bind(this)
+            );
 
             // AuraInspector:publish and AuraInspector:publishbash are essentially the only things we listen for anymore.
             // We broadcast one publish message everywhere, and then we have subscribers.
@@ -214,27 +219,23 @@ function AuraInspectorDevtoolsPanel() {
      * @param {Object} panel Instance of the panel you are adding.
      * @param {String} title The label which goes in the Tab to select for the panel.
      */
-    this.addPanel = function(key, panel, title) {
-        if (!panels.has(key)) {
+    this.addPanel = function(key, panel) {
+        if (!panels.hasOwnProperty(key)) {
+            const container = document.getElementById('devtools-container');
+
             // Create Tab Body and Header
             var tabBody = document.createElement('section');
-            tabBody.className = 'tab-body';
+            tabBody.className = 'tab-body slds-hide slds-col';
             tabBody.id = 'tab-body-' + key;
-
-            if (title) {
-                var tabHeader = document.createElement('button');
-                tabHeader.appendChild(document.createTextNode(title));
-                tabHeader.id = 'tabs-' + key;
-
-                var tabs = document.querySelector('header.tabs');
-                tabs.appendChild(tabHeader);
-            }
+            tabBody.role = 'tabpanel';
+            tabBody.class = 'slds-tabs-default__content';
+            tabBody.setAttribute('aria-labelledby', 'tabs-' + key);
 
             // Initialize component with new body
             panel.init(tabBody);
-            panels.set(key, panel);
+            panels[key] = panel;
 
-            document.getElementById('devtools-container').appendChild(tabBody);
+            container.appendChild(tabBody);
         }
     };
 
@@ -245,11 +246,12 @@ function AuraInspectorDevtoolsPanel() {
         if (!key) {
             return;
         }
-        var buttons = document.querySelectorAll('header.tabs button:not(.trigger)');
+        var buttons = document.querySelectorAll('.header-tabs > ul > li');
         var sections = document.querySelectorAll('section.tab-body:not(.sidebar)');
+
         var panelKey = key.indexOf('tabs-') == 0 ? key.substring(5) : key;
         var buttonKey = 'tabs-' + panelKey;
-        var current = panels.get(panelKey);
+        var current = panels[panelKey];
         const isPanelRendered = renderedPanels.has(panelKey);
 
         // When you try to show the panel that already is shown, we don't want to refire render.
@@ -261,21 +263,20 @@ function AuraInspectorDevtoolsPanel() {
         }
 
         for (var c = 0; c < buttons.length; c++) {
-            if (buttons[c].id === buttonKey) {
-                buttons[c].classList.add('selected');
-                sections[c].classList.add('selected');
+            if (buttons[c].getAttribute('data-tabId') === buttonKey) {
+                buttons[c].classList.add('slds-is-active');
+                if (sections[c]) {
+                    sections[c].classList.add('slds-show');
+                    sections[c].classList.remove('slds-hide');
+                }
             } else {
-                buttons[c].classList.remove('selected');
-                sections[c].classList.remove('selected');
+                buttons[c].classList.remove('slds-is-active');
+                if (sections[c]) {
+                    sections[c].classList.remove('slds-show');
+                    sections[c].classList.add('slds-hide');
+                }
             }
             this.hideSidebar();
-        }
-
-        // Render the output. Panel is responsible for not redrawing if necessary.
-        if (current) {
-            this.hideLoading();
-            current.render(options);
-            AuraInspectorOptions.set('activePanel', panelKey);
         }
 
         // Render the output. Panel is responsible for not redrawing if necessary.
@@ -303,7 +304,7 @@ function AuraInspectorDevtoolsPanel() {
      * Depending on the mode, some panels will not be added.
      */
     this.hasPanel = function(key) {
-        return panels.has(key);
+        return panels.hasOwnProperty(key);
     };
 
     /**
@@ -353,16 +354,7 @@ function AuraInspectorDevtoolsPanel() {
     /**
      * Essentially hides the component view. More might go in there, but for now, thats it.
      */
-    this.hideSidebar = function() {
-        document.body.classList.remove('sidebar-visible');
-    };
-
-    /**
-     * Shows the component view.
-     */
-    this.showSidebar = function() {
-        document.body.classList.add('sidebar-visible');
-    };
+    this.hideSidebar = hideSidebar;
 
     /**
      * Shows the little spinning blocks.
@@ -391,8 +383,8 @@ function AuraInspectorDevtoolsPanel() {
         chrome.devtools.inspectedWindow.eval('$A.getContext().getMode();', callback);
     };
 
-    this.updateComponentView = function(globalId) {
-        panels.get('component-view').setData(globalId);
+    this.showComponentByIdInSidebar = function(globalId) {
+        this.publish('AuraInspector:Sidebar:ViewComponent', globalId);
     };
 
     this.getCount = function(key, callback) {
@@ -529,7 +521,12 @@ function AuraInspectorDevtoolsPanel() {
         console.error(msg);
     };
 
-    this.openTab = function(url) {
+    /*
+     =========== END REFACTOR! ===============
+     */
+
+    /* Event Handlers */
+    function HandleHelpLink_OnClick(url) {
         if (url.startsWith('/')) {
             // Resolve to be absolute first.
             chrome.devtools.inspectedWindow.eval('window.location.origin', function(origin) {
@@ -546,27 +543,14 @@ function AuraInspectorDevtoolsPanel() {
                 data: url
             });
         }
-    };
-
-    /*
-     =========== END REFACTOR! ===============
-     */
-
-    /* Event Handlers */
-
-    /**
-        event handlers for AuraInspector:RequestReleaseInfo
-        this will send message to lightning-inspector's background.js
-        @param message obj {'serverUrl': String like "https://ap1.lightning.mobile1.t.force.com/one/one.app"}
-    */
-    /*function AuraInspector_OnRequestReleaseInfo(message) {
-        runtime.postMessage({"chaos": message, "tabId": chrome.devtools.inspectedWindow.tabId});
-    }*/
+    }
 
     function HeaderActions_OnClick(event) {
-        var target = event.target;
+        const target = event.srcElement;
+
         if (target.id.indexOf('tabs-') === 0) {
             this.showPanel(target.id);
+            event.preventDefault();
         }
     }
 
@@ -643,7 +627,10 @@ function AuraInspectorDevtoolsPanel() {
                 );
                 return;
             }
-            this.addPanel(message.panelId, new panelConstructor(this), message.title);
+            const panel = new panelConstructor(this);
+            panel.title = message.title;
+
+            this.addPanel(message.panelId, panel, message.title);
         }.bind(this);
 
         document.body.appendChild(script);
@@ -690,157 +677,10 @@ function AuraInspectorDevtoolsPanel() {
         }
     }
 
-    /**  BEGIN HELP BUTTON */
-    function Dropdown_OnClick(event) {
-        if (this.classList.contains('is-open')) {
-            hideHelp(this);
-        } else {
-            showHelp(this);
-        }
+    function AuraInspector_Sidebar_OnViewComponent(globalId) {
+        this.sidebar.setData(globalId);
+        showSidebar();
     }
-
-    function Body_OnClick(event) {
-        var target = event.target;
-        var current = target;
-        while (current != null && current != current.parentNode) {
-            if (current == this) {
-                return;
-            }
-            current = current.parentNode;
-        }
-
-        hideHelp(this);
-    }
-
-    function Help_OnClick(event) {
-        if (event.target.tagName === 'A') {
-            event.stopPropagation();
-            event.preventDefault();
-            var url = event.target.getAttribute('href');
-            panel.openTab(url);
-        }
-    }
-
-    function Dropdown_OnKey(event) {
-        if (event.keyCode) {
-            if (
-                event.keyCode === 27 ||
-                event.keyCode === 40 ||
-                event.keyCode === 9 ||
-                event.keyCode === 38
-            ) {
-                if (this.classList.contains('is-open')) {
-                    event.stopPropagation();
-                    event.preventDefault();
-
-                    if (event.keyCode === 27) {
-                        //Close the menu.
-                        hideHelp(this);
-                        this.getElementsByClassName('trigger')[0].focus();
-                    } else {
-                        //Focus next item.
-                        var offset = 0;
-                        if (event.keyCode === 40 || event.keyCode === 9) {
-                            // Down
-                            offset = 1;
-                        } else if (
-                            event.keyCode === 38 ||
-                            (event.keyCode === 9 && event.shiftKey)
-                        ) {
-                            // Up
-                            offset = -1;
-                        }
-                        // var d = 0;
-                        // d = (event.keyCode === 40) || (event.keyCode === 9) ? 1 : d; //down
-                        // d = (event.keyCode === 38) || (event.keyCode === 9 && event.shiftKey) ? -1 : d; //up
-                        if (offset != 0) {
-                            var links = Array.from(this.getElementsByTagName('a'));
-                            var currentIndex = links.indexOf(document.activeElement);
-                            var link = links[currentIndex + offset];
-                            if (link) {
-                                link.focus();
-                            }
-                        }
-                    }
-                } else if (event.keyCode != 27 && event.keyCode != 9) {
-                    //Open the menu if it is closed.
-                    Dropdown_OnClick.call(this, event);
-                }
-            }
-        }
-    }
-
-    function Dropdown_OnHover(event) {
-        event.target.focus();
-    }
-
-    function drawHelp(helpLinks) {
-        var header = document.querySelector('header.tabs');
-        var dropdown = document.createElement('div');
-        dropdown.id = 'help';
-        dropdown.className = 'dropdown-trigger dropdown-trigger--click';
-        dropdown.addEventListener('click', Dropdown_OnClick);
-        dropdown.addEventListener('keydown', Dropdown_OnKey, false);
-
-        var trigger = document.createElement('button');
-        trigger.className = 'trigger';
-        trigger.setAttribute('aria-haspopup', 'true');
-        trigger.insertAdjacentHTML(
-            'beforeend',
-            '<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" width="52" height="52" viewBox="0 0 52 52"><path d="m28.4 38h-5c-0.8 0-1.4-0.6-1.4-1.4v-1.5c0-4.2 2.7-8 6.7-9.4 1.2-0.4 2.3-1.1 3.2-2.1 5-6 0.4-13.2-5.6-13.4-2.2-0.1-4.3 0.7-5.9 2.2-1.3 1.2-2.1 2.7-2.3 4.4-0.1 0.6-0.7 1.1-1.5 1.1h-5c-0.9 0-1.6-0.7-1.5-1.6 0.4-3.8 2.1-7.2 4.8-9.9 3.2-3 7.3-4.6 11.7-4.5 8.3 0.3 15.1 7.1 15.4 15.4 0.3 7-4 13.3-10.5 15.7-0.9 0.4-1.5 1.1-1.5 2v1.5c0 0.9-0.8 1.5-1.6 1.5z m1.6 10.5c0 0.8-0.7 1.5-1.5 1.5h-5c-0.8 0-1.5-0.7-1.5-1.5v-5c0-0.8 0.7-1.5 1.5-1.5h5c0.8 0 1.5 0.7 1.5 1.5v5z"></path></svg>'
-        );
-
-        var label = document.createElement('span');
-        label.className = 'slds-assistive-text';
-        label.textContent = chrome.i18n.getMessage('tabs_help');
-
-        trigger.appendChild(label);
-        dropdown.appendChild(trigger);
-
-        var menu = document.createElement('div');
-        menu.className = 'dropdown dropdown--right';
-        menu.addEventListener('click', Help_OnClick);
-
-        var menuList = document.createElement('ul');
-        menuList.className = 'dropdown__list';
-        menuList.setAttribute('role', 'menu');
-
-        var menuitem;
-        var link;
-        for (var c = 0; c < helpLinks.length; c++) {
-            menuitem = document.createElement('li');
-            menuitem.className = 'dropdown__item';
-            menuitem.label = helpLinks[c].text;
-
-            link = document.createElement('a');
-            link.setAttribute('role', 'menuitem');
-            link.href = helpLinks[c].href;
-            link.textContent = helpLinks[c].text;
-            link.addEventListener('mousemove', Dropdown_OnHover);
-
-            menuitem.appendChild(link);
-            menuList.appendChild(menuitem);
-        }
-
-        menu.appendChild(menuList);
-        dropdown.appendChild(menu);
-        header.appendChild(dropdown);
-    }
-
-    function showHelp(dropdown) {
-        document.body.addEventListener('click', Body_OnClick.bind(dropdown));
-        dropdown.classList.add('is-open');
-        dropdown.setAttribute('aria-expanded', 'true');
-        dropdown.getElementsByTagName('a')[0].focus();
-    }
-
-    function hideHelp(dropdown) {
-        document.body.removeEventListener('click', Body_OnClick.bind(dropdown));
-        dropdown.classList.remove('is-open');
-        dropdown.setAttribute('aria-expanded', 'false');
-    }
-
-    /** END HELP BUTTON */
 
     function toggleAvailableDialog() {
         // Check if Aura is present, but not the InjectedScript
@@ -878,13 +718,11 @@ function AuraInspectorDevtoolsPanel() {
         element.classList.add('slds-hide');
     }
 
-    function stripDescriptorProtocol(descriptor) {
-        if (typeof descriptor != 'string') {
-            return descriptor;
-        }
-        if (descriptor.indexOf('://') === -1) {
-            return descriptor;
-        }
-        return descriptor.split('://')[1];
+    function showSidebar() {
+        document.body.classList.add('sidebar-visible');
+    }
+
+    function hideSidebar() {
+        document.body.classList.remove('sidebar-visible');
     }
 }

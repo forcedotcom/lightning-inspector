@@ -9,8 +9,9 @@ AuraPerfPanel.prototype = {
     init: function() {
         this.recording = false;
         this.commands = {
-            clearMarks: '$A.PerfDevTools.clearMarks()',
-            getCmpCreation: '$A.PerfDevTools.getComponentCreationProfile()'
+            clearMarks: 'window[Symbol.for("AuraDevTools")].Inspector.PerfDevTools.clearMarks()',
+            getCmpCreation:
+                'window[Symbol.for("AuraDevTools")].Inspector.PerfDevTools.getComponentCreationProfile()'
         };
         this._bind();
         this.bootstrapWebInspectorPanel();

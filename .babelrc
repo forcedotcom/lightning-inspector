@@ -17,7 +17,6 @@
         "./src/aura/gatherer/unStrictApis.js",
         "./src/devtoolsPanel/perfpanel/js/AuraPerfPanel.js",
         "./src/devtoolsPanel/perfpanel/js/Main.js",
-        "./src/devtoolsPanel/perfpanel/js/ProfilesPanel.js",
-        "./src/devtoolsPanel/perfpanel/js/init.js"
+        "./src/devtoolsPanel/perfpanel/js/ProfilesPanel.js"
     ]
 }

@@ -96,6 +96,9 @@ export default function AuraInspectorActionsView(devtoolsPanel) {
         </div>
     `;
 
+    this.title = chrome.i18n.getMessage('tabs_actions');
+    this.panelId = 'actions';
+
     this.init = function(tabBody) {
         tabBody.innerHTML = markup;
 

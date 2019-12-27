@@ -1,65 +1,75 @@
 <html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
-        <!-- Web Components -->
-        <link rel="import" href="src/devtoolsPanel/components/json/json.html"/>
-        <link rel="import" href="src/devtoolsPanel/components/actionCard/actionCard.html"/>
-        <link rel="import" href="src/devtoolsPanel/components/chaosCard/chaosCard.html"/>
-        <link rel="import" href="src/devtoolsPanel/components/eventCard/eventCard.html"/>
-        <link rel="import" href="src/devtoolsPanel/components/onOffButton/onOffButton.html"/>
-        <link rel="import" href="src/devtoolsPanel/components/outputFunction/outputFunction.html"/>
-        <link rel="import" href="src/devtoolsPanel/components/auracomponent/auracomponent.html"/>
-        <link rel="import" href="src/devtoolsPanel/components/controllerreference/controllerreference.html"/>
-        <link rel="import" href="src/devtoolsPanel/components/label/label.html"/>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
-        <link rel="stylesheet" type="text/css" href="src/devtoolsPanel/perfpanel/css/inspector.css">
-        <link rel="stylesheet" type="text/css" href="src/devtoolsPanel/perfpanel/css/profilesPanel.css">
-        <link rel="stylesheet" type="text/css" href="src/devtoolsPanel/perfpanel/css/flameChart.css">
-        <link rel="stylesheet" type="text/css" href="src/devtoolsPanel/perfpanel/css/dataGrid.css">
-        <link rel="stylesheet" type="text/css" href="src/devtoolsPanel/perfpanel/css/splitView.css">
-        <link rel="stylesheet" type="text/css" href="src/devtoolsPanel/perfpanel/css/custom.css">
-        <script type="text/javascript" src="src/devtoolsPanel/perfpanel/js/Main.js"></script>
-        <script type="text/javascript" src="src/devtoolsPanel/perfpanel/js/ProfilesPanel.js"></script>
-        <script type="text/javascript" src="src/devtoolsPanel/perfpanel/js/AuraPerfPanel.js"></script>
+    <!-- Web Components -->
+    <link rel="import" href="src/devtoolsPanel/components/json/json.html" />
+    <link rel="import" href="src/devtoolsPanel/components/actionCard/actionCard.html" />
+    <link rel="import" href="src/devtoolsPanel/components/chaosCard/chaosCard.html" />
+    <link rel="import" href="src/devtoolsPanel/components/eventCard/eventCard.html" />
+    <link rel="import" href="src/devtoolsPanel/components/onOffButton/onOffButton.html" />
+    <link rel="import" href="src/devtoolsPanel/components/outputFunction/outputFunction.html" />
+    <link rel="import" href="src/devtoolsPanel/components/auracomponent/auracomponent.html" />
+    <link rel="import" href="src/devtoolsPanel/components/controllerreference/controllerreference.html" />
+    <link rel="import" href="src/devtoolsPanel/components/label/label.html" />
 
-        <link rel="stylesheet" type="text/css" href="src/devtoolsPanel/external/slds-assets/styles/salesforce-lightning-design-system.min.css">
-    </head>
-    <body>
-        <div id="loading">
-            <div class="opaque"></div>
-                <div class="dotsSpinner">
-                    <div class="dots">
-                        <div class="a"></div>
-                        <div class="b"></div>
-                    </div>
-                </div>
-        </div>
+    <link rel="stylesheet" type="text/css" href="src/devtoolsPanel/perfpanel/css/inspector.css">
+    <link rel="stylesheet" type="text/css" href="src/devtoolsPanel/perfpanel/css/profilesPanel.css">
+    <link rel="stylesheet" type="text/css" href="src/devtoolsPanel/perfpanel/css/flameChart.css">
+    <link rel="stylesheet" type="text/css" href="src/devtoolsPanel/perfpanel/css/dataGrid.css">
+    <link rel="stylesheet" type="text/css" href="src/devtoolsPanel/perfpanel/css/splitView.css">
+    <link rel="stylesheet" type="text/css" href="src/devtoolsPanel/perfpanel/css/custom.css">
+    <script type="text/javascript" src="src/devtoolsPanel/perfpanel/js/Main.js"></script>
+    <script type="text/javascript" src="src/devtoolsPanel/perfpanel/js/ProfilesPanel.js"></script>
+    <script type="text/javascript" src="src/devtoolsPanel/perfpanel/js/AuraPerfPanel.js"></script>
 
-        <div class="slds-align--absolute-center slds-hide" id="no-aura-available-container">
-            <div class="slds-box">
-                <div>
-                    <span class="slds-icon_container">
-                      <svg aria-hidden="true" class="slds-icon slds-icon-text-error slds-icon--small">
-                        <use xlink:href="src/devtoolsPanel/external/slds-assets/icons/utility-sprite/svg/symbols.svg#error"></use>
-                      </svg>
+    <link rel="stylesheet" type="text/css"
+        href="src/devtoolsPanel/external/slds-assets/styles/salesforce-lightning-design-system.min.css">
+</head>
 
-                      <span class="slds-assistive-text">Error Icon</span> 
-                    </span>
-                    <aurainspector-label key="lightning_unavailable" class="slds-text-heading--large"></aurainspector-label>
-                </div>
-                <div class="slds-p-top--large slds-grid slds-grid--vertical-align-center slds-grid--align-center">
-                    <button class="slds-button slds-button--neutral" id="no-aura-available-try-again"><aurainspector-label key="try_again_button"></aurainspector-label></button>
-                </div>
+<body>
+    <div id="loading">
+        <div class="opaque"></div>
+        <div class="dotsSpinner">
+            <div class="dots">
+                <div class="a"></div>
+                <div class="b"></div>
             </div>
         </div>
+    </div>
 
-        <div id="devtools-container">
-            <header class="tabs"></header>
+    <div class="slds-align--absolute-center slds-hide" id="no-aura-available-container">
+        <div class="slds-box">
+            <div>
+                <span class="slds-icon_container">
+                    <svg aria-hidden="true" class="slds-icon slds-icon-text-error slds-icon--small">
+                        <use
+                            xlink:href="src/devtoolsPanel/external/slds-assets/icons/utility-sprite/svg/symbols.svg#error">
+                        </use>
+                    </svg>
+
+                    <span class="slds-assistive-text">Error Icon</span>
+                </span>
+                <aurainspector-label key="lightning_unavailable" class="slds-text-heading--large"></aurainspector-label>
+            </div>
+            <div class="slds-p-top--large slds-grid slds-grid--vertical-align-center slds-grid--align-center">
+                <button class="slds-button slds-button--neutral" id="no-aura-available-try-again">
+                    <aurainspector-label key="try_again_button"></aurainspector-label>
+                </button>
+            </div>
         </div>
+    </div>
+
+    <div id="devtools-container" class="slds-grid slds-grid--vertical">
+        <div class="slds-tabs--default header-tabs"></div>
+    </div>
+
+    <div id="sidebar-container"></div>
 
 
-         <script src="dist/viewerPanel.js"></script>
+    <script src="dist/viewerPanel.js"></script>
 
-    </body>
+</body>
+
 </html>

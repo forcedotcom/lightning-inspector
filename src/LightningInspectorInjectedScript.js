@@ -170,6 +170,18 @@ function AuraInspector() {
             console.error('Lightning Inspector: Error initializing page hooks for transactions', e);
         }
 
+        try {
+            bootstrapPerfDevTools(this);
+
+            // Need a way to conditionally do this based on a user setting.
+            this.PerfDevTools.init();
+        } catch (e) {
+            console.error(
+                'Lightning Inspector: Error initializing hooks for the performance tab',
+                e
+            );
+        }
+
         window.postMessage(
             {
                 action: 'AuraInspector:bootstrap',
@@ -1036,6 +1048,299 @@ function bootstrapEventInstrumentation() {
 
         return json;
     }
+}
+
+function bootstrapPerfDevTools(api) {
+    var OPTIONS = {
+            componentCreation: true,
+            componentRendering: true,
+            timelineMarks: false,
+            transactions: true
+        },
+        CMP_CREATE_MARK = 'componentCreation',
+        START_SUFIX = 'Start',
+        END_SUFIX = 'End',
+        CMP_CREATE_END = CMP_CREATE_MARK + END_SUFIX,
+        SAMPLING_INTERVAL = 0.025;
+
+    api.PerfDevTools = {
+        init: function(cfg) {
+            cfg || (cfg = {});
+            this._initializeOptions(cfg);
+            this._hooks = {};
+            this.collector = {
+                componentCreation: [],
+                rendering: []
+            };
+            this._initializeHooks();
+        },
+        clearMarks: function(marks) {
+            this._resetCollector(marks);
+        },
+        _initializeOptions: function(cfg) {
+            this.opts = {
+                componentCreation: cfg.componentCreation || OPTIONS.componentCreation,
+                componentRendering: cfg.componentRendering || OPTIONS.componentRendering,
+                timelineMarks:
+                    typeof cfg.timelineMarks === 'boolean'
+                        ? cfg.timelineMarks
+                        : OPTIONS.timelineMarks,
+                transactions: cfg.transactions || OPTIONS.transactions
+            };
+        },
+        _initializeHooks: function() {
+            if (this.opts.componentCreation /* && $A.getContext().mode !== 'PROD'*/) {
+                this._initializeHooksComponentCreation();
+            }
+        },
+        _createNode: function(name, mark, id) {
+            return {
+                id: id,
+                mark: mark,
+                name: name,
+                timestamp: window.performance.now()
+            };
+        },
+        _resetCollector: function(type) {
+            if (type) {
+                this.collector[type] = [];
+                return;
+            }
+
+            for (var i in this.collector) {
+                this.collector[i] = [];
+            }
+        },
+        _initializeHooksComponentCreation: function() {
+            this._hookOverride('ComponentService.createComponentPriv', CMP_CREATE_MARK);
+        },
+        getComponentCreationProfile: function() {
+            return this._generateCPUProfilerDataFromMarks(this.collector.componentCreation);
+        },
+        _hookOverride: function(key, mark) {
+            $A.installOverride(
+                key,
+                function() {
+                    var config = Array.prototype.shift.apply(arguments);
+                    var args = Array.prototype.slice.apply(arguments);
+                    var cmpConfig = arguments[0];
+                    var callback = arguments[1];
+                    var descriptor = $A.util.isString(cmpConfig)
+                        ? cmpConfig
+                        : (cmpConfig['componentDef']['descriptor'] || cmpConfig['componentDef']) +
+                          '';
+
+                    var collector = this.collector[mark];
+                    collector.push(this._createNode(descriptor, mark + START_SUFIX));
+
+                    // When there is a callback, no return value is provided.
+                    // The return value is passed to the callback in this case.
+                    if (typeof callback === 'function') {
+                        args[1] = (newCmp, status, message) => {
+                            if (newCmp) {
+                                var id = (newCmp.getGlobalId && newCmp.getGlobalId()) || '([ids])';
+                                collector.push(this._createNode(descriptor, mark + END_SUFIX, id));
+                            }
+                            callback(newCmp, status, message);
+                        };
+                    }
+
+                    var ret = config['fn'].apply(config['scope'], args);
+
+                    if (ret !== undefined) {
+                        var id = (ret.getGlobalId && ret.getGlobalId()) || '([ids])';
+                        collector.push(this._createNode(descriptor, mark + END_SUFIX, id));
+                    }
+                    return ret;
+                }.bind(this),
+                this
+            );
+        },
+        _hookMethod: function(host, methodName, mark) {
+            var self = this;
+            var hook = host[methodName];
+            var collector = this.collector[mark];
+
+            this._hooks[methodName] = hook;
+            host[methodName] = function(config) {
+                if (Array.isArray(config)) {
+                    return hook.apply(this, arguments);
+                }
+
+                var descriptor = (config.componentDef.descriptor || config.componentDef) + '',
+                    collector = self.collector[mark];
+
+                // Add mark
+                collector.push(self._createNode(descriptor, mark + START_SUFIX));
+
+                // Hook!
+                var result = hook.apply(this, arguments);
+                var id = (result.getGlobalId && result.getGlobalId()) || '([ids])';
+
+                // End mark
+                collector.push(self._createNode(descriptor, mark + END_SUFIX, id));
+                return result;
+            };
+        },
+        _generateCPUProfilerDataFromMarks: function(marks) {
+            if (!marks || !marks.length) {
+                return {};
+            }
+
+            //global stuff for the id
+            var id = 0;
+            function nextId() {
+                return ++id;
+            }
+            function logTree(stack, mark) {
+                // UNCOMMENT THIS FOR DEBUGGING PURPOSES:
+                var d = '||| ';
+                console.log(
+                    Array.apply(0, Array(stack))
+                        .map(function() {
+                            return d;
+                        })
+                        .join(''),
+                    mark
+                );
+            }
+
+            function hashCode(name) {
+                var hash = 0,
+                    i,
+                    chr,
+                    len;
+                if (name.length == 0) return hash;
+                for (i = 0, len = name.length; i < len; i++) {
+                    chr = name.charCodeAt(i);
+                    hash = (hash << 5) - hash + chr;
+                    hash |= 0; // Convert to 32bit integer
+                }
+                return Math.abs(hash);
+            }
+
+            function generateNode(name, options) {
+                options || (options = {});
+                return {
+                    functionName: name || 'Random.' + Math.random(),
+                    scriptId: '3',
+                    url: options.details || '',
+                    lineNumber: 0,
+                    columnNumber: 0,
+                    hitCount: options.hit || 0,
+                    callUID: hashCode(name),
+                    children: [],
+                    deoptReason: '',
+                    id: nextId()
+                };
+            }
+
+            var endText = CMP_CREATE_END,
+                startTime = marks[0].timestamp, // Get from first and last mark
+                endTime = marks[marks.length - 1].timestamp,
+                markLength = marks.length,
+                duration = endTime - startTime,
+                sampling = SAMPLING_INTERVAL,
+                root = generateNode('(root)'),
+                idle = generateNode('(idle)'),
+                current = generateNode(marks[0].name),
+                stack = [current, root];
+
+            current._startTime = marks[0].timestamp;
+
+            function generateTimestamps(startTime, endTime) {
+                var diff = endTime - startTime,
+                    ticks = Math.round(diff / sampling), // every N miliseconds
+                    time = startTime,
+                    ts = [time];
+
+                for (var i = 1; i < ticks; i++) {
+                    time += sampling;
+                    ts.push(time);
+                }
+                return ts;
+            }
+
+            function generateSamples(root, size, idle) {
+                var samples = new Array(size).join(',' + idle.id).split(idle.id);
+                samples[0] = idle.id;
+                var currentIndex = 0;
+                var idleHits = 0;
+
+                function calculateTimesForNode(node) {
+                    if (node._idleHits) {
+                        currentIndex += node._idleHits;
+                        idleHits += node._idleHits;
+                    }
+
+                    for (var i = 0; i < node.hitCount; i++) {
+                        samples[currentIndex + i] = node.id;
+                    }
+                    currentIndex += node.hitCount;
+
+                    for (var j = 0; j < node.children.length; j++) {
+                        calculateTimesForNode(node.children[j]);
+                    }
+                }
+                calculateTimesForNode(root, root.id);
+                idle.hitCount = Math.max(0, size - currentIndex + idleHits); //update idle with remaining hits
+                return samples;
+            }
+
+            logTree(stack.length - 1, 'open: ' + marks[0].name);
+            for (var i = 1; i < markLength; i++) {
+                var tmp = marks[i];
+                if (stack[0].functionName === tmp.name && tmp.mark === endText) {
+                    var tmpNode = stack.shift();
+                    tmpNode._endTime = tmp.timestamp;
+                    tmpNode._totalTime = tmpNode._endTime - tmpNode._startTime;
+                    tmpNode._childrenTime = tmpNode.children.reduce(function(p, c) {
+                        return p + c._totalTime;
+                    }, 0);
+                    tmpNode._selfTime = tmpNode._totalTime - tmpNode._childrenTime;
+                    tmpNode.hitCount = Math.floor(tmpNode._selfTime / sampling);
+                    tmpNode._cmpId = tmp.id;
+                    tmpNode._childComponentCount += tmpNode.children.length;
+
+                    //push into the parent
+                    stack[0].children.push(tmpNode);
+                    stack[0]._childComponentCount += tmpNode._childComponentCount;
+                    logTree(
+                        stack.length,
+                        'close: ' +
+                            tmp.name +
+                            ' selfTime: ' +
+                            tmpNode._selfTime.toFixed(4) +
+                            '| totalTime: ' +
+                            tmpNode._totalTime.toFixed(4)
+                    );
+                } else {
+                    current = generateNode(tmp.name);
+                    current._startTime = tmp.timestamp;
+                    current._childComponentCount = 0;
+                    if (stack.length === 1 && markLength - i > 1) {
+                        current._idleHits = Math.floor(
+                            (tmp.timestamp - marks[i - 1].timestamp) / sampling
+                        );
+                    }
+
+                    stack.unshift(current);
+                    logTree(stack.length - 1, 'open: ' + tmp.name);
+                }
+            }
+            root.children.push(idle);
+            var timestamp = generateTimestamps(startTime, endTime);
+            var samples = generateSamples(root, timestamp.length, idle);
+
+            return {
+                head: root,
+                startTime: startTime / 1000,
+                endTime: endTime / 1000,
+                timestamp: timestamp,
+                samples: samples
+            };
+        }
+    };
 }
 
 /**

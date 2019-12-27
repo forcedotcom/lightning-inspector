@@ -14,6 +14,8 @@ export default function AuraInspectorTransactionPanel(devtoolsPanel) {
     var _markup;
     var _recording = false;
 
+    this.title = chrome.i18n.getMessage('tabs_transactions');
+
     this.init = function(tabBody) {
         var labels = {
             id: chrome.i18n.getMessage('transactions_id'),

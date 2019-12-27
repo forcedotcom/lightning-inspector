@@ -23,6 +23,8 @@ export default function AuraInspectorPerformanceView(devtoolsPanel) {
 		</div>
 		<div class="flamechart" id="flamechart"></div>`;
 
+    this.title = chrome.i18n.getMessage('tabs_performance');
+
     this.init = function(tabBody) {
         tabBody.innerHTML = markup;
         tabBody.classList.add('perf-tab');
@@ -30,7 +32,8 @@ export default function AuraInspectorPerformanceView(devtoolsPanel) {
 
     this.render = function() {
         if (!initialLoad) {
-            var command = '$A.PerfDevTools.getComponentCreationProfile()';
+            var command =
+                'window[Symbol.for("AuraDevTools")].Inspector.PerfDevTools.getComponentCreationProfile()';
             chrome.devtools.inspectedWindow.eval(command, function(payload, exception) {
                 perfPanel = new AuraPerfPanel(payload, 'flamechart');
             });

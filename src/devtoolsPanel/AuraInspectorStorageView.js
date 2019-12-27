@@ -12,6 +12,7 @@ export default function AuraInspectorStorageView(devtoolsPanel) {
 
     /** Id for this view, must be unique among all views. */
     this.panelId = 'storage';
+    this.title = chrome.i18n.getMessage('tabs_storage');
 
     var labels = {
         refresh: chrome.i18n.getMessage('menu_refresh'),
