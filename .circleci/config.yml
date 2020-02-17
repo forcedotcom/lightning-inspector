@@ -16,7 +16,7 @@ jobs:
     build:
         docker:
             # specify the version you desire here
-            - image: circleci/node:10.15.3-browsers
+            - image: circleci/node:12.16.0-browsers
 
         steps:
             - checkout
@@ -30,7 +30,7 @@ jobs:
             # Not implemented yet
             # - run: yarn test:integration:ci
             - codecov/upload:
-                  file: logs/reports/coverage/*.json
+                  file: logs/jest-coverage/*.json
                   flags: frontend
             - store_test_results:
                   path: logs/reports
@@ -43,15 +43,6 @@ jobs:
                   paths:
                       - node_modules
                       - ~/.cache/yarn
-            - persist_to_workspace:
-                  root: .
-                  paths:
-                      - .git
-                      - package.json
-                      - yarn.lock
-                      - README.md
-                      - dist
-                      - modules
 
 workflows:
     version: 2
