@@ -50,11 +50,11 @@ export const BOOTSTRAP_KEY = 'AuraInspector:bootstrap';
  * AuraInspector:OnSomeActionGetDropped         We just drop some action during a replay
  */
 export default class GlobalEventBus {
-    constructor() {
-        this._subscribers = new Map();
-    }
+    private _subscribers = new Map();
 
-    publish(key, data) {
+    constructor() {}
+
+    publish(key: string, data: object) {
         if (!key) {
             return;
         }
@@ -73,7 +73,7 @@ export default class GlobalEventBus {
         this.callSubscribers(key, data);
     }
 
-    subscribe(key, callback) {
+    subscribe(key: string, callback: Function) {
         const subscribers = this._subscribers;
         if (!subscribers.has(key)) {
             subscribers.set(key, []);
@@ -82,7 +82,7 @@ export default class GlobalEventBus {
         subscribers.get(key).push(callback);
     }
 
-    unsubscribe(key, callback) {
+    unsubscribe(key: string, callback: Function) {
         const subscribers = this._subscribers;
         if (!subscribers.has(key)) {
             return;
@@ -93,7 +93,7 @@ export default class GlobalEventBus {
         }
     }
 
-    callSubscribers(key, data) {
+    callSubscribers(key: string, data: object) {
         const subscribers = this._subscribers;
 
         const isDev = process.env.NODE_ENV !== 'production';
@@ -106,7 +106,7 @@ export default class GlobalEventBus {
         }
 
         if (subscribers.has(key)) {
-            subscribers.get(key).forEach(callback => {
+            subscribers.get(key).forEach((callback: Function) => {
                 try {
                     if (isDev) {
                         console.log(key, callback, data);
@@ -120,7 +120,7 @@ export default class GlobalEventBus {
         }
 
         if (isDev) {
-            console.groupEnd(groupLabel);
+            console.groupEnd();
         }
     }
 
@@ -130,7 +130,7 @@ export default class GlobalEventBus {
      * @param  {String} key MessageID to broadcast.
      * @param  {Object} data any type of data to pass to the subscribe method.
      */
-    static publish(key, data) {
+    static publish(key: string, data: object) {
         return globalDefaultBus.publish(key, data);
     }
 
@@ -140,14 +140,14 @@ export default class GlobalEventBus {
      * @param  {String} key Unique MessageId that would be broadcast through the system.
      * @param  {Function} callback function to be executed when the message is published.
      */
-    static subscribe(key, callback) {
+    static subscribe(key: string, callback: Function) {
         return globalDefaultBus.subscribe(key, callback);
     }
 
     /**
      * NEEDS DOC
      */
-    static callSubscribers(key, data) {
+    static callSubscribers(key: string, data: object) {
         return globalDefaultBus.callSubscribers(key, data);
     }
 }

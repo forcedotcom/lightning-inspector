@@ -33,11 +33,7 @@ jobs:
                   file: logs/jest-coverage/*.json
                   flags: frontend
             - store_test_results:
-                  path: logs/reports
-            - store_artifacts:
-                  path: logs/reports
-            - store_artifacts:
-                  path: logs/errorShots
+                  path: logs/jest-report
             - save_cache:
                   key: dependency-cache-3-{{ checksum "yarn.lock" }}
                   paths:

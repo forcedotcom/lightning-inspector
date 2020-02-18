@@ -9,23 +9,19 @@ module.exports = {
         contentScript: ['./src/contentScript.js', './stylesheets-previewer/src/inject/inject.js'],
         background: ['./src/background.js'],
         devtools_tab: ['./src/devtools.js'],
-        viewerPanel: ['./src/devtoolsPanel/devtoolsPanel.js'],
-        viewerSidebar: ['./src/sidebarPanel/sidebarPanel.js'],
-        'component-json': ['./src/devtoolsPanel/components/json/json.js'],
-        'component-actionCard': ['./src/devtoolsPanel/components/actionCard/actionCard.js'],
-        'component-auracomponent': [
-            './src/devtoolsPanel/components/auracomponent/auracomponent.js'
-        ],
-        'component-chaosCard': ['./src/devtoolsPanel/components/chaosCard/chaosCard.js'],
-        'component-controllerreference': [
-            './src/devtoolsPanel/components/controllerreference/controllerreference.js'
-        ],
-        'component-eventCard': ['./src/devtoolsPanel/components/eventCard/eventCard.js'],
-        'component-label': ['./src/devtoolsPanel/components/label/label.js'],
-        'component-onOffButton': ['./src/devtoolsPanel/components/onOffButton/onOffButton.js'],
-        'component-outputFunction': [
+        viewerPanel: [
+            './src/devtoolsPanel/devtoolsPanel.js',
+            './src/devtoolsPanel/components/actionCard/actionCard.js',
+            './src/devtoolsPanel/components/auracomponent/auracomponent.js',
+            './src/devtoolsPanel/components/chaosCard/chaosCard.js',
+            './src/devtoolsPanel/components/json/json.js',
+            './src/devtoolsPanel/components/controllerreference/controllerreference.js',
+            './src/devtoolsPanel/components/eventCard/eventCard.js',
+            './src/devtoolsPanel/components/label/label.js',
+            './src/devtoolsPanel/components/onOffButton/onOffButton.js',
             './src/devtoolsPanel/components/outputFunction/outputFunction.js'
         ],
+        viewerSidebar: ['./src/sidebarPanel/sidebarPanel.js'],
         perfpanel: [
             './src/devtoolsPanel/perfpanel/js/AuraPerfPanel.js',
             './src/devtoolsPanel/perfpanel/js/Main.js',
@@ -77,6 +73,11 @@ module.exports = {
     context: __dirname,
     module: {
         rules: [
+            {
+                test: /\.tsx?$/,
+                use: 'ts-loader',
+                exclude: /node_modules/
+            },
             {
                 test: /.js?$/,
                 exclude: /node_modules/,
