@@ -139,7 +139,7 @@ export default function AuraInspectorEventLog(devtoolsPanel) {
         // expand.textContent = "+";
         expand.addEventListener('click', ExpandButton_OnClick);
 
-        var card = document.createElement('aurainspector-eventCard');
+        var card = document.createElement('aurainspector-event-card');
         card.setAttribute('name', eventInfo.name);
         card.setAttribute('sourceId', eventInfo.sourceId || '');
         card.setAttribute('duration', (eventInfo.endTime - eventInfo.startTime).toFixed(4));

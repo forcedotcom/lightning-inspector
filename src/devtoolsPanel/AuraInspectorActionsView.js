@@ -386,13 +386,13 @@ export default function AuraInspectorActionsView(devtoolsPanel) {
 
     function removeAllCards() {
         if (_list) {
-            var cards = _list.querySelectorAll('aurainspector-actionCard');
+            var cards = _list.querySelectorAll('aurainspector-action-card');
             for (var c = 0, length = cards.length; c < length; c++) {
                 cards[c].parentNode.removeChild(cards[c]);
             }
         }
         if (_watchList) {
-            var cards = _watchList.querySelectorAll('aurainspector-actionCard');
+            var cards = _watchList.querySelectorAll('aurainspector-action-card');
             for (var c = 0, length = cards.length; c < length; c++) {
                 cards[c].parentNode.removeChild(cards[c]);
             }
@@ -407,7 +407,7 @@ export default function AuraInspectorActionsView(devtoolsPanel) {
         var action = actions.get(actionId);
         var params = action.params;
 
-        var card = document.createElement('aurainspector-actionCard');
+        var card = document.createElement('aurainspector-action-card');
         card.id = 'action_card_' + action.id;
         card.className = 'action-card is-collapsed action-card-state-' + action.state;
         card.setAttribute('actionId', action.id);
@@ -675,7 +675,7 @@ export default function AuraInspectorActionsView(devtoolsPanel) {
     function createActionCardWithFullActionInfo(action) {
         if (action && action.actionName && action.actionParameter && action.actionId) {
             var actionState = 'BYCHAOSRUN';
-            var card = document.createElement('aurainspector-actionCard');
+            var card = document.createElement('aurainspector-action-card');
             card.id = 'action_card_' + action.actionId;
             card.className = 'action-card action-card-state-' + actionState;
             card.setAttribute('actionId', action.actionId);

@@ -1,9 +1,32 @@
-(function() {
-    var ownerDocument = document.currentScript.ownerDocument;
+const template = document.createElement('template');
+template.innerHTML = `	<style>
+    .hidden {
+            display: none;
+    }
+    </style>
+    
+    <div class="card">
+        <div class='chaos_action hidden'></div>
+        <div class='element_textContent' id='element_textContent'></div>
+        <div class='stepCount' id='stepCount'></div>
+        <div class='element_locator'>
+            <div class='element_locator_root' id='element_locator_root'></div>
+            <div class='element_locator_parent' id='element_locator_parent'></div>
+            <div class='element_locator_context' id='element_locator_context'></div>
+        </div>
+    </div>`;
+class ChaosCardElement extends HTMLElement {
+    /*
+        New Chaos Card created, update it's body
+     */
+    connectedCallback() {
+        const template = ownerDocument.querySelector('template');
+        //console.log(template);
 
-    var chaosCard = Object.create(HTMLElement.prototype);
+        const clone = document.importNode(template.content, true);
 
-    chaosCard.attachedCallback = function() {
+        const shadowRoot = this.createShadowRoot();
+        shadowRoot.appendChild(clone);
         this.shadowRoot.querySelector('#element_textContent').textContent = this.getAttribute(
             'textContent'
         );
@@ -19,28 +42,7 @@
             this.shadowRoot.querySelector('#element_locator_parent').textContent =
                 'Parent:' + this.getAttribute('locatorParent');
         }
-    };
+    }
+}
 
-    /*
-		New Chaos Card created, update it's body
-	 */
-    chaosCard.createdCallback = function() {
-        var template = ownerDocument.querySelector('template');
-        //console.log(template);
-
-        var clone = document.importNode(template.content, true);
-
-        var shadowRoot = this.createShadowRoot();
-        shadowRoot.appendChild(clone);
-
-        //shadowRoot.querySelector("#select_dropOrModify").addEventListener('change', dropOrModifyChanged.bind(this));
-    };
-
-    chaosCard.attributeChangedCallback = function(attrName, oldVal, newVal) {
-        //console.log("The attribute %s changed from %s to %s", attrName, oldVal, newVal);
-    };
-
-    var chaosCardConstructor = document.registerElement('aurainspector-chaosCard', {
-        prototype: chaosCard
-    });
-})();
+customElements.define('aurainspector-chaosCard', ChaosCardElement);

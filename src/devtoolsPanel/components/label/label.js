@@ -1,27 +1,38 @@
-(function() {
-    var ATTRIBUTE_NAME = 'key';
+/**
+ * 	Description:
+	Output the localized version of a label. Wraps a chrome.i18n.getMessage() call.
 
-    var labelPrototype = Object.create(HTMLSpanElement.prototype);
+	Usage:
+	<aurainspector-label key="LABEL_KEY"></aurainspector-label>
 
-    labelPrototype.createdCallback = function() {
+	Notes:
+	LABEL_KEY is defined in messages.json.
+
+	If the LABEL_KEY does not exist in messages.json, you'll see [LABEL_KEY] instead.
+
+	As convention, I've been doing AREA_term, so for event card its eventcard_parameters, for actions panel its actions_mylabel.
+ */
+
+class LabelElement extends HTMLElement {
+    connectedCallback() {
         var shadowRoot = this.shadowRoot || this.createShadowRoot();
         shadowRoot.appendChild(document.createTextNode(getLabel(this)));
-    };
+    }
 
-    labelPrototype.attributeChangedCallback = function(attr, oldValue, newValue) {
+    attributeChangedCallback(attr, oldValue, newValue) {
         var shadowRoot = this.shadowRoot || this.createShadowRoot();
         shadowRoot.innerHTML = '';
         shadowRoot.appendChild(document.createTextNode(getLabel(this)));
-    };
-
-    function getLabel(element) {
-        if (element.hasAttribute(ATTRIBUTE_NAME)) {
-            var key = element.getAttribute(ATTRIBUTE_NAME);
-            return chrome.i18n.getMessage(key) || '[' + key + ']';
-        }
     }
+}
 
-    document.registerElement('aurainspector-label', {
-        prototype: labelPrototype
-    });
-})();
+customElements.define('aurainspector-label', LabelElement);
+
+function getLabel(element) {
+    const ATTRIBUTE_NAME = 'key';
+
+    if (element.hasAttribute(ATTRIBUTE_NAME)) {
+        var key = element.getAttribute(ATTRIBUTE_NAME);
+        return chrome.i18n.getMessage(key) || '[' + key + ']';
+    }
+}

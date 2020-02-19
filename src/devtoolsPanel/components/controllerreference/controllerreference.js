@@ -1,85 +1,105 @@
-(function() {
-    var ownerDocument = document.currentScript.ownerDocument;
+const template = document.createElement('template');
+template.innerHTML = `<style>
+		aurainspector-auracomponent {
+			margin-left:2em;
+		}
 
-    var controllerreference = Object.create(HTMLDivElement.prototype);
+		a { 
+			display:block;
+			color: #0070D2;
+		}
 
-    controllerreference.createdCallback = function() {
+		a:hover {
+			color: #005fb2;
+			text-decoration: underline;
+		}
+	</style>
+	<a id="expression"></a>
+	<aurainspector-auracomponent summarize="true" globalId=""></aurainspector-auracomponent>`;
+/**
+    # Renders a component controller reference as such
+    <auracomponent>
+        {!c.foo} 
+
+    # To Use
+
+    Mode 1: 
+    <aurainspector-expression expression="{!c.foo}" component="[GlobalId]"/>
+    - expression MUST contain the "{!}" characters. 
+ */
+class ControllerReferenceElement extends HTMLElement {
+    connectedCallback() {
         // Had two different modes, one that works on textContent, the other that works on expression, componentid combination
-        var expression = this.getAttribute('expression');
-        var componentid = this.getAttribute('component');
+        const expression = this.getAttribute('expression');
+        const componentid = this.getAttribute('component');
 
         if (expression && componentid) {
-            var template = ownerDocument.querySelector('template');
-            //console.log(template);
-
-            var clone = document.importNode(template.content, true);
+            const clone = document.importNode(template.content, true);
 
             clone
                 .querySelector('aurainspector-auracomponent')
                 .setAttribute('globalId', componentid);
 
-            var expression_element = clone.querySelector('#expression');
+            const expression_element = clone.querySelector('#expression');
             expression_element.appendChild(document.createTextNode(expression));
             expression_element.addEventListener('click', ControllerReference_OnClick.bind(this));
 
-            var shadowRoot = this.createShadowRoot();
+            const shadowRoot = this.createShadowRoot();
             shadowRoot.appendChild(clone);
         } else {
             this.addEventListener('click', ControllerReference_OnClick.bind(this));
         }
-    };
-
-    function parse(reference) {
-        if (!reference) {
-            return null;
-        }
-        var parts = reference.split('$');
-        return {
-            prefix: parts[0],
-            component: parts[1],
-            method: parts[3]
-        };
     }
+}
 
-    function ControllerReference_OnClick(event) {
-        var command;
-        var reference = this.textContent;
-        var expression = this.getAttribute('expression');
-        if (reference && !expression) {
-            var info = parse(reference);
-            if (!info) {
-                return;
-            }
+customElements.define('aurainspector-controllerreference', ControllerReferenceElement);
 
-            command = `
+function parse(reference) {
+    if (!reference) {
+        return null;
+    }
+    const parts = reference.split('$');
+    return {
+        prefix: parts[0],
+        component: parts[1],
+        method: parts[3]
+    };
+}
+
+function ControllerReference_OnClick(event) {
+    let command;
+    const reference = this.textContent;
+    const expression = this.getAttribute('expression');
+    if (reference && !expression) {
+        const info = parse(reference);
+        if (!info) {
+            return;
+        }
+
+        command = `
                 (function(definition) {
                     if(definition) {
                         inspect(definition.prototype.controller["${info.method}"]);
                     }
                 })($A.componentService.getComponentClass("markup://${info.prefix}:${info.component}"))`;
-            chrome.devtools.inspectedWindow.eval(command);
-        } else if (expression) {
-            // expression, component combination
-            var expression = this.getAttribute('expression');
-            var componentid = this.getAttribute('component');
+        chrome.devtools.inspectedWindow.eval(command);
+    } else if (expression) {
+        // expression, component combination
+        const expression = this.getAttribute('expression');
+        const componentid = this.getAttribute('component');
 
-            if (expression && componentid) {
-                expression = expression.substring(4, expression.length - 1);
-                command = `
+        if (expression && componentid) {
+            expression = expression.substring(4, expression.length - 1);
+            command = `
                     (function(cmp){
                         if(!cmp){ return; }
-                        var reference = cmp.controller["${expression}"];
+                        const reference = cmp.controller["${expression}"];
                         if(reference) {
                             inspect(reference);
                         }
                     })($A.getComponent("${componentid}"));
                 `;
-                chrome.devtools.inspectedWindow.eval(command);
-            }
+            chrome.devtools.inspectedWindow.eval(command);
         }
     }
-
-    document.registerElement('aurainspector-controllerreference', {
-        prototype: controllerreference
-    });
-})();
+}

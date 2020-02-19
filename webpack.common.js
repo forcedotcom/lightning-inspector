@@ -13,7 +13,6 @@ module.exports = {
             './src/devtoolsPanel/devtoolsPanel.js',
             './src/devtoolsPanel/components/actionCard/actionCard.js',
             './src/devtoolsPanel/components/auracomponent/auracomponent.js',
-            './src/devtoolsPanel/components/chaosCard/chaosCard.js',
             './src/devtoolsPanel/components/json/json.js',
             './src/devtoolsPanel/components/controllerreference/controllerreference.js',
             './src/devtoolsPanel/components/eventCard/eventCard.js',
