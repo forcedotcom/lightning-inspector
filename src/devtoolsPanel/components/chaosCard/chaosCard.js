@@ -20,9 +20,6 @@ class ChaosCardElement extends HTMLElement {
         New Chaos Card created, update it's body
      */
     connectedCallback() {
-        const template = ownerDocument.querySelector('template');
-        //console.log(template);
-
         const clone = document.importNode(template.content, true);
 
         const shadowRoot = this.createShadowRoot();
@@ -45,4 +42,4 @@ class ChaosCardElement extends HTMLElement {
     }
 }
 
-customElements.define('aurainspector-chaosCard', ChaosCardElement);
+customElements.define('aurainspector-chaoscard', ChaosCardElement);
