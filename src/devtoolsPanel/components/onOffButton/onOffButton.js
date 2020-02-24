@@ -8,7 +8,7 @@ class OnOffButtonElement extends HTMLElement {
     }
 }
 
-customElements.define('aurainspector-onOffButton', OnOffButtonElement);
+customElements.define('aurainspector-onoffbutton', OnOffButtonElement);
 
 function OnOffButton_Click(event) {
     this.classList.toggle('on');

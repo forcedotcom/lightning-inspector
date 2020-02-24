@@ -37,7 +37,7 @@ export default function AuraInspectorTransactionPanel(devtoolsPanel) {
         _markup = `
             <div class="">
             <menu type="toolbar no-flex">
-                <li class="record-button"><aurainspector-onOffButton class="circle on" data-filter="all" title="${labels.toggle_recording}"><span>${labels.toggle_recording}</span></aurainspector-onOffButton></li>
+                <li class="record-button"><aurainspector-onoffbutton class="circle on" data-filter="all" title="${labels.toggle_recording}"><span>${labels.toggle_recording}</span></aurainspector-onoffbutton></li>
                 <li><button class="refresh-transactions-bar-item status-bar-item" title="${labels.refresh}"><div class="glyph"></div><div class="glyph shadow"></div></button></li>
                 <li><button id="clear-button" class="clear-status-bar-item status-bar-item" title="${labels.clear}"><div class="glyph"></div><div class="glyph shadow"></div></button></li>
                 <li class="divider" style="margin-left: -3px;"></li>

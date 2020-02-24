@@ -489,42 +489,42 @@ menu button.circle {
     border: 0px none;
     border-radius: 10px;
 }
-menu aurainspector-onOffButton.circle {
+menu aurainspector-onoffbutton.circle {
     border-radius: 50%;
     background: rgb(103, 103, 103);
     height: 12px;
     margin-left: -1px;
     width: 12px;
 }
-menu aurainspector-onOffButton.circle:hover {
+menu aurainspector-onoffbutton.circle:hover {
     background: rgb(64, 64, 64);
 }
-menu aurainspector-onOffButton.circle.on {
+menu aurainspector-onoffbutton.circle.on {
     background: rgb(223, 51, 51);
     box-shadow: 0 0 2px 2px rgb(246, 194, 194);
 }
-menu aurainspector-onOffButton.circle.on:hover {
+menu aurainspector-onoffbutton.circle.on:hover {
     background: rgb(216, 0, 0);
 }
-menu aurainspector-onOffButton.circle span {
+menu aurainspector-onoffbutton.circle span {
     display: none;
 }
-menu aurainspector-onOffButton {
+menu aurainspector-onoffbutton {
     display: inline-block;
     cursor: pointer;
     padding: 4px 6px 3px 6px;
     margin: auto 2px;
     border-radius: 8px;
 }
-menu aurainspector-onOffButton:hover {
+menu aurainspector-onoffbutton:hover {
     background: rgba(0, 0, 0, 0.2);
     color: white;
 }
-menu aurainspector-onOffButton:active {
+menu aurainspector-onoffbutton:active {
     background: rgba(0, 0, 0, 0.5);
     color: white;
 }
-menu aurainspector-onOffButton.on {
+menu aurainspector-onoffbutton.on {
     background: rgba(0, 0, 0, 0.3);
     color: white;
     text-shadow: rgba(0, 0, 0, 0.4) 0 1px 0;
@@ -741,42 +741,42 @@ button.circle {
     border: 0px none;
     border-radius: 10px;
 }
-button aurainspector-onOffButton.circle {
+button aurainspector-onoffbutton.circle {
     border-radius: 50%;
     background: rgb(103, 103, 103);
     height: 12px;
     margin-left: -1px;
     width: 12px;
 }
-button aurainspector-onOffButton.circle:hover {
+button aurainspector-onoffbutton.circle:hover {
     background: rgb(64, 64, 64);
 }
-button aurainspector-onOffButton.circle.on {
+button aurainspector-onoffbutton.circle.on {
     background: rgb(223, 51, 51);
     box-shadow: 0 0 2px 2px rgb(246, 194, 194);
 }
-button aurainspector-onOffButton.circle.on:hover {
+button aurainspector-onoffbutton.circle.on:hover {
     background: rgb(216, 0, 0);
 }
-button aurainspector-onOffButton.circle span {
+button aurainspector-onoffbutton.circle span {
     display: none;
 }
-button aurainspector-onOffButton {
+button aurainspector-onoffbutton {
     display: inline-block;
     cursor: pointer;
     padding: 4px 6px 3px 6px;
     margin: auto 2px;
     border-radius: 8px;
 }
-button aurainspector-onOffButton:hover {
+button aurainspector-onoffbutton:hover {
     background: rgba(0, 0, 0, 0.2);
     color: white;
 }
-button aurainspector-onOffButton:active {
+button aurainspector-onoffbutton:active {
     background: rgba(0, 0, 0, 0.5);
     color: white;
 }
-button aurainspector-onOffButton.on {
+button aurainspector-onoffbutton.on {
     background: rgba(0, 0, 0, 0.3);
     color: white;
     text-shadow: rgba(0, 0, 0, 0.4) 0 1px 0;

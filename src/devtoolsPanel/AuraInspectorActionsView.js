@@ -57,18 +57,18 @@ export default function AuraInspectorActionsView(devtoolsPanel) {
 
     var markup = `
         <menu type="toolbar">
-            <li class="record-button"><aurainspector-onOffButton class="circle on" data-filter="all" title="${labels.record_tooltip}"><span>${labels.record}</span></aurainspector-onOffButton></li>
+            <li class="record-button"><aurainspector-onoffbutton class="circle on" data-filter="all" title="${labels.record_tooltip}"><span>${labels.record}</span></aurainspector-onoffbutton></li>
             <li><button id="clear-button" class="clear-status-bar-item status-bar-item" title="${labels.clear}"><div class="glyph"></div><div class="glyph shadow"></div></button></li>
             <li class="divider" style="margin-left: -3px;"></li>
             <li><input id="filter-text" type="search" placeholder="${labels.filter}"/></li>
             <li class="divider"></li>
-            <li><aurainspector-onOffButton class="on" data-filter="storable" title="${labels.storable_tooltip}"><span>${labels.storable}</span></aurainspector-onOffButton></li>
-            <li><aurainspector-onOffButton class="on" data-filter="stored" title="${labels.cached_tooltip}"><span>${labels.cached}</span></aurainspector-onOffButton></li>
-            <li><aurainspector-onOffButton class="on" data-filter="background" title="${labels.background_tooltip}"><span>${labels.background}</span></aurainspector-onOffButton></li>
-            <li><aurainspector-onOffButton class="on" data-filter="success" title="${labels.success_tooltip}"><span>${labels.success}</span></aurainspector-onOffButton></li>
-            <li><aurainspector-onOffButton class="on" data-filter="incomplete" title="${labels.incomplete_tooltip}"><span>${labels.incomplete}</span></aurainspector-onOffButton></li>
-            <li><aurainspector-onOffButton class="on" data-filter="error" title="${labels.error_tooltip}"><span>${labels.error}</span></aurainspector-onOffButton></li>
-            <li><aurainspector-onOffButton class="on" data-filter="aborted" title="${labels.aborted_tooltip}"><span>${labels.aborted}</span></aurainspector-onOffButton></li>
+            <li><aurainspector-onoffbutton class="on" data-filter="storable" title="${labels.storable_tooltip}"><span>${labels.storable}</span></aurainspector-onoffbutton></li>
+            <li><aurainspector-onoffbutton class="on" data-filter="stored" title="${labels.cached_tooltip}"><span>${labels.cached}</span></aurainspector-onoffbutton></li>
+            <li><aurainspector-onoffbutton class="on" data-filter="background" title="${labels.background_tooltip}"><span>${labels.background}</span></aurainspector-onoffbutton></li>
+            <li><aurainspector-onoffbutton class="on" data-filter="success" title="${labels.success_tooltip}"><span>${labels.success}</span></aurainspector-onoffbutton></li>
+            <li><aurainspector-onoffbutton class="on" data-filter="incomplete" title="${labels.incomplete_tooltip}"><span>${labels.incomplete}</span></aurainspector-onoffbutton></li>
+            <li><aurainspector-onoffbutton class="on" data-filter="error" title="${labels.error_tooltip}"><span>${labels.error}</span></aurainspector-onoffbutton></li>
+            <li><aurainspector-onoffbutton class="on" data-filter="aborted" title="${labels.aborted_tooltip}"><span>${labels.aborted}</span></aurainspector-onoffbutton></li>
         </menu>
         <div class="actions-tab">
             <div id="actionsToWatch-list" class="actionsToWatch-list">
@@ -237,7 +237,7 @@ export default function AuraInspectorActionsView(devtoolsPanel) {
     }
 
     function Menu_OnClick(event) {
-        var target = getParent(event.target, 'aurainspector-onOffButton');
+        var target = getParent(event.target, 'aurainspector-onoffbutton');
 
         if (target && target.hasAttribute('data-filter')) {
             var filter = target.getAttribute('data-filter');

@@ -31,14 +31,14 @@ export default function AuraInspectorEventLog(devtoolsPanel) {
     var markup = `
         <div class="grid grid-columns scroll-wrapper">
         <menu type="toolbar no-flex">
-            <li class="record-button"><aurainspector-onOffButton class="circle" data-filter="all" title="${labels.toggle_recording}"><span>${labels.toggle_recording}</span></aurainspector-onOffButton></li>
+            <li class="record-button"><aurainspector-onoffbutton class="circle" data-filter="all" title="${labels.toggle_recording}"><span>${labels.toggle_recording}</span></aurainspector-onoffbutton></li>
             <li><button id="clear-button" class="clear-status-bar-item status-bar-item" title="${labels.clear}"><div class="glyph"></div><div class="glyph shadow"></div></button></li>
             <li class="divider" style="margin-left: -3px;"></li>
             <li><input id="filter-text" type="search" placeholder="${labels.filter}"/></li>
             <li class="divider"></li>
-            <li><aurainspector-onOffButton class="on" data-filter="application" title="${labels.appEvents_tooltip}"><span>${labels.appEvents}</span></aurainspector-onOffButton></li>
-            <li><aurainspector-onOffButton class="on" data-filter="component" title="${labels.cmpEvents_tooltip}"><span>${labels.cmpEvents}</span></aurainspector-onOffButton></li>
-            <li><aurainspector-onOffButton class="" data-filter="unhandled" title="${labels.unhandledEvents_tooltip}"><span>${labels.unhandledEvents}</span></aurainspector-onOffButton></li>
+            <li><aurainspector-onoffbutton class="on" data-filter="application" title="${labels.appEvents_tooltip}"><span>${labels.appEvents}</span></aurainspector-onoffbutton></li>
+            <li><aurainspector-onoffbutton class="on" data-filter="component" title="${labels.cmpEvents_tooltip}"><span>${labels.cmpEvents}</span></aurainspector-onoffbutton></li>
+            <li><aurainspector-onoffbutton class="" data-filter="unhandled" title="${labels.unhandledEvents_tooltip}"><span>${labels.unhandledEvents}</span></aurainspector-onoffbutton></li>
         </menu>
         <ol class="event-log flex scroll" id="event-log"></ol>
         </div>
@@ -416,7 +416,7 @@ export default function AuraInspectorEventLog(devtoolsPanel) {
     }
 
     function Menu_OnClick(event) {
-        var target = getParent(event.target, 'aurainspector-onOffButton');
+        var target = getParent(event.target, 'aurainspector-onoffbutton');
 
         if (target && target.hasAttribute('data-filter')) {
             var filter = target.getAttribute('data-filter');
