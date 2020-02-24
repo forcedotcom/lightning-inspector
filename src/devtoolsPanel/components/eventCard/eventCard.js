@@ -224,7 +224,7 @@ template.innerHTML = `<style>
 	    	<aurainspector-label key="eventcard_parameters"></aurainspector-label><aurainspector-json class="parameters" expandTo="0"><!-- Parameters --></aurainspector-json>
 	    </p>
 	    <p>
-	    	<aurainspector-label key="eventcard_caller"></aurainspector-label><aurainspector-outputFunction class="caller"><!-- Caller --></aurainspector-outputFunction>
+	    	<aurainspector-label key="eventcard_caller"></aurainspector-label><aurainspector-outputfunction class="caller"><!-- Caller --></aurainspector-outputfunction>
 	    </p>
 	    <p>
 	    	<aurainspector-label key="eventcard_source"></aurainspector-label><span id="eventSource" class="eventSource"></span>
@@ -254,11 +254,9 @@ class EventCardElement extends HTMLElement {
 		New Action Card created, update it's body
 	 */
     connectedCallback() {
-        var template = ownerDocument.querySelector('template');
-
         var clone = document.importNode(template.content, true);
 
-        var shadowRoot = this.createShadowRoot();
+        var shadowRoot = this.attachShadow({ mode: 'open' });
         shadowRoot.appendChild(clone);
 
         var toggleButton = shadowRoot.querySelector('#gridToggle');

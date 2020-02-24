@@ -41,7 +41,7 @@ class AuraComponent extends HTMLElement {
             } catch (e) {
                 // Something went wrong with the rendering or the parsing of the data?
                 // Just show the globalId, at least its something.
-                var shadowRoot = this.shadowRoot || this.createShadowRoot();
+                var shadowRoot = this.shadowRoot || this.attachShadow({ mode: 'open' });
                 var globalId = this.getAttribute('globalId');
 
                 if (globalId) {

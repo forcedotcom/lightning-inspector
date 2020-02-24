@@ -44,7 +44,7 @@ class ControllerReferenceElement extends HTMLElement {
             expression_element.appendChild(document.createTextNode(expression));
             expression_element.addEventListener('click', ControllerReference_OnClick.bind(this));
 
-            const shadowRoot = this.createShadowRoot();
+            const shadowRoot = this.attachShadow({ mode: 'open' });
             shadowRoot.appendChild(clone);
         } else {
             this.addEventListener('click', ControllerReference_OnClick.bind(this));

@@ -13,10 +13,10 @@ class OutputFunctionElement extends HTMLElement {
             }
         `;
 
-        const shadowRoot = this.shadowRoot || this.createShadowRoot();
+        const shadowRoot = this.shadowRoot || this.attachShadow({ mode: 'open' });
         shadowRoot.appendChild(style);
 
-        const oldValue = this.textContent;
+        let oldValue = this.textContent;
         const observer = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation) {
                 const target = mutation.target;
@@ -36,7 +36,7 @@ class OutputFunctionElement extends HTMLElement {
     }
 
     update() {
-        const shadowRoot = this.shadowRoot || this.createShadowRoot();
+        const shadowRoot = this.shadowRoot || this.attachShadow({ mode: 'open' });
         const text = this.textContent;
 
         const pre = document.createElement('pre');
@@ -46,4 +46,4 @@ class OutputFunctionElement extends HTMLElement {
     }
 }
 
-customElements.define('aurainspector-outputFunction', OutputFunctionElement);
+customElements.define('aurainspector-outputfunction', OutputFunctionElement);

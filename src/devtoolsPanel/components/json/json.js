@@ -24,7 +24,7 @@ class JsonElement extends HTMLElement {
 			white-space: nowrap;
 		}`;
 
-        var shadowRoot = this.shadowRoot || this.createShadowRoot();
+        var shadowRoot = this.shadowRoot || this.attachShadow({ mode: 'open' });
         shadowRoot.appendChild(style);
 
         var oldValue = this.textContent;
@@ -51,7 +51,7 @@ class JsonElement extends HTMLElement {
     }
 
     update() {
-        var shadowRoot = this.shadowRoot || this.createShadowRoot();
+        var shadowRoot = this.shadowRoot || this.attachShadow({ mode: 'open' });
 
         var output = shadowRoot.querySelector('.renderjson');
         if (output) {

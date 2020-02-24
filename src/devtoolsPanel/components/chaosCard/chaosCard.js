@@ -22,7 +22,7 @@ class ChaosCardElement extends HTMLElement {
     connectedCallback() {
         const clone = document.importNode(template.content, true);
 
-        const shadowRoot = this.createShadowRoot();
+        const shadowRoot = this.attachShadow({ mode: 'open' });
         shadowRoot.appendChild(clone);
         this.shadowRoot.querySelector('#element_textContent').textContent = this.getAttribute(
             'textContent'

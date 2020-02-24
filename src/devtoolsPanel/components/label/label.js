@@ -14,15 +14,17 @@
  */
 
 class LabelElement extends HTMLElement {
+    constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+    }
     connectedCallback() {
-        var shadowRoot = this.shadowRoot || this.createShadowRoot();
-        shadowRoot.appendChild(document.createTextNode(getLabel(this)));
+        this.shadowRoot.appendChild(document.createTextNode(getLabel(this)));
     }
 
     attributeChangedCallback(attr, oldValue, newValue) {
-        var shadowRoot = this.shadowRoot || this.createShadowRoot();
-        shadowRoot.innerHTML = '';
-        shadowRoot.appendChild(document.createTextNode(getLabel(this)));
+        this.shadowRoot.innerHTML = '';
+        this.shadowRoot.appendChild(document.createTextNode(getLabel(this)));
     }
 }
 
