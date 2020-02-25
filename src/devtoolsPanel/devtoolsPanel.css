@@ -558,7 +558,12 @@ menu aurainspector-onoffbutton.on {
     font-size: 0.9em;
     font-style: normal;
 }
-
+.component-tag::before {
+    content: '<';
+}
+.component-tag::after {
+    content: '>';
+}
 /* Component Tree */
 /*
   The beginnings of a resize. Need to get the component tree and component view in sync, so when you change one, the other fills in the space.

@@ -1,4 +1,6 @@
 import JsonSerializer from '../../../aura/JsonSerializer';
+import ControlCharacters from '../../../aura/ControlCharacters';
+
 const template = document.createElement('template');
 template.innerHTML = `	<style>
         .component-prefix { color: maroon; }
@@ -134,6 +136,8 @@ class AuraComponent extends HTMLElement {
 }
 
 function getComponentData(globalId, configuration, callback) {
+    globalId = ControlCharacters.getCleanId(globalId);
+
     const config = JSON.stringify({
         body: false,
         attributes: !configuration.summarize

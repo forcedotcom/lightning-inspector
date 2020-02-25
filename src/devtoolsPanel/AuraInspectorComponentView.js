@@ -333,9 +333,9 @@ export default function AuraInspectorComponentView(devtoolsPanel) {
                     }
                 } else if (encodedId.isComponentId()) {
                     node = TreeNode.create(
-                        encodedId.getCleanId(),
+                        { value: encodedId.getRawId(), key: prop },
                         parentNode.getId() + '_' + prop,
-                        'globalId'
+                        'keyvalue'
                     );
                 } else {
                     node = TreeNode.create(
