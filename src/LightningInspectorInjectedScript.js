@@ -639,13 +639,26 @@ function AuraInspector() {
         function sendQueuedPostMessagesCallback() {
             if (postMessagesQueue.length) {
                 try {
-                    window.postMessage(
-                        {
-                            action: PUBLISH_BATCH_KEY,
-                            data: postMessagesQueue
-                        },
-                        window.location.origin
-                    );
+                    try {
+                        window.postMessage(
+                            {
+                                action: PUBLISH_BATCH_KEY,
+                                data: postMessagesQueue
+                            },
+                            window.location.origin
+                        );
+                    } catch (e) {
+                        const cleaned = JsonSerializer.parse(
+                            JsonSerializer.stringify(postMessagesQueue)
+                        );
+                        window.postMessage(
+                            {
+                                action: PUBLISH_BATCH_KEY,
+                                data: cleaned
+                            },
+                            window.location.origin
+                        );
+                    }
                 } catch (e) {
                     console.error('AuraInspector: Failed to communicate to inspector.', e);
                 }

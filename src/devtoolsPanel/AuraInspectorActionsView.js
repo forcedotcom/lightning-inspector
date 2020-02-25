@@ -56,42 +56,44 @@ export default function AuraInspectorActionsView(devtoolsPanel) {
     };
 
     var markup = `
-        <menu type="toolbar">
-            <li class="record-button"><aurainspector-onoffbutton class="circle on" data-filter="all" title="${labels.record_tooltip}"><span>${labels.record}</span></aurainspector-onoffbutton></li>
-            <li><button id="clear-button" class="clear-status-bar-item status-bar-item" title="${labels.clear}"><div class="glyph"></div><div class="glyph shadow"></div></button></li>
-            <li class="divider" style="margin-left: -3px;"></li>
-            <li><input id="filter-text" type="search" placeholder="${labels.filter}"/></li>
-            <li class="divider"></li>
-            <li><aurainspector-onoffbutton class="on" data-filter="storable" title="${labels.storable_tooltip}"><span>${labels.storable}</span></aurainspector-onoffbutton></li>
-            <li><aurainspector-onoffbutton class="on" data-filter="stored" title="${labels.cached_tooltip}"><span>${labels.cached}</span></aurainspector-onoffbutton></li>
-            <li><aurainspector-onoffbutton class="on" data-filter="background" title="${labels.background_tooltip}"><span>${labels.background}</span></aurainspector-onoffbutton></li>
-            <li><aurainspector-onoffbutton class="on" data-filter="success" title="${labels.success_tooltip}"><span>${labels.success}</span></aurainspector-onoffbutton></li>
-            <li><aurainspector-onoffbutton class="on" data-filter="incomplete" title="${labels.incomplete_tooltip}"><span>${labels.incomplete}</span></aurainspector-onoffbutton></li>
-            <li><aurainspector-onoffbutton class="on" data-filter="error" title="${labels.error_tooltip}"><span>${labels.error}</span></aurainspector-onoffbutton></li>
-            <li><aurainspector-onoffbutton class="on" data-filter="aborted" title="${labels.aborted_tooltip}"><span>${labels.aborted}</span></aurainspector-onoffbutton></li>
-        </menu>
-        <div class="actions-tab">
-            <div id="actionsToWatch-list" class="actionsToWatch-list">
-                <section class="dark">
-                    <h1>${labels.pendingoverrides}</h1>
-                    <div id="actionsToWatch-pending" class="drop-zone">
-                        <span class="description">${labels.pendingoverrides_desc}</span>
-                    </div>
-                </section>
-                <section id="actionsToWatch-completed" class="dark">
-                    <h1>${labels.processedoverrides}</h1>
-                </section>
-            </div>
-            <div id="actions-list" class="actions-list">
-                <section id="actions-pending">
-                    <h1>${labels.pending}</h1>
-                </section>
-                <section id="actions-running">
-                    <h1>${labels.running}</h1>
-                </section>
-                <section id="actions-completed">
-                    <h1>${labels.completed}</h1>
-                </section>
+        <div class="grid grid-columns scroll-wrapper">
+            <menu type="toolbar">
+                <li class="record-button"><aurainspector-onoffbutton class="circle on" data-filter="all" title="${labels.record_tooltip}"><span>${labels.record}</span></aurainspector-onoffbutton></li>
+                <li><button id="clear-button" class="clear-status-bar-item status-bar-item" title="${labels.clear}"><div class="glyph"></div><div class="glyph shadow"></div></button></li>
+                <li class="divider" style="margin-left: -3px;"></li>
+                <li><input id="filter-text" type="search" placeholder="${labels.filter}"/></li>
+                <li class="divider"></li>
+                <li><aurainspector-onoffbutton class="on" data-filter="storable" title="${labels.storable_tooltip}"><span>${labels.storable}</span></aurainspector-onoffbutton></li>
+                <li><aurainspector-onoffbutton class="on" data-filter="stored" title="${labels.cached_tooltip}"><span>${labels.cached}</span></aurainspector-onoffbutton></li>
+                <li><aurainspector-onoffbutton class="on" data-filter="background" title="${labels.background_tooltip}"><span>${labels.background}</span></aurainspector-onoffbutton></li>
+                <li><aurainspector-onoffbutton class="on" data-filter="success" title="${labels.success_tooltip}"><span>${labels.success}</span></aurainspector-onoffbutton></li>
+                <li><aurainspector-onoffbutton class="on" data-filter="incomplete" title="${labels.incomplete_tooltip}"><span>${labels.incomplete}</span></aurainspector-onoffbutton></li>
+                <li><aurainspector-onoffbutton class="on" data-filter="error" title="${labels.error_tooltip}"><span>${labels.error}</span></aurainspector-onoffbutton></li>
+                <li><aurainspector-onoffbutton class="on" data-filter="aborted" title="${labels.aborted_tooltip}"><span>${labels.aborted}</span></aurainspector-onoffbutton></li>
+            </menu>
+            <div class="actions-tab flex scroll">
+                <div id="actionsToWatch-list" class="actionsToWatch-list">
+                    <section class="dark">
+                        <h1>${labels.pendingoverrides}</h1>
+                        <div id="actionsToWatch-pending" class="drop-zone">
+                            <span class="description">${labels.pendingoverrides_desc}</span>
+                        </div>
+                    </section>
+                    <section id="actionsToWatch-completed" class="dark">
+                        <h1>${labels.processedoverrides}</h1>
+                    </section>
+                </div>
+                <div id="actions-list" class="actions-list">
+                    <section id="actions-pending">
+                        <h1>${labels.pending}</h1>
+                    </section>
+                    <section id="actions-running">
+                        <h1>${labels.running}</h1>
+                    </section>
+                    <section id="actions-completed">
+                        <h1>${labels.completed}</h1>
+                    </section>
+                </div>
             </div>
         </div>
     `;

@@ -372,6 +372,8 @@ body.sidebar-visible .sidebar {
     font-family: Menlo, monospace;
     font-size: 11px;
     padding-top: 0.25rem;
+    padding-bottom: 1rem;
+    padding-right: 1rem;
 }
 .tree-view li > span {
     cursor: pointer;
@@ -1221,7 +1223,6 @@ table.trans-graph-bar-info-table {
     background-color: #0070d2;
 }
 .actions-tab {
-    height: 100%;
     /* .slds-grid  { */
     display: -webkit-box;
     display: -webkit-flex;
@@ -1229,7 +1230,6 @@ table.trans-graph-bar-info-table {
     display: flex;
     position: relative;
     /* } */
-    overflow: hidden;
 }
 .actions-list {
     border-right: 1px solid #d8dde6;
@@ -1243,9 +1243,9 @@ table.trans-graph-bar-info-table {
 .actionsToWatch-list {
     /*.slds-scrollable--y {*/
     -webkit-overflow-scrolling: touch;
-    max-height: 100%;
+    /* max-height: 100%;
     overflow: hidden;
-    overflow-y: auto;
+    overflow-y: auto; */
     /*}*/
     /*.slds-col, .slds-col--padded {*/
     -webkit-box-flex: 1;
