@@ -1,4 +1,5 @@
 import AuraInspectorOptions from './optionsProxy';
+import ControlCharacters from '../aura/ControlCharacters';
 
 export function TreeNode(text, id) {
     var _children = [];
@@ -248,6 +249,12 @@ export function TreeNode(text, id) {
                 // {...} if it has content
                 // {} if it is empty
                 value = Object.keys(value).length ? '{...}' : '{}';
+            } else if (ControlCharacters.isComponentId(value)) {
+                //value = <aurainspector-auracomponent globalId='${value}'></aurainspector-auracomponent>
+                const element = document.createElement('aurainspector-auracomponent');
+                element.setAttribute('globalId', value);
+                element.setAttribute('summarize', true);
+                value = element;
             }
 
             var propertyelement = document.createElement('span');

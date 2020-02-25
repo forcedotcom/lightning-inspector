@@ -1,21 +1,39 @@
-(function() {
-    var ownerDocument = document.currentScript.ownerDocument;
+import JsonSerializer from '../../../aura/JsonSerializer';
+import ControlCharacters from '../../../aura/ControlCharacters';
 
-    var auracomponent = Object.create(HTMLDivElement.prototype);
+const template = document.createElement('template');
+template.innerHTML = `	<style>
+        .component-prefix { color: maroon; }
+        .component-property { color: maroon;}
+        .component-property-value { color: #333; margin: 0 0 0 3px; }
+        .component-facet-property { color: maroon; }
+        .component-tagname { color: blue; }
+        .component-attribute { color: purple; }
+        .component-array-length { color: teal; font-size: .9em; font-style: normal; }
+    </style>
+`;
 
-    // Just debugging, keeping cause it's helpful.
-    // auracomponent.attributeChangedCallback = function(name, oldVal, newVal) {
-    //     if((name === "componentData" || name==="componentdata") && newVal === "[object Object]") {
-    //         debugger;
-    //     }
-    // }
+/**	
+ * Renders a colorized version of the aura component with handlers for click (populate $auraTemp) and double click (navigate to the component tree).
+    Attributes
+        globalId : the global id of the component you want to display. Gets the data and configures itself.
+        summarize : Defaults false. If true will only show minimal information for the component.
+    <aurainspector-auracomponent globalId='{globalId}' summarize="true|false"/>
+ */
+class AuraComponent extends HTMLElement {
+    constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+    }
 
-    auracomponent.createdCallback = function() {
+    connectedCallback() {
+        if (this.shadowRoot.hasChildNodes()) {
+            return;
+        }
+
         this.addEventListener('click', AuraComponent_OnClick.bind(this));
         this.addEventListener('dblclick', AuraComponent_OnDblClick.bind(this));
-    };
 
-    auracomponent.attachedCallback = function() {
         var _data = this.getAttribute('componentData');
         if (!_data) {
             var summarize = this.getAttribute('summarize') || false;
@@ -32,15 +50,14 @@
             // It would be nice if it just worked.
             try {
                 if (typeof _data === 'string') {
-                    _data = ResolveJSONReferences(JSON.parse(_data));
+                    _data = JsonSerializer.parse(_data);
                 }
                 if (Object.keys(_data).length) {
-                    render(this, _data);
+                    this.render(_data);
                 }
             } catch (e) {
                 // Something went wrong with the rendering or the parsing of the data?
                 // Just show the globalId, at least its something.
-                var shadowRoot = this.shadowRoot || this.createShadowRoot();
                 var globalId = this.getAttribute('globalId');
 
                 if (globalId) {
@@ -55,9 +72,10 @@
                 //shadowRoot.appendChild(document.createTextNode("#error"));
             }
         }
-    };
+        this.initialized = true;
+    }
 
-    function render(element, data) {
+    render(data) {
         var descriptor;
         if (data.valid === false) {
             descriptor = 'INVALID';
@@ -66,8 +84,17 @@
         }
 
         var pattern = [
+            `<style>
+                    .component-prefix { color: maroon; }
+                    .component-property { color: maroon;}
+                    .component-property-value { color: #333; margin: 0 0 0 3px; }
+                    .component-facet-property { color: maroon; }
+                    .component-tagname { color: blue; }
+                    .component-attribute { color: purple; }
+                    .component-array-length { color: teal; font-size: .9em; font-style: normal; }
+                </style>`,
             `&lt;<span class="component-tagname">${descriptor}</span>
-            <span class="component-attribute">globalId</span>="${data.globalId}"`
+                <span class="component-attribute">globalId</span>="${data.globalId}"`
         ];
 
         if (data.attributes) {
@@ -93,132 +120,74 @@
 
         pattern.push('&gt;');
 
-        var template = document.createElement('template');
-        template.innerHTML = pattern.join('');
+        var subTemplate = document.createElement('template');
+        subTemplate.innerHTML = pattern.join('');
 
-        var shadowRoot = element.shadowRoot || element.createShadowRoot();
         // Import CSS
-
-        shadowRoot.innerHTML = '';
-        shadowRoot.appendChild(
-            document.importNode(ownerDocument.querySelector('template').content, true)
-        );
-        shadowRoot.appendChild(template.content);
+        this.shadowRoot.innerHTML = '';
+        this.shadowRoot.appendChild(document.importNode(template.content, true));
+        this.shadowRoot.appendChild(subTemplate.content);
     }
 
-    function getComponentData(globalId, configuration, callback) {
-        var config = JSON.stringify({
-            body: false,
-            attributes: !configuration.summarize
-        });
-        var cmd = `window[Symbol.for('AuraDevTools')].Inspector.getComponent('${globalId}', ${config});`;
-
-        chrome.devtools.inspectedWindow.eval(
-            cmd,
-            function(response, exceptionInfo) {
-                if (exceptionInfo) {
-                    console.error('AuraInspector: ', exceptionInfo);
-                }
-                if (!response) {
-                    return;
-                }
-                var tree = JSON.parse(response);
-
-                // RESOLVE REFERENCES
-                tree = ResolveJSONReferences(tree);
-
-                callback(tree);
-            }.bind(this)
-        );
+    disconnectedCallback() {
+        this.removeEventListener('click', AuraComponent_OnClick.bind(this));
+        this.removeEventListener('dblclick', AuraComponent_OnDblClick.bind(this));
     }
+}
 
-    function ResolveJSONReferences(object) {
-        if (!object) {
-            return object;
-        }
+function getComponentData(globalId, configuration, callback) {
+    globalId = ControlCharacters.getCleanId(globalId);
 
-        var count = 0;
-        var serializationMap = new Map();
-        var unresolvedReferences = [];
+    const config = JSON.stringify({
+        body: false,
+        attributes: !configuration.summarize
+    });
+    const cmd = `window[Symbol.for('AuraDevTools')].Inspector.getComponent('${globalId}', ${config});`;
 
-        function resolve(current, parent, property) {
-            if (!current) {
-                return current;
+    chrome.devtools.inspectedWindow.eval(
+        cmd,
+        function(response, exceptionInfo) {
+            if (exceptionInfo) {
+                console.error('AuraInspector: ', exceptionInfo);
             }
-            if (typeof current === 'object') {
-                if (current.hasOwnProperty('$serRefId$')) {
-                    if (serializationMap.has(current['$serRefId$'])) {
-                        return serializationMap.get(current['$serRefId$']);
-                    } else {
-                        // Probably Out of order, so we'll do it after scanning the entire tree
-                        unresolvedReferences.push({
-                            parent: parent,
-                            property: property,
-                            $serRefId$: current['$serRefId$']
-                        });
-                        return current;
-                    }
-                }
-
-                if (current.hasOwnProperty('$serId$')) {
-                    serializationMap.set(current['$serId$'], current);
-                    delete current['$serId$'];
-                }
-
-                for (var property in current) {
-                    if (current.hasOwnProperty(property)) {
-                        if (typeof current[property] === 'object') {
-                            current[property] = resolve(current[property], current, property);
-                        }
-                    }
-                }
+            if (!response) {
+                return;
             }
-            return current;
-        }
+            const tree = JsonSerializer.parse(response);
 
-        object = resolve(object);
+            callback(tree);
+        }.bind(this)
+    );
+}
 
-        // If we had some resolutions out of order, lets clean those up now that we've parsed everything that is serialized.
-        var unresolved;
-        for (var c = 0, length = unresolvedReferences.length; c < length; c++) {
-            unresolved = unresolvedReferences[c];
-            unresolved.parent[unresolved.property] = serializationMap.get(unresolved['$serRefId$']);
-        }
-
-        return object;
+function AuraComponent_OnGetComponent(data) {
+    if (typeof data === 'object') {
+        this.setAttribute('componentData', JsonSerializer.stringify(data));
+    } else {
+        this.setAttribute('componentData', data);
     }
+    this.render(data);
+}
 
-    function AuraComponent_OnGetComponent(data) {
-        if (typeof data === 'object') {
-            this.setAttribute('componentData', JSON.stringify(data));
-        } else {
-            this.setAttribute('componentData', data);
-        }
-        render(this, data);
-    }
-
-    function AuraComponent_OnClick(event) {
-        var globalId = this.getAttribute('globalId');
-        if (globalId) {
-            var command = `
+function AuraComponent_OnClick(event) {
+    var globalId = this.getAttribute('globalId');
+    if (globalId) {
+        var command = `
                 $auraTemp = $A.getComponent('${globalId}'); undefined;
             `;
-            chrome.devtools.inspectedWindow.eval(command);
-        }
+        chrome.devtools.inspectedWindow.eval(command);
     }
+}
 
-    function AuraComponent_OnDblClick(event) {
-        var globalId = this.getAttribute('globalId');
-        if (globalId) {
-            var command = `
+function AuraComponent_OnDblClick(event) {
+    var globalId = this.getAttribute('globalId');
+    if (globalId) {
+        var command = `
                 $auraTemp = $A.getComponent('${globalId}'); 
                 window[Symbol.for('AuraDevTools')].Inspector.publish("AuraInspector:ShowComponentInTree", $auraTemp.getGlobalId());
             `;
-            chrome.devtools.inspectedWindow.eval(command);
-        }
+        chrome.devtools.inspectedWindow.eval(command);
     }
+}
 
-    document.registerElement('aurainspector-auracomponent', {
-        prototype: auracomponent
-    });
-})();
+customElements.define('aurainspector-auracomponent', AuraComponent);

@@ -35,7 +35,8 @@ export default function AuraInspectorTransactionView() {
 
         transactionGrid = new AuraInspectorTransactionGrid();
         transactionGrid.init(labels);
-        transactionGrid.attach('onitemclick', TransactionGrid_OnItemClick.bind(this));
+        // Nothing to output at the moment
+        // transactionGrid.attach('onitemclick', TransactionGrid_OnItemClick.bind(this));
 
         _processor = new MetricsServiceDataProcessor(_bootstrapMetrics);
     };
@@ -140,8 +141,8 @@ export default function AuraInspectorTransactionView() {
         if (!action.serverData) {
             var name = (action.stamp && action.stamp.context.def) || 'unknown action';
             chrome.devtools.inspectedWindow.eval(`
-    			console.log("Action: ${name} did not have any performance data.");
-    		`);
+                console.log("Action: ${name} did not have any performance data.");
+            `);
             return;
         }
 
@@ -172,15 +173,15 @@ export default function AuraInspectorTransactionView() {
         }
 
         chrome.devtools.inspectedWindow.eval(`
-    		console.group("Action: ${name}");
-    		console.log("%cOverview", "font-size: 1.2em; font-weight: bold; color: #0070d2;");
-	    	console.table(${overview}, ["totalTime", "ownTime", "childTime"]);
-    		if(${callstack}) {
-	    		console.log("%cCallstack", "font-size: 1.2em; font-weight: bold; color: #0070d2;");
-		    	console.table(${callstack}, ["work", "totalTime", "childTime"]);
-		    }
-	    	console.groupEnd();
-    	`);
+            console.group("Action: ${name}");
+            console.log("%cOverview", "font-size: 1.2em; font-weight: bold; color: #0070d2;");
+            console.table(${overview}, ["totalTime", "ownTime", "childTime"]);
+            if(${callstack}) {
+                console.log("%cCallstack", "font-size: 1.2em; font-weight: bold; color: #0070d2;");
+                console.table(${callstack}, ["work", "totalTime", "childTime"]);
+            }
+            console.groupEnd();
+        `);
     }
 
     function outputTransportServerData(transport) {
@@ -190,8 +191,8 @@ export default function AuraInspectorTransactionView() {
         if (!transport.serverData) {
             var name = transport.name;
             chrome.devtools.inspectedWindow.eval(`
-    			console.log("Transport: ${name} did not have any performance data.");
-    		`);
+                console.log("Transport: ${name} did not have any performance data.");
+            `);
             return;
         }
         var data = transport.serverData;
@@ -221,13 +222,13 @@ export default function AuraInspectorTransactionView() {
         );
 
         chrome.devtools.inspectedWindow.eval(`
-    		console.group("${name}");
-    		console.log("%cOverview", "font-size: 1.2em; font-weight: bold; color: #0070d2;");
-	    	console.table(${overview}, ["startTime", "totalTime", "ownTime", "childTime"]);
-    		console.log("%cCallstack", "font-size: 1.2em; font-weight: bold; color: #0070d2;");
-	    	console.table(${callstack}, ["type",  "info", "totalTime", "childTime"]);
-	    	console.groupEnd();
-    	`);
+            console.group("${name}");
+            console.log("%cOverview", "font-size: 1.2em; font-weight: bold; color: #0070d2;");
+            console.table(${overview}, ["startTime", "totalTime", "ownTime", "childTime"]);
+            console.log("%cCallstack", "font-size: 1.2em; font-weight: bold; color: #0070d2;");
+            console.table(${callstack}, ["type",  "info", "totalTime", "childTime"]);
+            console.groupEnd();
+        `);
     }
 
     function MetricsServiceDataProcessor(context) {
@@ -675,8 +676,8 @@ export default function AuraInspectorTransactionView() {
             if (transaction) {
                 var json = JSON.stringify(transaction.getData());
                 chrome.devtools.inspectedWindow.eval(`
-	    			console.log(${json});
-	    		`);
+                    console.log(${json});
+                `);
             }
         }
     }

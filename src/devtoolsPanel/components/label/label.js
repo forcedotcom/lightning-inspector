@@ -1,27 +1,45 @@
-(function() {
-    var ATTRIBUTE_NAME = 'key';
+/**
+ * 	Description:
+	Output the localized version of a label. Wraps a chrome.i18n.getMessage() call.
 
-    var labelPrototype = Object.create(HTMLSpanElement.prototype);
+	Usage:
+	<aurainspector-label key="LABEL_KEY"></aurainspector-label>
 
-    labelPrototype.createdCallback = function() {
-        var shadowRoot = this.shadowRoot || this.createShadowRoot();
-        shadowRoot.appendChild(document.createTextNode(getLabel(this)));
-    };
+	Notes:
+	LABEL_KEY is defined in messages.json.
 
-    labelPrototype.attributeChangedCallback = function(attr, oldValue, newValue) {
-        var shadowRoot = this.shadowRoot || this.createShadowRoot();
-        shadowRoot.innerHTML = '';
-        shadowRoot.appendChild(document.createTextNode(getLabel(this)));
-    };
+	If the LABEL_KEY does not exist in messages.json, you'll see [LABEL_KEY] instead.
 
-    function getLabel(element) {
-        if (element.hasAttribute(ATTRIBUTE_NAME)) {
-            var key = element.getAttribute(ATTRIBUTE_NAME);
-            return chrome.i18n.getMessage(key) || '[' + key + ']';
-        }
+	As convention, I've been doing AREA_term, so for event card its eventcard_parameters, for actions panel its actions_mylabel.
+ */
+
+class LabelElement extends HTMLElement {
+    static get observedAttributes() {
+        return ['key'];
     }
 
-    document.registerElement('aurainspector-label', {
-        prototype: labelPrototype
-    });
-})();
+    constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+    }
+    connectedCallback() {
+        if (this.shadowRoot.hasChildNodes()) {
+            return;
+        }
+        this.shadowRoot.appendChild(document.createTextNode(getLabel(this)));
+    }
+
+    attributeChangedCallback() {
+        this.shadowRoot.innerHTML = '';
+        this.shadowRoot.appendChild(document.createTextNode(getLabel(this)));
+    }
+}
+
+customElements.define('aurainspector-label', LabelElement);
+
+function getLabel(element) {
+    if (element.hasAttribute('key')) {
+        var key = element.getAttribute('key');
+        return chrome.i18n.getMessage(key) || '[' + key + ']';
+    }
+}

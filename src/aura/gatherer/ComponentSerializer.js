@@ -185,9 +185,10 @@ export default class ComponentSerializer {
                                 } catch (e) {
                                     value = undefined;
                                 }
-                                if (value === undefined || value === null) {
+                                if (value === undefined) {
                                     value = value + '';
                                 }
+
                                 output.attributes[key] = accessCheckFailed
                                     ? '[ACCESS CHECK FAILED]'
                                     : value;

@@ -5,7 +5,6 @@ import DevToolsEncodedId from './DevToolsEncodedId.js';
 export default class $Aura {
     static Inspector = {
         async getComponent(globalId, options) {
-            const componentId = DevToolsEncodedId.getCleanId(globalId);
             const configuration = JSON.stringify(options || {});
             const cmd = `window[Symbol.for('AuraDevTools')].Inspector.getComponent('${globalId}', ${configuration})`;
             const componentJSON = await BrowserApi.eval(cmd);

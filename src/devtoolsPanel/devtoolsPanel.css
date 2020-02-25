@@ -372,6 +372,8 @@ body.sidebar-visible .sidebar {
     font-family: Menlo, monospace;
     font-size: 11px;
     padding-top: 0.25rem;
+    padding-bottom: 1rem;
+    padding-right: 1rem;
 }
 .tree-view li > span {
     cursor: pointer;
@@ -489,42 +491,42 @@ menu button.circle {
     border: 0px none;
     border-radius: 10px;
 }
-menu aurainspector-onOffButton.circle {
+menu aurainspector-onoffbutton.circle {
     border-radius: 50%;
     background: rgb(103, 103, 103);
     height: 12px;
     margin-left: -1px;
     width: 12px;
 }
-menu aurainspector-onOffButton.circle:hover {
+menu aurainspector-onoffbutton.circle:hover {
     background: rgb(64, 64, 64);
 }
-menu aurainspector-onOffButton.circle.on {
+menu aurainspector-onoffbutton.circle.on {
     background: rgb(223, 51, 51);
     box-shadow: 0 0 2px 2px rgb(246, 194, 194);
 }
-menu aurainspector-onOffButton.circle.on:hover {
+menu aurainspector-onoffbutton.circle.on:hover {
     background: rgb(216, 0, 0);
 }
-menu aurainspector-onOffButton.circle span {
+menu aurainspector-onoffbutton.circle span {
     display: none;
 }
-menu aurainspector-onOffButton {
+menu aurainspector-onoffbutton {
     display: inline-block;
     cursor: pointer;
     padding: 4px 6px 3px 6px;
     margin: auto 2px;
     border-radius: 8px;
 }
-menu aurainspector-onOffButton:hover {
+menu aurainspector-onoffbutton:hover {
     background: rgba(0, 0, 0, 0.2);
     color: white;
 }
-menu aurainspector-onOffButton:active {
+menu aurainspector-onoffbutton:active {
     background: rgba(0, 0, 0, 0.5);
     color: white;
 }
-menu aurainspector-onOffButton.on {
+menu aurainspector-onoffbutton.on {
     background: rgba(0, 0, 0, 0.3);
     color: white;
     text-shadow: rgba(0, 0, 0, 0.4) 0 1px 0;
@@ -556,7 +558,12 @@ menu aurainspector-onOffButton.on {
     font-size: 0.9em;
     font-style: normal;
 }
-
+.component-tag::before {
+    content: '<';
+}
+.component-tag::after {
+    content: '>';
+}
 /* Component Tree */
 /*
   The beginnings of a resize. Need to get the component tree and component view in sync, so when you change one, the other fills in the space.
@@ -599,7 +606,7 @@ section.tab-body.auraInspectorIFrameTab {
     list-style: none;
     padding: 0.25rem;
 }
-.event-log li aurainspector-eventCard {
+.event-log li aurainspector-event-card {
     display: inline-block;
 }
 .event-log-timestamp:before {
@@ -741,42 +748,42 @@ button.circle {
     border: 0px none;
     border-radius: 10px;
 }
-button aurainspector-onOffButton.circle {
+button aurainspector-onoffbutton.circle {
     border-radius: 50%;
     background: rgb(103, 103, 103);
     height: 12px;
     margin-left: -1px;
     width: 12px;
 }
-button aurainspector-onOffButton.circle:hover {
+button aurainspector-onoffbutton.circle:hover {
     background: rgb(64, 64, 64);
 }
-button aurainspector-onOffButton.circle.on {
+button aurainspector-onoffbutton.circle.on {
     background: rgb(223, 51, 51);
     box-shadow: 0 0 2px 2px rgb(246, 194, 194);
 }
-button aurainspector-onOffButton.circle.on:hover {
+button aurainspector-onoffbutton.circle.on:hover {
     background: rgb(216, 0, 0);
 }
-button aurainspector-onOffButton.circle span {
+button aurainspector-onoffbutton.circle span {
     display: none;
 }
-button aurainspector-onOffButton {
+button aurainspector-onoffbutton {
     display: inline-block;
     cursor: pointer;
     padding: 4px 6px 3px 6px;
     margin: auto 2px;
     border-radius: 8px;
 }
-button aurainspector-onOffButton:hover {
+button aurainspector-onoffbutton:hover {
     background: rgba(0, 0, 0, 0.2);
     color: white;
 }
-button aurainspector-onOffButton:active {
+button aurainspector-onoffbutton:active {
     background: rgba(0, 0, 0, 0.5);
     color: white;
 }
-button aurainspector-onOffButton.on {
+button aurainspector-onoffbutton.on {
     background: rgba(0, 0, 0, 0.3);
     color: white;
     text-shadow: rgba(0, 0, 0, 0.4) 0 1px 0;
@@ -1221,7 +1228,6 @@ table.trans-graph-bar-info-table {
     background-color: #0070d2;
 }
 .actions-tab {
-    height: 100%;
     /* .slds-grid  { */
     display: -webkit-box;
     display: -webkit-flex;
@@ -1229,7 +1235,6 @@ table.trans-graph-bar-info-table {
     display: flex;
     position: relative;
     /* } */
-    overflow: hidden;
 }
 .actions-list {
     border-right: 1px solid #d8dde6;
@@ -1243,9 +1248,9 @@ table.trans-graph-bar-info-table {
 .actionsToWatch-list {
     /*.slds-scrollable--y {*/
     -webkit-overflow-scrolling: touch;
-    max-height: 100%;
+    /* max-height: 100%;
     overflow: hidden;
-    overflow-y: auto;
+    overflow-y: auto; */
     /*}*/
     /*.slds-col, .slds-col--padded {*/
     -webkit-box-flex: 1;
@@ -1458,12 +1463,12 @@ table.trans-graph-bar-info-table {
 
 /*** ACTION CARD ***/
 /* Last of the cruft */
-aurainspector-actioncard .action-card-wrapper dl {
+aurainspector-action-card .action-card-wrapper dl {
     display: flex;
     flex-wrap: wrap;
     margin: 0;
 }
-aurainspector-actioncard .action-card-wrapper th,
+aurainspector-action-card .action-card-wrapper th,
 dt,
 h3 {
     font-weight: normal;
@@ -1473,7 +1478,7 @@ h3 {
     letter-spacing: 0.0625em;
     color: #54698d;
 }
-aurainspector-actioncard .action-card-wrapper td,
+aurainspector-action-card .action-card-wrapper td,
 dd {
     color: #16325c;
     font-size: 0.75rem;
@@ -1482,83 +1487,83 @@ dd {
 }
 /* End last of the cruft */
 
-aurainspector-actioncard .action-card-wrapper dd {
+aurainspector-action-card .action-card-wrapper dd {
     word-wrap: break-word;
 }
-aurainspector-actioncard .action-card-wrapper code {
+aurainspector-action-card .action-card-wrapper code {
     margin: 5px;
     display: block;
     white-space: pre;
 }
-aurainspector-actioncard .action-card-wrapper aurainspector-json {
+aurainspector-action-card .action-card-wrapper aurainspector-json {
     font-family: Menlo, monospace;
     display: flex;
 }
 
-aurainspector-actioncard .action-card-wrapper .attributes.storable-false .storable-info {
+aurainspector-action-card .action-card-wrapper .attributes.storable-false .storable-info {
     display: none;
 }
 
-aurainspector-actioncard
+aurainspector-action-card
     .action-card-wrapper
     .action-details
     .action-parameters
     aurainspector-label {
     color: #54698d;
 }
-aurainspector-actioncard .action-card-wrapper .action-header h2 {
+aurainspector-action-card .action-card-wrapper .action-header h2 {
     overflow: hidden;
     overflow-wrap: break-word;
 }
 
-aurainspector-actioncard .action-card-wrapper:focus .action-header .watch-icon,
-aurainspector-actioncard .action-card-wrapper:hover .action-header .watch-icon {
+aurainspector-action-card .action-card-wrapper:focus .action-header .watch-icon,
+aurainspector-action-card .action-card-wrapper:hover .action-header .watch-icon {
     opacity: 0.6;
 }
-aurainspector-actioncard .action-card-wrapper .action-header .watch-icon {
+aurainspector-action-card .action-card-wrapper .action-header .watch-icon {
     opacity: 0;
 }
-aurainspector-actioncard .action-card-wrapper .remove-card {
+aurainspector-action-card .action-card-wrapper .remove-card {
     display: none;
 }
-aurainspector-actioncard .action-card-wrapper .action-name-method {
+aurainspector-action-card .action-card-wrapper .action-name-method {
     color: #005fb2;
 }
-aurainspector-actioncard .action-card-wrapper .action-modify {
+aurainspector-action-card .action-card-wrapper .action-modify {
     display: none;
 }
 
 /** Expand Collapse */
-aurainspector-actioncard .action-card-wrapper .expand-icon {
+aurainspector-action-card .action-card-wrapper .expand-icon {
     display: none;
 }
-aurainspector-actioncard .action-card-wrapper .action-toggle {
+aurainspector-action-card .action-card-wrapper .action-toggle {
     display: none;
 }
-aurainspector-actioncard .action-card-wrapper.is-collapsible .action-toggle {
+aurainspector-action-card .action-card-wrapper.is-collapsible .action-toggle {
     display: block;
 }
-aurainspector-actioncard.is-collapsed .collapse-icon,
-aurainspector-actioncard.is-collapsed .action-body {
+aurainspector-action-card.is-collapsed .collapse-icon,
+aurainspector-action-card.is-collapsed .action-body {
     display: none;
 }
-aurainspector-actioncard.is-collapsed .expand-icon {
+aurainspector-action-card.is-collapsed .expand-icon {
     display: block;
 }
 
 /** If the aurainspector-actoncard has .has-error applied, style it red. Though the consumer can change this color by providing their own border color */
-aurainspector-actioncard.has-error {
+aurainspector-action-card.has-error {
     border: 1px solid #ea8288;
 }
 
 /** Pending Overrides Stylings */
-aurainspector-actioncard .action-card-wrapper.watch .action-details,
-aurainspector-actioncard .action-card-wrapper.watch .watch-icon {
+aurainspector-action-card .action-card-wrapper.watch .action-details,
+aurainspector-action-card .action-card-wrapper.watch .watch-icon {
     display: none;
 }
 
-aurainspector-actioncard .action-card-wrapper.watch .action-modify,
-aurainspector-actioncard .action-card-wrapper.watch .remove-card {
+aurainspector-action-card .action-card-wrapper.watch .action-modify,
+aurainspector-action-card .action-card-wrapper.watch .remove-card {
     display: block;
 }
 /*** ACTION CARD ***/

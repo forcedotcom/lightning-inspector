@@ -1,9 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import BrowserApi from '../../aura/viewer/BrowserApi.js';
-import GlobalEventBus from '../../core/GlobalEventBus.js';
-
 import { ExpandableSection } from 'react-lds';
 
 export default class StorageCard extends React.Component {

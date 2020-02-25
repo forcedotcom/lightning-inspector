@@ -4,6 +4,7 @@ import ComponentTreeSerializer from '../../aura/viewer/ComponentTreeSerializer.j
 import FunctionCallValueUtils from '../../aura/FunctionCallValueUtils.js';
 import JsonSerializer from '../../aura/JsonSerializer.js';
 import scrollIntoViewIfNeeded from 'scroll-into-view-if-needed';
+import ControlCharacters from '../../aura/ControlCharacters';
 
 export default class ComponentTreeView extends React.Component {
     constructor(props) {
@@ -415,6 +416,13 @@ class ComponentTreeViewNode extends React.Component {
                             </span>
                         );
                     }
+                } else if (ControlCharacters.isComponentId(current)) {
+                    attributes.push(
+                        <span className="component-attribute-pair" key={attribute}>
+                            <span className="component-attribute">{attribute}</span>=
+                            <ComponentTagLabel globalId={current}></ComponentTagLabel>
+                        </span>
+                    );
                 } else {
                     attributes.push(
                         <span className="component-attribute-pair" key={attribute}>
@@ -445,9 +453,6 @@ class ComponentTreeViewNode extends React.Component {
         if (this.props.onClick) {
             this.props.onClick.call(this, event);
         }
-
-        // Probably too low level for this. Lets bubble up an event to handle at the top level.
-        //this.update();
 
         this.setSelected(true);
     }
@@ -664,21 +669,27 @@ class HtmlTreeViewLabel extends React.Component {
             );
         }
 
-        for (let attribute in component.attributes.HTMLAttributes) {
-            let value = component.attributes.HTMLAttributes[attribute];
-            if (FunctionCallValueUtils.isFCV(value)) {
-                attributes.push(
-                    <span className="component-attribute-pair" key={attribute}>
-                        <span className="component-attribute">{attribute}</span>="
-                        {FunctionCallValueUtils.formatFCV(value)}"
-                    </span>
-                );
-            } else {
-                attributes.push(
-                    <span className="component-attribute-pair" key={attribute}>
-                        <span className="component-attribute">{attribute}</span>="{value}"
-                    </span>
-                );
+        // Verify that HTMLAttributes are an object before trying to output them.
+        if (
+            component.attributes.HTMLAttributes &&
+            typeof component.attributes.HTMLAttributes === 'object'
+        ) {
+            for (let attribute in component.attributes.HTMLAttributes) {
+                let value = component.attributes.HTMLAttributes[attribute];
+                if (FunctionCallValueUtils.isFCV(value)) {
+                    attributes.push(
+                        <span className="component-attribute-pair" key={attribute}>
+                            <span className="component-attribute">{attribute}</span>="
+                            {FunctionCallValueUtils.formatFCV(value)}"
+                        </span>
+                    );
+                } else {
+                    attributes.push(
+                        <span className="component-attribute-pair" key={attribute}>
+                            <span className="component-attribute">{attribute}</span>="{value}"
+                        </span>
+                    );
+                }
             }
         }
 
@@ -733,5 +744,31 @@ class ExpressionTreeViewLabel extends React.Component {
 
         // ByValue {#...}
         return <span key={this.props.component.globalId}>{attributeValue}</span>;
+    }
+}
+
+class ComponentTagLabel extends React.Component {
+    state = {
+        tagName: ''
+    };
+
+    render() {
+        ComponentTreeSerializer.getComponent(this.props.globalId, {
+            attributes: false,
+            body: false,
+            elementCount: false,
+            model: false,
+            valueProviders: false,
+            handlers: false
+        }).then(component => {
+            if (!component) {
+                return;
+            }
+            this.setState({
+                tagName: component.descriptor.split('://')[1]
+            });
+        });
+
+        return <span className="component-tag">{this.state.tagName}</span>;
     }
 }

@@ -52,6 +52,13 @@ export default class ComponentTreeSerializer {
 
     static getComponentChildrenRecursively(globalId) {
         // Implement Me!
+        throw new Error('Not Implemented');
+    }
+
+    static getComponent(globalId, options) {
+        return new Promise((resolve, reject) => {
+            getComponent(globalId, resolve, options);
+        });
     }
 }
 

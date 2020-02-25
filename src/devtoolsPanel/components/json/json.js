@@ -1,74 +1,97 @@
 import renderjson from '../../external/renderjson';
 
-var ownerDocument = document.currentScript.ownerDocument;
+class JsonElement extends HTMLElement {
+    constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+    }
 
-var jsonPrototype = Object.create(HTMLDivElement.prototype);
+    connectedCallback() {
+        if (this.shadowRoot.hasChildNodes()) {
+            return;
+        }
 
-jsonPrototype.createdCallback = function() {
-    var template = ownerDocument.querySelector('template');
+        const style = document.createElement('style');
+        style.innerHTML = `a { text-decoration: none; }
+        pre.renderjson {
+            display: inline-block;
+            margin: 0;
+            font-family: Menlo, monospace;
+            font-size: 11px;
+            overflow-wrap: break-word;
+            width: 100%;
+            white-space: pre-wrap;
+            -webkit-font-smoothing: antialiased;
+        }
+        a.disclosure { color: blue; padding-right: 3px; }
+        span.object {}
+        span.syntax {}
+        span.key { color: purple; }
+        
+        pre.renderjson aurainspector-auracomponent {
+            display: inline-block;
+            white-space: nowrap;
+        }`;
 
-    var clone = document.importNode(template.content, true);
+        var shadowRoot = this.shadowRoot;
+        shadowRoot.appendChild(style);
 
-    var shadowRoot = this.shadowRoot || this.createShadowRoot();
-    shadowRoot.appendChild(clone);
-
-    var oldValue = this.textContent;
-    var observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-            var target = mutation.target;
-            var newValue = target.textContent;
-            if (oldValue !== newValue) {
-                target.update();
-            }
-            oldValue = newValue;
+        var oldValue = this.textContent;
+        var observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                var target = mutation.target;
+                var newValue = target.textContent;
+                if (oldValue !== newValue) {
+                    target.update();
+                }
+                oldValue = newValue;
+            });
         });
-    });
 
-    observer.observe(this, {
-        attributes: false,
-        childList: true,
-        characterData: true
-    });
+        observer.observe(this, {
+            attributes: false,
+            childList: true,
+            characterData: true
+        });
 
-    if (oldValue != '') {
-        this.update();
-    }
-};
-
-jsonPrototype.update = function() {
-    var shadowRoot = this.shadowRoot || this.createShadowRoot();
-
-    var output = shadowRoot.querySelector('.renderjson');
-    if (output) {
-        shadowRoot.removeChild(output);
+        if (oldValue != '') {
+            this.update();
+        }
     }
 
-    output = shadowRoot.querySelector('.returnValue');
-    if (output) {
-        shadowRoot.removeChild(output);
-    }
+    update() {
+        var shadowRoot = this.shadowRoot || this.attachShadow({ mode: 'open' });
 
-    var text = this.textContent;
-    var json;
-    var worthTrying = { '{': true, '[': true, '(': true, '/': true };
-    if (text && text.trim() && worthTrying[text.charAt(0)]) {
-        try {
-            json = JSON.parse(text);
-        } catch (e) {}
-    }
-    if (json) {
-        shadowRoot.appendChild(formatJSON(json, { expandTo: this.getAttribute('expandTo') }));
-    } else if (text !== undefined && text !== 'undefined') {
-        var textNode = document.createElement('span');
-        textNode.className = 'returnValue';
-        textNode.appendChild(document.createTextNode(text));
-        shadowRoot.appendChild(textNode);
-    }
-};
+        var output = shadowRoot.querySelector('.renderjson');
+        if (output) {
+            shadowRoot.removeChild(output);
+        }
 
-document.registerElement('aurainspector-json', {
-    prototype: jsonPrototype
-});
+        output = shadowRoot.querySelector('.returnValue');
+        if (output) {
+            shadowRoot.removeChild(output);
+        }
+
+        var text = this.textContent;
+        var json;
+        var worthTrying = { '{': true, '[': true, '(': true, '/': true };
+        if (text && text.trim() && worthTrying[text.charAt(0)]) {
+            try {
+                json = JSON.parse(text);
+            } catch (e) {}
+        }
+        if (json) {
+            shadowRoot.appendChild(formatJSON(json, { expandTo: this.getAttribute('expandTo') }));
+        } else if (text !== undefined && text !== 'undefined') {
+            var textNode = document.createElement('span');
+            textNode.className = 'returnValue';
+            textNode.appendChild(document.createTextNode(text));
+            shadowRoot.appendChild(textNode);
+        }
+    }
+}
+
+customElements.define('aurainspector-json', JsonElement);
 
 function formatJSON(object, options) {
     var defaults = {

@@ -152,9 +152,9 @@ export default class EventCard extends PureComponent {
                                             </span>
                                             <div className="slds-form-element__control">
                                                 <span className="slds-form-element__static">
-                                                    <aurainspector-outputFunction className="caller">
+                                                    <aurainspector-outputfunction className="caller">
                                                         {this.props.caller}
-                                                    </aurainspector-outputFunction>
+                                                    </aurainspector-outputfunction>
                                                 </span>
                                             </div>
                                         </li>

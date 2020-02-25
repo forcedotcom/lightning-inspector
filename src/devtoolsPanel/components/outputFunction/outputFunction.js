@@ -1,23 +1,33 @@
 import js_beautify from '../../external/jsbeautify.js';
 
-(function() {
-    var ownerDocument = document.currentScript.ownerDocument;
+class OutputFunctionElement extends HTMLElement {
+    constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+    }
+    connectedCallback() {
+        if (this.shadowRoot.hasChildNodes()) {
+            return;
+        }
 
-    var outputFunction = Object.create(HTMLDivElement.prototype);
+        const style = document.createElement('style');
+        style.innerHTML = `
+            pre {
+                display: inline-block;
+                margin: 0;
+            font-family: Menlo, monospace;
+            font-size: 11px;
+            -webkit-font-smoothing: antialiased;
+            }
+        `;
 
-    outputFunction.createdCallback = function() {
-        var template = ownerDocument.querySelector('template');
+        this.shadowRoot.appendChild(style);
 
-        var clone = document.importNode(template.content, true);
-
-        var shadowRoot = this.shadowRoot || this.createShadowRoot();
-        shadowRoot.appendChild(clone);
-
-        var oldValue = this.textContent;
-        var observer = new MutationObserver(function(mutations) {
+        let oldValue = this.textContent;
+        const observer = new MutationObserver(function(mutations) {
             mutations.forEach(function(mutation) {
-                var target = mutation.target;
-                var newValue = target.textContent;
+                const target = mutation.target;
+                const newValue = target.textContent;
                 if (oldValue !== newValue) {
                     target.update();
                 }
@@ -30,21 +40,16 @@ import js_beautify from '../../external/jsbeautify.js';
             childList: true,
             characterData: true
         });
-    };
+    }
 
-    outputFunction.update = function() {
-        var shadowRoot = this.shadowRoot || this.createShadowRoot();
-        //shadowRoot.querySelector("pre").remove();
+    update() {
+        const text = this.textContent;
 
-        var text = this.textContent;
-
-        var pre = document.createElement('pre');
+        const pre = document.createElement('pre');
         pre.innerHTML = js_beautify(text);
 
-        shadowRoot.appendChild(pre);
-    };
+        this.shadowRoot.appendChild(pre);
+    }
+}
 
-    document.registerElement('aurainspector-outputFunction', {
-        prototype: outputFunction
-    });
-})();
+customElements.define('aurainspector-outputfunction', OutputFunctionElement);
