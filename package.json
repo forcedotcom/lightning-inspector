@@ -107,7 +107,8 @@
         "react-lds": "^7.1.0",
         "react-split-pane": "^0.1.77",
         "react-virtualized": "^9.16.1",
-        "scroll-into-view-if-needed": "^2.2.4"
+        "scroll-into-view-if-needed": "^2.2.4",
+        "vis-network": "^7.3.6"
     },
     "engines": {
         "node": ">=12.0.0"
