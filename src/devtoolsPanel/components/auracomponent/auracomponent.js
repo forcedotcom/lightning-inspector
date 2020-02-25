@@ -19,8 +19,16 @@ template.innerHTML = `	<style>
     <aurainspector-auracomponent globalId='{globalId}' summarize="true|false"/>
  */
 class AuraComponent extends HTMLElement {
-    connectedCallback() {
+    constructor() {
+        super();
         this.attachShadow({ mode: 'open' });
+    }
+
+    connectedCallback() {
+        if (this.shadowRoot.hasChildNodes()) {
+            return;
+        }
+
         this.addEventListener('click', AuraComponent_OnClick.bind(this));
         this.addEventListener('dblclick', AuraComponent_OnDblClick.bind(this));
 
@@ -62,6 +70,7 @@ class AuraComponent extends HTMLElement {
                 //shadowRoot.appendChild(document.createTextNode("#error"));
             }
         }
+        this.initialized = true;
     }
 
     render(data) {

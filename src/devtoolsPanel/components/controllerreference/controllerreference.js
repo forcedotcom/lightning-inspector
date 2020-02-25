@@ -1,21 +1,21 @@
 const template = document.createElement('template');
 template.innerHTML = `<style>
-		aurainspector-auracomponent {
-			margin-left:2em;
-		}
+        aurainspector-auracomponent {
+            margin-left:2em;
+        }
 
-		a { 
-			display:block;
-			color: #0070D2;
-		}
+        a { 
+            display:block;
+            color: #0070D2;
+        }
 
-		a:hover {
-			color: #005fb2;
-			text-decoration: underline;
-		}
-	</style>
-	<a id="expression"></a>
-	<aurainspector-auracomponent summarize="true" globalId=""></aurainspector-auracomponent>`;
+        a:hover {
+            color: #005fb2;
+            text-decoration: underline;
+        }
+    </style>
+    <a id="expression"></a>
+    <aurainspector-auracomponent summarize="true" globalId=""></aurainspector-auracomponent>`;
 /**
     # Renders a component controller reference as such
     <auracomponent>
@@ -28,7 +28,14 @@ template.innerHTML = `<style>
     - expression MUST contain the "{!}" characters. 
  */
 class ControllerReferenceElement extends HTMLElement {
+    constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+    }
     connectedCallback() {
+        if (this.shadowRoot.hasChildNodes()) {
+            return;
+        }
         // Had two different modes, one that works on textContent, the other that works on expression, componentid combination
         const expression = this.getAttribute('expression');
         const componentid = this.getAttribute('component');
@@ -44,8 +51,7 @@ class ControllerReferenceElement extends HTMLElement {
             expression_element.appendChild(document.createTextNode(expression));
             expression_element.addEventListener('click', ControllerReference_OnClick.bind(this));
 
-            const shadowRoot = this.attachShadow({ mode: 'open' });
-            shadowRoot.appendChild(clone);
+            this.shadowRoot.appendChild(clone);
         } else {
             this.addEventListener('click', ControllerReference_OnClick.bind(this));
         }

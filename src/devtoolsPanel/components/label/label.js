@@ -23,10 +23,13 @@ class LabelElement extends HTMLElement {
         this.attachShadow({ mode: 'open' });
     }
     connectedCallback() {
+        if (this.shadowRoot.hasChildNodes()) {
+            return;
+        }
         this.shadowRoot.appendChild(document.createTextNode(getLabel(this)));
     }
 
-    attributeChangedCallback(attr, oldValue, newValue) {
+    attributeChangedCallback() {
         this.shadowRoot.innerHTML = '';
         this.shadowRoot.appendChild(document.createTextNode(getLabel(this)));
     }

@@ -1,7 +1,15 @@
 import js_beautify from '../../external/jsbeautify.js';
 
 class OutputFunctionElement extends HTMLElement {
+    constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+    }
     connectedCallback() {
+        if (this.shadowRoot.hasChildNodes()) {
+            return;
+        }
+
         const style = document.createElement('style');
         style.innerHTML = `
             pre {
@@ -13,8 +21,7 @@ class OutputFunctionElement extends HTMLElement {
             }
         `;
 
-        const shadowRoot = this.shadowRoot || this.attachShadow({ mode: 'open' });
-        shadowRoot.appendChild(style);
+        this.shadowRoot.appendChild(style);
 
         let oldValue = this.textContent;
         const observer = new MutationObserver(function(mutations) {
@@ -36,13 +43,12 @@ class OutputFunctionElement extends HTMLElement {
     }
 
     update() {
-        const shadowRoot = this.shadowRoot || this.attachShadow({ mode: 'open' });
         const text = this.textContent;
 
         const pre = document.createElement('pre');
         pre.innerHTML = js_beautify(text);
 
-        shadowRoot.appendChild(pre);
+        this.shadowRoot.appendChild(pre);
     }
 }
 

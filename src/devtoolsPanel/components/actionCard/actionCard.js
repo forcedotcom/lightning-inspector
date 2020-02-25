@@ -305,52 +305,64 @@ template.innerHTML = `<div class="action-card-wrapper slds-p-around--x-small is-
     </div>`;
 
 class ActionCard extends HTMLElement {
+    initialized = false;
+
     static get observedAttributes() {
         return ['collapsible'];
     }
 
     connectedCallback() {
+        if (this.initialized) {
+            return;
+        }
+        this.initialized = true;
+
         const clone = document.importNode(template.content, true);
-        const shadowRoot = this;
 
-        shadowRoot.appendChild(clone);
+        this.appendChild(clone);
 
-        shadowRoot
-            .querySelector('.action-toggle')
-            .addEventListener('click', ToggleActionCard_OnClick.bind(this));
-        shadowRoot
-            .querySelector('#select_dropOrModify')
-            .addEventListener('change', DropOrModify_OnChange.bind(this));
-        shadowRoot
-            .querySelector('.remove-card')
-            .addEventListener('click', RemoveCard_OnClick.bind(this));
+        this.querySelector('.action-toggle').addEventListener(
+            'click',
+            ToggleActionCard_OnClick.bind(this)
+        );
+        this.querySelector('#select_dropOrModify').addEventListener(
+            'change',
+            DropOrModify_OnChange.bind(this)
+        );
+        this.querySelector('.remove-card').addEventListener('click', RemoveCard_OnClick.bind(this));
 
-        const overridesSelect = shadowRoot.querySelector('#select_dropOrModify');
+        const overridesSelect = this.querySelector('#select_dropOrModify');
         overridesSelect.options[0].text = chrome.i18n.getMessage('actioncard_dropaction');
         overridesSelect.options[1].text = chrome.i18n.getMessage('actioncard_overrideresult');
         overridesSelect.options[2].text = chrome.i18n.getMessage('actioncard_errorresponse');
 
-        shadowRoot
-            .querySelector('#button_saveActionResult')
-            .addEventListener('click', SaveActionResult_OnClick.bind(this));
-        shadowRoot
-            .querySelector('#button_cancelChangeActionResult')
-            .addEventListener('click', CancelChangeActionResult_OnClick.bind(this));
-        shadowRoot
-            .querySelector('#button_editActionResult')
-            .addEventListener('click', EditActionResult_OnClick.bind(this));
-        shadowRoot
-            .querySelector('#button_saveError')
-            .addEventListener('click', SaveError_OnClick.bind(this));
-        shadowRoot
-            .querySelector('#button_cancelError')
-            .addEventListener('click', CancelError_OnClick.bind(this));
-        shadowRoot
-            .querySelector('#button_editError')
-            .addEventListener('click', EditError_OnClick.bind(this));
+        this.querySelector('#button_saveActionResult').addEventListener(
+            'click',
+            SaveActionResult_OnClick.bind(this)
+        );
+        this.querySelector('#button_cancelChangeActionResult').addEventListener(
+            'click',
+            CancelChangeActionResult_OnClick.bind(this)
+        );
+        this.querySelector('#button_editActionResult').addEventListener(
+            'click',
+            EditActionResult_OnClick.bind(this)
+        );
+        this.querySelector('#button_saveError').addEventListener(
+            'click',
+            SaveError_OnClick.bind(this)
+        );
+        this.querySelector('#button_cancelError').addEventListener(
+            'click',
+            CancelError_OnClick.bind(this)
+        );
+        this.querySelector('#button_editError').addEventListener(
+            'click',
+            EditError_OnClick.bind(this)
+        );
 
         if (this.getAttribute('collapsible') === 'false') {
-            const container = shadowRoot.querySelector('div.action-card-wrapper');
+            const container = this.querySelector('div.action-card-wrapper');
             container.classList.remove('is-collapsible');
         }
 
@@ -388,22 +400,22 @@ class ActionCard extends HTMLElement {
             callingComponent: this.getAttribute('callingComponent')
         };
 
-        const actionName = shadowRoot.querySelector('#action-name');
+        const actionName = this.querySelector('#action-name');
         actionName.innerHTML = '';
         actionName.appendChild(formatActionName(model.actionName));
 
-        shadowRoot.querySelector('.parameters').textContent = model.parameters;
-        shadowRoot.querySelector('.storageKey').textContent = model.storageKey;
-        shadowRoot.querySelector('#actionId').textContent = model.id;
-        shadowRoot.querySelector('#actionState').textContent = model.state;
-        shadowRoot.querySelector('#actionIsAbortable').textContent = model.isAbortable;
-        shadowRoot.querySelector('#actionIsBackground').textContent = model.isBackground;
-        shadowRoot.querySelector('#actionIsStorable').textContent = model.isStorable;
-        shadowRoot.querySelector('#actionStorableSize').textContent = model.storableSize;
-        shadowRoot.querySelector('#actionIsRefresh').textContent = model.isRefresh;
-        shadowRoot.querySelector('#actionFromStorage').textContent = model.fromStorage;
+        this.querySelector('.parameters').textContent = model.parameters;
+        this.querySelector('.storageKey').textContent = model.storageKey;
+        this.querySelector('#actionId').textContent = model.id;
+        this.querySelector('#actionState').textContent = model.state;
+        this.querySelector('#actionIsAbortable').textContent = model.isAbortable;
+        this.querySelector('#actionIsBackground').textContent = model.isBackground;
+        this.querySelector('#actionIsStorable').textContent = model.isStorable;
+        this.querySelector('#actionStorableSize').textContent = model.storableSize;
+        this.querySelector('#actionIsRefresh').textContent = model.isRefresh;
+        this.querySelector('#actionFromStorage').textContent = model.fromStorage;
 
-        var callingComponentCol = shadowRoot.querySelector('#callingComponent');
+        var callingComponentCol = this.querySelector('#callingComponent');
         if (!callingComponentCol.hasChildNodes()) {
             if (model.callingComponent) {
                 var auracomponent = document.createElement('aurainspector-auracomponent');
@@ -411,7 +423,7 @@ class ActionCard extends HTMLElement {
                 auracomponent.setAttribute('summarize', 'true');
                 callingComponentCol.appendChild(auracomponent);
             } else {
-                shadowRoot.querySelector('.calling-component-container').classList.add('slds-hide');
+                this.querySelector('.calling-component-container').classList.add('slds-hide');
             }
         }
 
@@ -422,45 +434,45 @@ class ActionCard extends HTMLElement {
         ) {
             //when there is error, we don't show action result.
             this.classList.add('has-error');
-            shadowRoot.querySelector('#actionError').textContent = model.returnError;
-            shadowRoot.querySelector('#action-response-container').classList.add('slds-hide');
-            shadowRoot.querySelector('#action-error-container').classList.remove('slds-hide');
+            this.querySelector('#actionError').textContent = model.returnError;
+            this.querySelector('#action-response-container').classList.add('slds-hide');
+            this.querySelector('#action-error-container').classList.remove('slds-hide');
         } else {
             this.classList.remove('has-error');
-            shadowRoot.querySelector('#actionResult').textContent = model.returnValue;
+            this.querySelector('#actionResult').textContent = model.returnValue;
 
-            shadowRoot.querySelector('#action-response-container').classList.remove('slds-hide');
-            shadowRoot.querySelector('#action-error-container').classList.add('slds-hide');
+            this.querySelector('#action-response-container').classList.remove('slds-hide');
+            this.querySelector('#action-error-container').classList.add('slds-hide');
         }
         if (this.hasAttribute('stats')) {
             var statsInfo = JSON.parse(this.getAttribute('stats'));
 
-            shadowRoot.querySelector('#statsCreated').textContent = statsInfo.created;
+            this.querySelector('#statsCreated').textContent = statsInfo.created;
         }
 
         if (model.isStorable === 'false' || model.isStorable === false) {
             // Hide the storable sub info columns
-            shadowRoot.querySelector('.attributes').classList.add('storable-false');
+            this.querySelector('.attributes').classList.add('storable-false');
         }
 
         if (this.getAttribute('toWatch') === 'true') {
             //let people decide what they would like to do once the actionCard is created inside watch list
-            shadowRoot.querySelector('.remove-card').classList.remove('slds-hide');
-            //shadowRoot.querySelector(".dropOrModify").style.display = "block";
-            shadowRoot.querySelector('.action-card-wrapper').classList.add('watch');
+            this.querySelector('.remove-card').classList.remove('slds-hide');
+            //this.querySelector(".dropOrModify").style.display = "block";
+            this.querySelector('.action-card-wrapper').classList.add('watch');
 
             if (this.getAttribute('dropOrModify') === 'modifyResponse') {
                 //non-error response next time
-                show(shadowRoot.querySelector('.div_editActionResult')); //.style.display = "block";
-                hide(shadowRoot.querySelector('.div_errorResponse')); //.style.display = "none";
+                show(this.querySelector('.div_editActionResult')); //.style.display = "block";
+                hide(this.querySelector('.div_errorResponse')); //.style.display = "none";
             } else if (this.getAttribute('dropOrModify') === 'errorResponseNextTime') {
                 //error response next time
-                hide(shadowRoot.querySelector('.div_editActionResult')); //.style.display = "none";
-                show(shadowRoot.querySelector('.div_errorResponse')); //.style.display = "block";
+                hide(this.querySelector('.div_editActionResult')); //.style.display = "none";
+                show(this.querySelector('.div_errorResponse')); //.style.display = "block";
             } else {
                 //drop action
-                hide(shadowRoot.querySelector('.div_errorResponse')); //.style.display = "none";
-                hide(shadowRoot.querySelector('.div_editActionResult')); //.style.display = "none";
+                hide(this.querySelector('.div_errorResponse')); //.style.display = "none";
+                hide(this.querySelector('.div_editActionResult')); //.style.display = "none";
             }
         }
     }
@@ -510,29 +522,29 @@ function RemoveCard_OnClick() {
 }
 
 function DropOrModify_OnChange() {
-    const shadowRoot = this;
-    var dropOrModify = shadowRoot.querySelector('#select_dropOrModify').value;
+    var dropOrModify = this.querySelector('#select_dropOrModify').value;
     this.setAttribute('dropOrModify', dropOrModify);
     if (dropOrModify === 'dropAction') {
-        hide(shadowRoot.querySelector('.div_editActionResult')); //.style.display = "none";
-        hide(shadowRoot.querySelector('.div_errorResponse')); //.style.display = "none";
+        hide(this.querySelector('.div_editActionResult')); //.style.display = "none";
+        hide(this.querySelector('.div_errorResponse')); //.style.display = "none";
     } else if (dropOrModify === 'modifyResponse') {
-        show(shadowRoot.querySelector('.div_editActionResult')); //.style.display = "block";
-        hide(shadowRoot.querySelector('.div_errorResponse')); //.style.display = "none";
+        show(this.querySelector('.div_editActionResult')); //.style.display = "block";
+        hide(this.querySelector('.div_errorResponse')); //.style.display = "none";
         //get an array of key->value from response, fill them into the picklist -- save this to actionCard itself?
         var returnValue = this.getAttribute('returnValue');
 
-        var actionResultValue = shadowRoot.querySelector('#textarea_actionResultValue');
+        var actionResultValue = this.querySelector('#textarea_actionResultValue');
         actionResultValue.value = returnValue;
         //show save/cancel button, and wire up logic
-        show(shadowRoot.querySelector('.div_editActionResult'));
+        show(this.querySelector('.div_editActionResult'));
     } else if (dropOrModify === 'errorResponseNextTime') {
-        hide(shadowRoot.querySelector('.div_editActionResult'));
-        show(shadowRoot.querySelector('.div_errorResponse'));
+        hide(this.querySelector('.div_editActionResult'));
+        show(this.querySelector('.div_errorResponse'));
 
-        shadowRoot
-            .querySelector('#errorResponseType')
-            .addEventListener('change', ErrorReponseType_OnChange.bind(this));
+        this.querySelector('#errorResponseType').addEventListener(
+            'change',
+            ErrorReponseType_OnChange.bind(this)
+        );
     } else {
         console.warn('unknown choice for dropOrModify, we need a handler for it !!!');
     }
@@ -625,7 +637,6 @@ function SaveError_OnClick() {
 }
 
 function EditError_OnClick() {
-    const shadowRoot = this;
     var actionId = this.getAttribute('id');
     var errorResponseType = this.getAttribute('errorResponseType');
     if (actionId) {
@@ -639,56 +650,52 @@ function EditError_OnClick() {
         }
 
         //show save/cancel button
-        show(shadowRoot.querySelector('#button_saveError'));
-        show(shadowRoot.querySelector('#button_cancelError'));
+        show(this.querySelector('#button_saveError'));
+        show(this.querySelector('#button_cancelError'));
 
         //hide the edit button
-        hide(shadowRoot.querySelector('#button_editError'));
+        hide(this.querySelector('#button_editError'));
     }
 }
 
 function CancelError_OnClick() {
-    const shadowRoot = this;
     //hide next error response area
-    hide(shadowRoot.querySelector('.div_errorResponse'));
-    // var div_errorResponse = shadowRoot.querySelector(".div_errorResponse");
+    hide(this.querySelector('.div_errorResponse'));
+    // var div_errorResponse = this.querySelector(".div_errorResponse");
     // div_errorResponse.style.display = "none";
     //change select back to default, which is drop action
-    shadowRoot.querySelector('#select_dropOrModify').value = 'dropAction';
+    this.querySelector('#select_dropOrModify').value = 'dropAction';
 }
 
 function CancelChangeActionResult_OnClick() {
-    const shadowRoot = this;
     //hide next response area
-    hide(shadowRoot.querySelector('.div_editActionResult'));
-    // var div_editActionResult = shadowRoot.querySelector(".div_editActionResult");
+    hide(this.querySelector('.div_editActionResult'));
+    // var div_editActionResult = this.querySelector(".div_editActionResult");
     // div_editActionResult.style.display = "none";
 
     //change select back to default, which is drop action
-    shadowRoot.querySelector('#select_dropOrModify').value = 'dropAction';
+    this.querySelector('#select_dropOrModify').value = 'dropAction';
 }
 
 function EditActionResult_OnClick() {
-    const shadowRoot = this;
     //make the textara writable
-    shadowRoot.querySelector('#textarea_actionResultValue').removeAttribute('readonly');
+    this.querySelector('#textarea_actionResultValue').removeAttribute('readonly');
 
     //show save/cancel button
-    show(shadowRoot.querySelector('#button_saveActionResult'));
-    show(shadowRoot.querySelector('#button_cancelChangeActionResult'));
+    show(this.querySelector('#button_saveActionResult'));
+    show(this.querySelector('#button_cancelChangeActionResult'));
 
     //hide edit button
-    hide(shadowRoot.querySelector('#button_editActionResult'));
+    hide(this.querySelector('#button_editActionResult'));
 }
 
 function SaveActionResult_OnClick() {
-    const shadowRoot = this;
     var actionId = this.getAttribute('id');
     var actionName = this.getAttribute('name');
     var actionParameter = this.getAttribute('parameters');
     //var actionIsStorable = this.getAttribute("isStorable");
 
-    var nextResponseValue = shadowRoot.querySelector('#textarea_actionResultValue').value;
+    var nextResponseValue = this.querySelector('#textarea_actionResultValue').value;
     if (actionId && nextResponseValue) {
         try {
             //see if we can parse it to Json
@@ -718,16 +725,14 @@ function SaveActionResult_OnClick() {
             }
         });
         //make the textara readonly
-        shadowRoot
-            .querySelector('#textarea_actionResultValue')
-            .setAttribute('readonly', 'readonly');
+        this.querySelector('#textarea_actionResultValue').setAttribute('readonly', 'readonly');
 
         //hide save/cancel button
-        hide(shadowRoot.querySelector('#button_saveActionResult'));
-        hide(shadowRoot.querySelector('#button_cancelChangeActionResult'));
+        hide(this.querySelector('#button_saveActionResult'));
+        hide(this.querySelector('#button_cancelChangeActionResult'));
 
         //show edit button
-        show(shadowRoot.querySelector('#button_editActionResult'));
+        show(this.querySelector('#button_editActionResult'));
     } else {
         console.log(
             'SaveActionResult_OnClick, either actionId is bogus, or bad nextResponse',

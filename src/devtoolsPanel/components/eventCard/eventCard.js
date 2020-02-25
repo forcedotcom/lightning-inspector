@@ -254,16 +254,24 @@ class EventCardElement extends HTMLElement {
         return ['collapsed', 'showgrid', 'showGrid'];
     }
 
+    constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+    }
+
     /*
 		New Action Card created, update it's body
 	 */
     connectedCallback() {
+        if (this.shadowRoot.hasChildNodes()) {
+            return;
+        }
+
         var clone = document.importNode(template.content, true);
 
-        var shadowRoot = this.attachShadow({ mode: 'open' });
-        shadowRoot.appendChild(clone);
+        this.shadowRoot.appendChild(clone);
 
-        var toggleButton = shadowRoot.querySelector('#gridToggle');
+        var toggleButton = this.shadowRoot.querySelector('#gridToggle');
         toggleButton.addEventListener('click', ToggleButton_OnClick.bind(this));
 
         var section = this.shadowRoot.querySelector('section');

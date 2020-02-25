@@ -1,30 +1,39 @@
 import renderjson from '../../external/renderjson';
 
 class JsonElement extends HTMLElement {
+    constructor() {
+        super();
+        this.attachShadow({ mode: 'open' });
+    }
+
     connectedCallback() {
+        if (this.shadowRoot.hasChildNodes()) {
+            return;
+        }
+
         const style = document.createElement('style');
         style.innerHTML = `a { text-decoration: none; }
-		pre.renderjson {
-			display: inline-block;
-			margin: 0;
-			font-family: Menlo, monospace;
-			font-size: 11px;
-			overflow-wrap: break-word;
-    		width: 100%;
-    		white-space: pre-wrap;
-			-webkit-font-smoothing: antialiased;
-		}
-		a.disclosure { color: blue; padding-right: 3px; }
-		span.object {}
-		span.syntax {}
-		span.key { color: purple; }
-		
-		pre.renderjson aurainspector-auracomponent {
-			display: inline-block;
-			white-space: nowrap;
-		}`;
+        pre.renderjson {
+            display: inline-block;
+            margin: 0;
+            font-family: Menlo, monospace;
+            font-size: 11px;
+            overflow-wrap: break-word;
+            width: 100%;
+            white-space: pre-wrap;
+            -webkit-font-smoothing: antialiased;
+        }
+        a.disclosure { color: blue; padding-right: 3px; }
+        span.object {}
+        span.syntax {}
+        span.key { color: purple; }
+        
+        pre.renderjson aurainspector-auracomponent {
+            display: inline-block;
+            white-space: nowrap;
+        }`;
 
-        var shadowRoot = this.shadowRoot || this.attachShadow({ mode: 'open' });
+        var shadowRoot = this.shadowRoot;
         shadowRoot.appendChild(style);
 
         var oldValue = this.textContent;
