@@ -519,27 +519,20 @@ class EventCardElement extends HTMLElement {
 
         function createActionData(event) {
             var td = document.createElement('td');
-            var controller;
-            var scope;
 
             for (var a = 1; a < event.length; a++) {
                 var handled = event[a];
 
-                scope = document.createElement('aurainspector-auracomponent');
-                scope.setAttribute('summarize', true);
-                scope.setAttribute('globalId', handled.data.scope);
-
-                controller = document.createElement('aurainspector-controllerreference');
+                let controller = document.createElement('aurainspector-controllerreference');
                 controller.setAttribute('expression', '{!c.' + handled.data.name + '}');
                 controller.setAttribute('component', handled.data.scope);
                 controller.textContent = 'c.' + handled.data.name;
 
-                if (a > 1) {
-                    td.appendChild(document.createElement('br'));
-                }
+                // if (a > 1) {
+                //     td.appendChild(document.createElement('br'));
+                // }
 
                 td.appendChild(controller);
-                td.appendChild(scope);
             }
             return td;
         }
