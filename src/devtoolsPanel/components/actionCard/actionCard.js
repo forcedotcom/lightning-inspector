@@ -305,6 +305,10 @@ template.innerHTML = `<div class="action-card-wrapper slds-p-around--x-small is-
     </div>`;
 
 class ActionCard extends HTMLElement {
+    static get observedAttributes() {
+        return ['collapsible'];
+    }
+
     connectedCallback() {
         const clone = document.importNode(template.content, true);
         const shadowRoot = this;

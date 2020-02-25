@@ -664,21 +664,27 @@ class HtmlTreeViewLabel extends React.Component {
             );
         }
 
-        for (let attribute in component.attributes.HTMLAttributes) {
-            let value = component.attributes.HTMLAttributes[attribute];
-            if (FunctionCallValueUtils.isFCV(value)) {
-                attributes.push(
-                    <span className="component-attribute-pair" key={attribute}>
-                        <span className="component-attribute">{attribute}</span>="
-                        {FunctionCallValueUtils.formatFCV(value)}"
-                    </span>
-                );
-            } else {
-                attributes.push(
-                    <span className="component-attribute-pair" key={attribute}>
-                        <span className="component-attribute">{attribute}</span>="{value}"
-                    </span>
-                );
+        // Verify that HTMLAttributes are an object before trying to output them.
+        if (
+            component.attributes.HTMLAttributes &&
+            typeof component.attributes.HTMLAttributes === 'object'
+        ) {
+            for (let attribute in component.attributes.HTMLAttributes) {
+                let value = component.attributes.HTMLAttributes[attribute];
+                if (FunctionCallValueUtils.isFCV(value)) {
+                    attributes.push(
+                        <span className="component-attribute-pair" key={attribute}>
+                            <span className="component-attribute">{attribute}</span>="
+                            {FunctionCallValueUtils.formatFCV(value)}"
+                        </span>
+                    );
+                } else {
+                    attributes.push(
+                        <span className="component-attribute-pair" key={attribute}>
+                            <span className="component-attribute">{attribute}</span>="{value}"
+                        </span>
+                    );
+                }
             }
         }
 

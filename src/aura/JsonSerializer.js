@@ -1,8 +1,9 @@
 import ControlCharacters from './ControlCharacters.js';
-
-let increment = 1;
+import isEmpty from 'is-empty';
 
 export default class JsonSerializer {
+    static increment = 1;
+
     /**
      * Safe because it handles circular references in the data structure.
      *
@@ -11,14 +12,19 @@ export default class JsonSerializer {
      */
     static stringify(originalValue) {
         // For circular dependency checks
-        var doNotSerialize = {
+        const doNotSerialize = {
             '[object Window]': true,
             '[object global]': true,
             __proto__: null
         };
-        var visited = new Set();
-        var toJSONCmp = $A.Component.prototype.toJSON;
-        delete $A.Component.prototype.toJSON;
+        const visited = new Set();
+        const hasAura = !!globalThis.$A;
+        const toJSONCmp = hasAura ? $A.Component.prototype.toJSON : null;
+        // If we can store the Component toJSON method, do so then remove it so we can control
+        // how it gets serialized.
+        if (toJSONCmp) {
+            delete $A.Component.prototype.toJSON;
+        }
         var result = '{}';
         try {
             result = JSON.stringify(originalValue, function(key, value) {
@@ -59,7 +65,7 @@ export default class JsonSerializer {
                 }
 
                 // TODO: Consider handling invalid components differently.
-                if ($A.util.isComponent(value)) {
+                if (hasAura && $A.util.isComponent(value)) {
                     if (value.isValid()) {
                         return ControlCharacters.COMPONENT_CONTROL_CHAR + value.getGlobalId();
                     } else {
@@ -67,11 +73,11 @@ export default class JsonSerializer {
                     }
                 }
 
-                if ($A.util.isExpression(value)) {
+                if (hasAura && $A.util.isExpression(value)) {
                     return value.toString();
                 }
 
-                if ($A.util.isAction(value)) {
+                if (hasAura && $A.util.isAction(value)) {
                     return ControlCharacters.ACTION_CONTROL_CHAR + value.getDef().toString();
                 }
 
@@ -87,9 +93,9 @@ export default class JsonSerializer {
                         };
                     } else if (doNotSerialize[Object.prototype.toString.call(value)]) {
                         value = {};
-                    } else if (!Object.isSealed(value) && !$A.util.isEmpty(value)) {
+                    } else if (!Object.isSealed(value) && !isEmpty(value)) {
                         visited.add(value);
-                        value.$serId$ = increment++;
+                        value.$serId$ = JsonSerializer.increment++;
                     }
                 }
 
@@ -109,7 +115,9 @@ export default class JsonSerializer {
             }
         });
 
-        $A.Component.prototype.toJSON = toJSONCmp;
+        if (toJSONCmp) {
+            $A.Component.prototype.toJSON = toJSONCmp;
+        }
 
         return result;
     }
@@ -127,14 +135,14 @@ export default class JsonSerializer {
 }
 
 /**
- * TODO: When to use this
+ * We use this when resolving the JsonSerializer.parse() content.
+ * It handles stiching back together objects with resursive references.
  */
 function resolve(object) {
     if (!object) {
         return object;
     }
 
-    var count = 0;
     var serializationMap = new Map();
     var unresolvedReferences = [];
 

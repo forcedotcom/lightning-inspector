@@ -14,6 +14,10 @@
  */
 
 class LabelElement extends HTMLElement {
+    static get observedAttributes() {
+        return ['key'];
+    }
+
     constructor() {
         super();
         this.attachShadow({ mode: 'open' });
@@ -31,10 +35,8 @@ class LabelElement extends HTMLElement {
 customElements.define('aurainspector-label', LabelElement);
 
 function getLabel(element) {
-    const ATTRIBUTE_NAME = 'key';
-
-    if (element.hasAttribute(ATTRIBUTE_NAME)) {
-        var key = element.getAttribute(ATTRIBUTE_NAME);
+    if (element.hasAttribute('key')) {
+        var key = element.getAttribute('key');
         return chrome.i18n.getMessage(key) || '[' + key + ']';
     }
 }

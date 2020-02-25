@@ -1194,15 +1194,15 @@ function bootstrapPerfDevTools(api) {
             }
             function logTree(stack, mark) {
                 // UNCOMMENT THIS FOR DEBUGGING PURPOSES:
-                var d = '||| ';
-                console.log(
-                    Array.apply(0, Array(stack))
-                        .map(function() {
-                            return d;
-                        })
-                        .join(''),
-                    mark
-                );
+                // var d = '||| ';
+                // console.log(
+                //     Array.apply(0, Array(stack))
+                //         .map(function() {
+                //             return d;
+                //         })
+                //         .join(''),
+                //     mark
+                // );
             }
 
             function hashCode(name) {

@@ -250,6 +250,10 @@ import '../../external/vis.min.js';
 class EventCardElement extends HTMLElement {
     static EVENT_INDEX = 0;
 
+    static get observedAttributes() {
+        return ['collapsed', 'showgrid', 'showGrid'];
+    }
+
     /*
 		New Action Card created, update it's body
 	 */
@@ -315,7 +319,7 @@ class EventCardElement extends HTMLElement {
         }
     }
 
-    attributeChangedCallback = function(attr, oldValue, newValue) {
+    attributeChangedCallback(attr, oldValue, newValue) {
         if (attr === 'collapsed') {
             var section = this.shadowRoot.querySelector('section');
             var isCollapsed = this.isCollapsed();
@@ -338,7 +342,7 @@ class EventCardElement extends HTMLElement {
                 this.shadowRoot.querySelector('#eventHandledByGrid').classList.add('hidden');
             }
         }
-    };
+    }
 
     isCollapsed() {
         return this.shadowRoot.querySelector('section').classList.contains('hidden');
