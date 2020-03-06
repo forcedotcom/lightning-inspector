@@ -227,8 +227,13 @@ export default class PanelModel {
         return (
             this.hasPageContent &&
             ((window != top && this.isVisualforceFrame) ||
-                (window == top && this.hasVisualforceClasses))
+                (window == top && this.hasVisualforceClasses) || 
+                this.hasLightningOut)
         );
+    }
+
+    get hasLightningOut() {
+        return Array.from(window.document.querySelectorAll('script')).find(item => item.src.endsWith('lightning.out.js'));
     }
 
     get isPanelOpen() {
