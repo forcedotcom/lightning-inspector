@@ -235,10 +235,7 @@ function AuraInspector() {
             if (this.hasWatchedActions()) {
                 try {
                     for (var actionId in actionsWatched) {
-                        if (
-                            !oldResponseText.includes(actionId) ||
-                            !oldResponseText.startsWith('while(1);')
-                        ) {
+                        if (!oldResponseText.includes(actionId)) {
                             continue;
                         }
 
@@ -267,7 +264,7 @@ function AuraInspector() {
                             actionFound.returnValue = null;
                             var actionsEndIndex = oldResponseText.indexOf('context"');
                             newResponseText =
-                                'while(1);\n{"actions":' +
+                                '{"actions":' +
                                 JSON.stringify(restOfActions.concat(actionFound)) +
                                 ',"' +
                                 oldResponseText.substring(actionsEndIndex, oldResponseText.length);
@@ -291,42 +288,37 @@ function AuraInspector() {
                         }
                         //we would like to return non-error response
                         else if (actionWatched.nextResponse) {
-                            var responseModified = Object.assign(
-                                actionFound.returnValue,
-                                actionWatched.nextResponse
-                            );
-                            if (responseModified) {
-                                actionFound.returnValue = responseModified;
-                                var actionsEndIndex = oldResponseText.indexOf('context"');
-                                newResponseText =
-                                    'while(1);\n{"actions":' +
-                                    JSON.stringify(restOfActions.concat(actionFound)) +
-                                    ',"' +
-                                    oldResponseText.substring(
-                                        actionsEndIndex,
-                                        oldResponseText.length
-                                    );
+                            // var responseModified = Object.assign(
+                            //     actionFound.returnValue,
+                            //     actionWatched.nextResponse
+                            // );
+                            // if (responseModified) {
+                            //actionFound.returnValue = responseModified;
+                            actionFound.returnValue = actionWatched.nextResponse;
+                            var actionsEndIndex = oldResponseText.indexOf('context"');
+                            newResponseText =
+                                '{"actions":' +
+                                JSON.stringify(restOfActions.concat(actionFound)) +
+                                ',"' +
+                                oldResponseText.substring(actionsEndIndex, oldResponseText.length);
 
-                                //move the actionCard from watch list to Processed
-                                //this will call AuraInspectorActionsView_OnActionStateChange in AuraInspectorActionsView.js
-                                $Aura.Inspector.publish('AuraInspector:OnActionStateChange', {
-                                    id: actionId,
-                                    idtoWatch: actionWatched.idtoWatch,
-                                    state: 'RESPONSEMODIFIED',
-                                    sentTime: performance.now() //do we need this?
-                                });
+                            //move the actionCard from watch list to Processed
+                            //this will call AuraInspectorActionsView_OnActionStateChange in AuraInspectorActionsView.js
+                            $Aura.Inspector.publish('AuraInspector:OnActionStateChange', {
+                                id: actionId,
+                                idtoWatch: actionWatched.idtoWatch,
+                                state: 'RESPONSEMODIFIED',
+                                sentTime: performance.now() //do we need this?
+                            });
 
-                                const newHttpRequest = Object.assign(
-                                    $A.util.apply({}, oldResponse),
-                                    {
-                                        response: newResponseText,
-                                        responseText: newResponseText,
-                                        $isModified: true
-                                    }
-                                );
+                            const newHttpRequest = Object.assign($A.util.apply({}, oldResponse), {
+                                response: newResponseText,
+                                responseText: newResponseText,
+                                $isModified: true
+                            });
 
-                                return config['fn'].call(config['scope'], newHttpRequest, noStrip);
-                            }
+                            return config['fn'].call(config['scope'], newHttpRequest, noStrip);
+                            //}
                         }
                         //we would like to kill action, return incomplete
                         else {

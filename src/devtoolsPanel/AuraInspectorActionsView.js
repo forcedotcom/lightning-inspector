@@ -318,15 +318,15 @@ export default function AuraInspectorActionsView(devtoolsPanel) {
             //this only move the card from Watch List to Processed
             //at the point we don't have the result/parameter now as the action hasn't come back from server yet.
             //if we would like to update that, would need to delay this logic
-            card.setAttribute('actionId', action.id);
-            card.setAttribute('returnError', action.error);
+            card.setAttribute('action-id', action.id);
+            card.setAttribute('return-error', action.error);
             //also want to hide choice to drop/modify action
             card.setAttribute('toWatch', 'false');
             //let's make it draggable again, so people can drag already processed action back to watch list
             card.setAttribute('draggable', 'true');
             card.classList.add('draggable');
             card.classList.remove('dropped');
-            card.classList.remove('actionsToWatch-list');
+            card.classList.remove('actions-to-watch-list');
             card.addEventListener('dragstart', drag.bind(this));
             card.addEventListener('dragend', endDrag.bind(this));
             card.setAttribute('collapsible', 'false');
@@ -344,13 +344,13 @@ export default function AuraInspectorActionsView(devtoolsPanel) {
                     card = createActionCard(action.id, false);
                 }
                 card.setAttribute('state', action.state);
-                card.setAttribute('returnValue', action.returnValue);
-                card.setAttribute('fromStorage', action.fromStorage);
-                card.setAttribute('storageKey', action.storageKey);
-                card.setAttribute('returnError', action.error);
+                card.setAttribute('return-value', action.returnValue);
+                card.setAttribute('from-storage', action.fromStorage);
+                card.setAttribute('storage-key', action.storageKey);
+                card.setAttribute('return-error', action.error);
                 //let's give user some idea if the action result was modified, and if so, in which way
                 //responseModified_modify, responseModified_drop or responseModified_error
-                card.setAttribute('howDidWeModifyResponse', action.howDidWeModifyResponse);
+                card.setAttribute('how-did-we-modify-response', action.howDidWeModifyResponse);
                 if (action.howDidWeModifyResponse != undefined) {
                     card.classList.add(action.howDidWeModifyResponse);
                 }
@@ -412,26 +412,26 @@ export default function AuraInspectorActionsView(devtoolsPanel) {
         var card = document.createElement('aurainspector-action-card');
         card.id = 'action_card_' + action.id;
         card.className = 'action-card is-collapsed action-card-state-' + action.state;
-        card.setAttribute('actionId', action.id);
+        card.setAttribute('action-id', action.id);
         card.setAttribute('name', action.defName);
         card.setAttribute('parameters', params);
         card.setAttribute('state', action.state);
-        card.setAttribute('isStorable', action.storable);
-        card.setAttribute('isRefresh', action.isRefresh);
-        card.setAttribute('isAbortable', action.abortable);
-        card.setAttribute('isBackground', action.background);
-        card.setAttribute('returnValue', action.returnValue);
-        card.setAttribute('isFromStorage', action.fromStorage);
-        card.setAttribute('storageKey', action.storageKey);
-        card.setAttribute('dropOrModify', 'dropAction');
-        card.setAttribute('errorResponseType', 'exceptionEvent');
-        card.setAttribute('callingComponent', action.callingCmp || '');
+        card.setAttribute('is-storable', action.storable);
+        card.setAttribute('is-refresh', action.isRefresh);
+        card.setAttribute('is-abortable', action.abortable);
+        card.setAttribute('is-background', action.background);
+        card.setAttribute('return-value', action.returnValue);
+        card.setAttribute('is-from-storage', action.fromStorage);
+        card.setAttribute('storage-key', action.storageKey);
+        card.setAttribute('drop-or-modify', 'dropAction');
+        card.setAttribute('error-response-type', 'exceptionEvent');
+        card.setAttribute('calling-component', action.callingCmp || '');
         if (action.stats) {
             card.setAttribute('stats', JSON.stringify(action.stats));
         }
         //if card is on the watch list, it's not draggable, we need to remember that in the actionCard itself.
         if (toWatch === true) {
-            card.setAttribute('toWatch', true);
+            card.setAttribute('to-watch', true);
             card.setAttribute('collapsible', 'false');
         } else {
             //we allow people to drag the card when the card is on the left side
@@ -439,7 +439,7 @@ export default function AuraInspectorActionsView(devtoolsPanel) {
             card.classList.add('draggable');
             card.addEventListener('dragstart', drag.bind(this));
             card.addEventListener('dragend', endDrag.bind(this));
-            card.setAttribute('toWatch', false);
+            card.setAttribute('to-watch', false);
         }
 
         return card;
@@ -493,7 +493,7 @@ export default function AuraInspectorActionsView(devtoolsPanel) {
 
     function drag(event) {
         event.target.classList.add('dragging');
-        event.dataTransfer.setData('text', event.target.getAttribute('actionId').toString());
+        event.dataTransfer.setData('text', event.target.getAttribute('action-id').toString());
     }
 
     //create a new action card with actionId
@@ -680,22 +680,22 @@ export default function AuraInspectorActionsView(devtoolsPanel) {
             var card = document.createElement('aurainspector-action-card');
             card.id = 'action_card_' + action.actionId;
             card.className = 'action-card action-card-state-' + actionState;
-            card.setAttribute('actionId', action.actionId);
+            card.setAttribute('action-id', action.actionId);
             card.setAttribute('name', action.actionName);
             card.setAttribute('parameters', action.actionParameter);
             card.setAttribute('state', actionState);
-            card.setAttribute('isStorable', action.actionIsStorable + '');
-            card.setAttribute('isRefresh', 'false');
-            card.setAttribute('isAbortable', action.actionIsAbortable + '');
-            card.setAttribute('isBackground', action.actionIsBackground + '');
-            card.setAttribute('returnValue', {});
-            card.setAttribute('isFromStorage', 'false');
-            card.setAttribute('storageKey', action.actionStorageKey);
-            card.setAttribute('dropOrModify', 'dropAction');
+            card.setAttribute('is-storable', action.actionIsStorable + '');
+            card.setAttribute('is-refresh', 'false');
+            card.setAttribute('is-abortable', action.actionIsAbortable + '');
+            card.setAttribute('is-background', action.actionIsBackground + '');
+            card.setAttribute('return-value', {});
+            card.setAttribute('is-from-storage', 'false');
+            card.setAttribute('storage-key', action.actionStorageKey);
+            card.setAttribute('drop-or-modify', 'dropAction');
 
-            card.setAttribute('toWatch', true);
+            card.setAttribute('to-watch', true);
 
-            card.setAttribute('byChaosRun', true);
+            card.setAttribute('by-chaos-run', true);
         }
         return card;
     }

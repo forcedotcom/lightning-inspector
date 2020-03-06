@@ -1,4 +1,8 @@
-//var ownerDocument = document.currentScript.ownerDocument;
+import debug from 'debug';
+import JsonSerializer from '../../../aura/JsonSerializer';
+
+const log = debug('actionCard');
+
 const template = document.createElement('template');
 template.innerHTML = `<div class="action-card-wrapper slds-p-around--x-small is-collapsible">
         <div class="action-header">
@@ -308,7 +312,7 @@ class ActionCard extends HTMLElement {
     initialized = false;
 
     static get observedAttributes() {
-        return ['collapsible'];
+        return ['collapsible', 'return-value', 'return-error', 'state'];
     }
 
     connectedCallback() {
@@ -361,44 +365,50 @@ class ActionCard extends HTMLElement {
             EditError_OnClick.bind(this)
         );
 
-        if (this.getAttribute('collapsible') === 'false') {
-            const container = this.querySelector('div.action-card-wrapper');
-            container.classList.remove('is-collapsible');
-        }
+        this.render();
+    }
 
-        var model = {
-            id: this.getAttribute('actionId'),
+    attributeChangedCallback(attrName, oldVal, newVal) {
+        this.rerender();
+    }
+
+    getModel() {
+        const isStorable = this.getAttribute('is-storable') === 'true';
+
+        return {
+            id: this.getAttribute('action-id'),
             actionName: this.getAttribute('name'),
             parameters: this.getAttribute('parameters'),
             state: this.getAttribute('state'),
-            isBackground: this.getAttribute('isBackground'),
-            isStorable: this.getAttribute('isStorable'),
-            isRefresh:
-                this.getAttribute('isStorable') === 'true' ? this.getAttribute('isRefresh') : '-',
-            isAbortable: this.getAttribute('isAbortable'),
-            returnValue: this.getAttribute('returnValue'),
+            isBackground: this.getAttribute('is-background'),
+            isStorable: this.getAttribute('is-storable'),
+            isRefresh: isStorable ? this.getAttribute('is-refresh') : '-',
+            isAbortable: this.getAttribute('is-abortable'),
+            returnValue: this.getAttribute('return-value'),
             returnError:
-                this.getAttribute('returnError') === '[]'
+                this.getAttribute('return-error') === '[]'
                     ? undefined
-                    : this.getAttribute('returnError'),
-            howDidWeModifyResponse: this.getAttribute('howDidWeModifyResponse'), //responseModified_modify, responseModified_drop, responseModified_error
-            fromStorage:
-                this.getAttribute('isStorable') === 'true'
-                    ? this.getAttribute('isFromStorage')
-                    : '-',
+                    : this.getAttribute('return-error'),
+            howDidWeModifyResponse: this.getAttribute('how-did-we-modify-response'), //responseModified_modify, responseModified_drop, responseModified_error
+            fromStorage: isStorable ? this.getAttribute('is-from-storage') : '-',
             //storageKey could be very long, I want people be able to see it when they want to, hide it like other JSON object when no one cares
-            storageKey:
-                this.getAttribute('isStorable') === 'true'
-                    ? '{"storageKey":' + JSON.stringify(this.getAttribute('storageKey')) + '}'
-                    : '-',
+            storageKey: isStorable
+                ? '{"storageKey":' + JSON.stringify(this.getAttribute('storage-key')) + '}'
+                : '-',
             // storageKey: this.getAttribute("isStorable") === "true" ? this.getAttribute("storageKey") : "-",
-            storableSize:
-                this.getAttribute('isStorable') === 'true'
-                    ? (JSON.stringify(this.getAttribute('returnValue')).length / 1024).toFixed(1) +
-                      ' KB'
-                    : '-',
-            callingComponent: this.getAttribute('callingComponent')
+            storableSize: isStorable
+                ? (JSON.stringify(this.getAttribute('return-value')).length / 1024).toFixed(1) +
+                  ' KB'
+                : '-',
+            callingComponent: this.getAttribute('calling-component'),
+            stats: this.hasAttribute('stats') ? JSON.parse(this.getAttribute('stats')) : undefined,
+            toWatch: this.getAttribute('to-watch') === 'true',
+            collapsed: this.getAttribute('collapsible') === 'false'
         };
+    }
+
+    render() {
+        const model = this.getModel();
 
         const actionName = this.querySelector('#action-name');
         actionName.innerHTML = '';
@@ -427,6 +437,50 @@ class ActionCard extends HTMLElement {
             }
         }
 
+        if (model.stats) {
+            this.querySelector('#statsCreated').textContent = model.stats.created;
+        }
+
+        if (model.isStorable === 'false' || model.isStorable === false) {
+            // Hide the storable sub info columns
+            this.querySelector('.attributes').classList.add('storable-false');
+        }
+
+        if (model.toWatch) {
+            //let people decide what they would like to do once the actionCard is created inside watch list
+            this.querySelector('.remove-card').classList.remove('slds-hide');
+            this.querySelector('.action-card-wrapper').classList.add('watch');
+
+            if (this.getAttribute('drop-or-modify') === 'modifyResponse') {
+                //non-error response next time
+                show(this.querySelector('.div_editActionResult'));
+                hide(this.querySelector('.div_errorResponse'));
+            } else if (this.getAttribute('drop-or-modify') === 'errorResponseNextTime') {
+                //error response next time
+                hide(this.querySelector('.div_editActionResult'));
+                show(this.querySelector('.div_errorResponse'));
+            } else {
+                //drop action
+                hide(this.querySelector('.div_errorResponse'));
+                hide(this.querySelector('.div_editActionResult'));
+            }
+        }
+
+        if (!model.collapsed) {
+            const container = this.querySelector('div.action-card-wrapper');
+            container.classList.remove('is-collapsible');
+        }
+    }
+
+    rerender() {
+        if (!this.initialized) {
+            return;
+        }
+        const model = this.getModel();
+
+        const actionState = this.querySelector('#actionState');
+        actionState.textContent = model.state;
+
         if (
             model.returnError !== undefined &&
             model.returnError !== null &&
@@ -444,47 +498,12 @@ class ActionCard extends HTMLElement {
             this.querySelector('#action-response-container').classList.remove('slds-hide');
             this.querySelector('#action-error-container').classList.add('slds-hide');
         }
-        if (this.hasAttribute('stats')) {
-            var statsInfo = JSON.parse(this.getAttribute('stats'));
 
-            this.querySelector('#statsCreated').textContent = statsInfo.created;
-        }
-
-        if (model.isStorable === 'false' || model.isStorable === false) {
-            // Hide the storable sub info columns
-            this.querySelector('.attributes').classList.add('storable-false');
-        }
-
-        if (this.getAttribute('toWatch') === 'true') {
-            //let people decide what they would like to do once the actionCard is created inside watch list
-            this.querySelector('.remove-card').classList.remove('slds-hide');
-            //this.querySelector(".dropOrModify").style.display = "block";
-            this.querySelector('.action-card-wrapper').classList.add('watch');
-
-            if (this.getAttribute('dropOrModify') === 'modifyResponse') {
-                //non-error response next time
-                show(this.querySelector('.div_editActionResult')); //.style.display = "block";
-                hide(this.querySelector('.div_errorResponse')); //.style.display = "none";
-            } else if (this.getAttribute('dropOrModify') === 'errorResponseNextTime') {
-                //error response next time
-                hide(this.querySelector('.div_editActionResult')); //.style.display = "none";
-                show(this.querySelector('.div_errorResponse')); //.style.display = "block";
-            } else {
-                //drop action
-                hide(this.querySelector('.div_errorResponse')); //.style.display = "none";
-                hide(this.querySelector('.div_editActionResult')); //.style.display = "none";
-            }
-        }
-    }
-
-    attributeChangedCallback(attrName, oldVal, newVal) {
-        if (attrName === 'collapsible') {
-            const container = this.querySelector('div.action-card-wrapper');
-            if (newVal == 'false') {
-                container.classList.remove('is-collapsible');
-            } else {
-                container.classList.add('is-collapsible');
-            }
+        const container = this.querySelector('div.action-card-wrapper');
+        if (model.collapsed == 'false') {
+            container.classList.remove('is-collapsible');
+        } else {
+            container.classList.add('is-collapsible');
         }
     }
 }
@@ -512,7 +531,7 @@ function RemoveCard_OnClick() {
             `;
         chrome.devtools.inspectedWindow.eval(command, function(response, exception) {
             if (exception) {
-                console.log('ERROR from removeActionCard, CMD:', command, exception);
+                log('ERROR from removeActionCard, CMD:', command, exception);
             }
         });
     } else {
@@ -525,23 +544,29 @@ function DropOrModify_OnChange() {
     var dropOrModify = this.querySelector('#select_dropOrModify').value;
     this.setAttribute('dropOrModify', dropOrModify);
     if (dropOrModify === 'dropAction') {
-        hide(this.querySelector('.div_editActionResult')); //.style.display = "none";
-        hide(this.querySelector('.div_errorResponse')); //.style.display = "none";
+        hide(this.querySelector('.div_editActionResult'));
+        hide(this.querySelector('.div_errorResponse'));
     } else if (dropOrModify === 'modifyResponse') {
-        show(this.querySelector('.div_editActionResult')); //.style.display = "block";
-        hide(this.querySelector('.div_errorResponse')); //.style.display = "none";
+        show(this.querySelector('.div_editActionResult'));
+        hide(this.querySelector('.div_errorResponse'));
         //get an array of key->value from response, fill them into the picklist -- save this to actionCard itself?
-        var returnValue = this.getAttribute('returnValue');
+        var returnValue = this.getAttribute('return-value');
 
         var actionResultValue = this.querySelector('#textarea_actionResultValue');
-        actionResultValue.value = returnValue;
+        try {
+            actionResultValue.value = JSON.stringify(JsonSerializer.parse(returnValue), null, 2);
+        } catch (e) {
+            log(e);
+            // Must not have been serializable
+            actionResultValue.value = returnValue;
+        }
         //show save/cancel button, and wire up logic
         show(this.querySelector('.div_editActionResult'));
     } else if (dropOrModify === 'errorResponseNextTime') {
         hide(this.querySelector('.div_editActionResult'));
         show(this.querySelector('.div_errorResponse'));
 
-        this.querySelector('#errorResponseType').addEventListener(
+        this.querySelector('#error-response-type').addEventListener(
             'change',
             ErrorReponseType_OnChange.bind(this)
         );
@@ -551,13 +576,13 @@ function DropOrModify_OnChange() {
 }
 
 function ErrorReponseType_OnChange() {
-    var errorResponseType = this.querySelector('#errorResponseType').value;
+    var errorResponseType = this.querySelector('#error-response-type').value;
     if (errorResponseType === 'exceptionEvent') {
-        this.setAttribute('errorResponseType', 'exceptionEvent');
+        this.setAttribute('error-response-type', 'exceptionEvent');
         hide(this.querySelector('.messageAndStackDiv'));
         show(this.querySelector('.exceptionEventDiv'));
     } else {
-        this.setAttribute('errorResponseType', 'messageAndStack');
+        this.setAttribute('error-response-type', 'messageAndStack');
         hide(this.querySelector('.exceptionEventDiv'));
         show(this.querySelector('.messageAndStackDiv'));
     }
@@ -567,7 +592,7 @@ function SaveError_OnClick() {
     var actionId = this.getAttribute('id');
     var nextError;
     if (actionId) {
-        var errorResponseType = this.getAttribute('errorResponseType');
+        var errorResponseType = this.getAttribute('error-response-type');
         if (errorResponseType == 'exceptionEvent') {
             var attributes = this.querySelector('#eventAttribute').value.trim();
             try {
@@ -638,7 +663,7 @@ function SaveError_OnClick() {
 
 function EditError_OnClick() {
     var actionId = this.getAttribute('id');
-    var errorResponseType = this.getAttribute('errorResponseType');
+    var errorResponseType = this.getAttribute('error-response-type');
     if (actionId) {
         //make the textara readonly
         if (errorResponseType == 'messageAndStack') {
@@ -693,7 +718,6 @@ function SaveActionResult_OnClick() {
     var actionId = this.getAttribute('id');
     var actionName = this.getAttribute('name');
     var actionParameter = this.getAttribute('parameters');
-    //var actionIsStorable = this.getAttribute("isStorable");
 
     var nextResponseValue = this.querySelector('#textarea_actionResultValue').value;
     if (actionId && nextResponseValue) {

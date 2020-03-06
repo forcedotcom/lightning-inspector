@@ -46,6 +46,10 @@ export default class JsonSerializer {
                     return ControlCharacters.ESCAPE_CHAR + escape(value);
                 }
 
+                if (value.nodeType === 11) {
+                    return '#document-fragment';
+                }
+
                 if (value instanceof Error) {
                     return value + '';
                 }

@@ -15,6 +15,7 @@ import DevToolsEncodedId from './DevToolsEncodedId.js';
 import AuraInspectorOptions from './optionsProxy.js';
 import JsonSerializer from '../aura/JsonSerializer.js';
 import TabBar from './components/TabBar';
+import debug from 'debug';
 
 /**
  * You can use the publish and subscribe methods to broadcast messages through to the end points of the architecture.
@@ -59,6 +60,10 @@ import TabBar from './components/TabBar';
  * AuraInspector:OnStopAllChaosRun              User has click the panic button, let's stop all chaos run, and clear up everything
  * AuraInspector:OnSomeActionGetDropped         We just drop some action during a replay
  */
+
+if (process.env.NODE_ENV !== 'production') {
+    debug.enable('*');
+}
 
 var panel = new AuraInspectorDevtoolsPanel();
 

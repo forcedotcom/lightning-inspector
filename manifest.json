@@ -27,10 +27,7 @@
         "contextMenus",
         "http://*/",
         "https://*/",
-        "clipboardRead",
-        "clipboardWrite",
         "contentSettings",
-        "cookies",
         "idle"
     ],
     "default_locale": "en",
