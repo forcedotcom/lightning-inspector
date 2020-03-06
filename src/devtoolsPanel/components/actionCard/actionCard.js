@@ -1,4 +1,8 @@
-//var ownerDocument = document.currentScript.ownerDocument;
+import debug from 'debug';
+import JsonSerializer from '../../../aura/JsonSerializer';
+
+const log = debug('actionCard');
+
 const template = document.createElement('template');
 template.innerHTML = `<div class="action-card-wrapper slds-p-around--x-small is-collapsible">
         <div class="action-header">
@@ -534,7 +538,7 @@ function RemoveCard_OnClick() {
             `;
         chrome.devtools.inspectedWindow.eval(command, function(response, exception) {
             if (exception) {
-                console.log('ERROR from removeActionCard, CMD:', command, exception);
+                log('ERROR from removeActionCard, CMD:', command, exception);
             }
         });
     } else {
@@ -556,7 +560,13 @@ function DropOrModify_OnChange() {
         var returnValue = this.getAttribute('return-value');
 
         var actionResultValue = this.querySelector('#textarea_actionResultValue');
-        actionResultValue.value = returnValue;
+        try {
+            actionResultValue.value = JSON.stringify(JsonSerializer.parse(returnValue), null, 2);
+        } catch(e) {
+            log(e);
+            // Must not have been serializable
+            actionResultValue.value = returnValue;
+        }
         //show save/cancel button, and wire up logic
         show(this.querySelector('.div_editActionResult'));
     } else if (dropOrModify === 'errorResponseNextTime') {

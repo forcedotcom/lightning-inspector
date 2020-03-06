@@ -264,7 +264,7 @@ function AuraInspector() {
                             actionFound.returnValue = null;
                             var actionsEndIndex = oldResponseText.indexOf('context"');
                             newResponseText =
-                                'while(1);\n{"actions":' +
+                                '{"actions":' +
                                 JSON.stringify(restOfActions.concat(actionFound)) +
                                 ',"' +
                                 oldResponseText.substring(actionsEndIndex, oldResponseText.length);
@@ -288,12 +288,13 @@ function AuraInspector() {
                         }
                         //we would like to return non-error response
                         else if (actionWatched.nextResponse) {
-                            var responseModified = Object.assign(
-                                actionFound.returnValue,
-                                actionWatched.nextResponse
-                            );
-                            if (responseModified) {
-                                actionFound.returnValue = responseModified;
+                            // var responseModified = Object.assign(
+                            //     actionFound.returnValue,
+                            //     actionWatched.nextResponse
+                            // );
+                            // if (responseModified) {
+                                //actionFound.returnValue = responseModified;
+                                actionFound.returnValue = actionWatched.nextResponse;
                                 var actionsEndIndex = oldResponseText.indexOf('context"');
                                 newResponseText =
                                     '{"actions":' +
@@ -323,7 +324,7 @@ function AuraInspector() {
                                 );
 
                                 return config['fn'].call(config['scope'], newHttpRequest, noStrip);
-                            }
+                            //}
                         }
                         //we would like to kill action, return incomplete
                         else {
