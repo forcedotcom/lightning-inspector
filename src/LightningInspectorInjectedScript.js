@@ -235,10 +235,7 @@ function AuraInspector() {
             if (this.hasWatchedActions()) {
                 try {
                     for (var actionId in actionsWatched) {
-                        if (
-                            !oldResponseText.includes(actionId) ||
-                            !oldResponseText.startsWith('while(1);')
-                        ) {
+                        if (!oldResponseText.includes(actionId)) {
                             continue;
                         }
 
@@ -299,7 +296,7 @@ function AuraInspector() {
                                 actionFound.returnValue = responseModified;
                                 var actionsEndIndex = oldResponseText.indexOf('context"');
                                 newResponseText =
-                                    'while(1);\n{"actions":' +
+                                    '{"actions":' +
                                     JSON.stringify(restOfActions.concat(actionFound)) +
                                     ',"' +
                                     oldResponseText.substring(
