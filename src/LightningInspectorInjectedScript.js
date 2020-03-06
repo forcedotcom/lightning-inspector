@@ -293,37 +293,31 @@ function AuraInspector() {
                             //     actionWatched.nextResponse
                             // );
                             // if (responseModified) {
-                                //actionFound.returnValue = responseModified;
-                                actionFound.returnValue = actionWatched.nextResponse;
-                                var actionsEndIndex = oldResponseText.indexOf('context"');
-                                newResponseText =
-                                    '{"actions":' +
-                                    JSON.stringify(restOfActions.concat(actionFound)) +
-                                    ',"' +
-                                    oldResponseText.substring(
-                                        actionsEndIndex,
-                                        oldResponseText.length
-                                    );
+                            //actionFound.returnValue = responseModified;
+                            actionFound.returnValue = actionWatched.nextResponse;
+                            var actionsEndIndex = oldResponseText.indexOf('context"');
+                            newResponseText =
+                                '{"actions":' +
+                                JSON.stringify(restOfActions.concat(actionFound)) +
+                                ',"' +
+                                oldResponseText.substring(actionsEndIndex, oldResponseText.length);
 
-                                //move the actionCard from watch list to Processed
-                                //this will call AuraInspectorActionsView_OnActionStateChange in AuraInspectorActionsView.js
-                                $Aura.Inspector.publish('AuraInspector:OnActionStateChange', {
-                                    id: actionId,
-                                    idtoWatch: actionWatched.idtoWatch,
-                                    state: 'RESPONSEMODIFIED',
-                                    sentTime: performance.now() //do we need this?
-                                });
+                            //move the actionCard from watch list to Processed
+                            //this will call AuraInspectorActionsView_OnActionStateChange in AuraInspectorActionsView.js
+                            $Aura.Inspector.publish('AuraInspector:OnActionStateChange', {
+                                id: actionId,
+                                idtoWatch: actionWatched.idtoWatch,
+                                state: 'RESPONSEMODIFIED',
+                                sentTime: performance.now() //do we need this?
+                            });
 
-                                const newHttpRequest = Object.assign(
-                                    $A.util.apply({}, oldResponse),
-                                    {
-                                        response: newResponseText,
-                                        responseText: newResponseText,
-                                        $isModified: true
-                                    }
-                                );
+                            const newHttpRequest = Object.assign($A.util.apply({}, oldResponse), {
+                                response: newResponseText,
+                                responseText: newResponseText,
+                                $isModified: true
+                            });
 
-                                return config['fn'].call(config['scope'], newHttpRequest, noStrip);
+                            return config['fn'].call(config['scope'], newHttpRequest, noStrip);
                             //}
                         }
                         //we would like to kill action, return incomplete

@@ -382,8 +382,7 @@ class ActionCard extends HTMLElement {
             state: this.getAttribute('state'),
             isBackground: this.getAttribute('is-background'),
             isStorable: this.getAttribute('is-storable'),
-            isRefresh:
-                isStorable ? this.getAttribute('is-refresh') : '-',
+            isRefresh: isStorable ? this.getAttribute('is-refresh') : '-',
             isAbortable: this.getAttribute('is-abortable'),
             returnValue: this.getAttribute('return-value'),
             returnError:
@@ -391,21 +390,16 @@ class ActionCard extends HTMLElement {
                     ? undefined
                     : this.getAttribute('return-error'),
             howDidWeModifyResponse: this.getAttribute('how-did-we-modify-response'), //responseModified_modify, responseModified_drop, responseModified_error
-            fromStorage:
-                isStorable
-                    ? this.getAttribute('is-from-storage')
-                    : '-',
+            fromStorage: isStorable ? this.getAttribute('is-from-storage') : '-',
             //storageKey could be very long, I want people be able to see it when they want to, hide it like other JSON object when no one cares
-            storageKey:
-                isStorable
-                    ? '{"storageKey":' + JSON.stringify(this.getAttribute('storage-key')) + '}'
-                    : '-',
+            storageKey: isStorable
+                ? '{"storageKey":' + JSON.stringify(this.getAttribute('storage-key')) + '}'
+                : '-',
             // storageKey: this.getAttribute("isStorable") === "true" ? this.getAttribute("storageKey") : "-",
-            storableSize:
-                isStorable
-                    ? (JSON.stringify(this.getAttribute('return-value')).length / 1024).toFixed(1) +
-                      ' KB'
-                    : '-',
+            storableSize: isStorable
+                ? (JSON.stringify(this.getAttribute('return-value')).length / 1024).toFixed(1) +
+                  ' KB'
+                : '-',
             callingComponent: this.getAttribute('calling-component'),
             stats: this.hasAttribute('stats') ? JSON.parse(this.getAttribute('stats')) : undefined,
             toWatch: this.getAttribute('to-watch') === 'true',
@@ -483,7 +477,7 @@ class ActionCard extends HTMLElement {
             return;
         }
         const model = this.getModel();
-        
+
         const actionState = this.querySelector('#actionState');
         actionState.textContent = model.state;
 
@@ -504,14 +498,13 @@ class ActionCard extends HTMLElement {
             this.querySelector('#action-response-container').classList.remove('slds-hide');
             this.querySelector('#action-error-container').classList.add('slds-hide');
         }
-        
+
         const container = this.querySelector('div.action-card-wrapper');
         if (model.collapsed == 'false') {
             container.classList.remove('is-collapsible');
         } else {
             container.classList.add('is-collapsible');
         }
-    
     }
 }
 
@@ -562,7 +555,7 @@ function DropOrModify_OnChange() {
         var actionResultValue = this.querySelector('#textarea_actionResultValue');
         try {
             actionResultValue.value = JSON.stringify(JsonSerializer.parse(returnValue), null, 2);
-        } catch(e) {
+        } catch (e) {
             log(e);
             // Must not have been serializable
             actionResultValue.value = returnValue;
