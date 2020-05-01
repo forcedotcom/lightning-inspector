@@ -37,6 +37,7 @@ The Lightning Inspector lives in the aura public open source repo so it must be 
 
 ```sh
   yarn install
+  yarn build
 ```
 
 4. Development
