@@ -2,14 +2,15 @@
     "manifest_version": 2,
     "name": "__MSG_manifest_name__",
     "description": "__MSG_manifest_description__",
-    "version": "1.0.8",
+    "version": "1.0.9",
     "icons": {
         "16": "images/icon16.png",
         "48": "images/icon48.png",
         "128": "images/icon128.png"
     },
     "background": {
-        "scripts": ["dist/background.js"]
+        "scripts": ["dist/background.js"],
+        "persistent": false
     },
     "browser_action": {
         "default_icon": "stylesheets-previewer/icons/icon-19.png",
@@ -23,7 +24,6 @@
     "devtools_page": "viewerLoader.html",
     "permissions": [
         "tabs",
-        "background",
         "contextMenus",
         "https://*.force.com/*",
         "https://*.salesforce.com/*"
