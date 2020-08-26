@@ -9,7 +9,7 @@ if (process.env.NODE_ENV !== 'production') {
     };
 }
 
-const WHITELIST = /(\.cmp|\.app|\.force\.com|\.salesforce\.com|\/s\/)/g;
+const ALLOWLIST = /(\.cmp|\.app|\.force\.com|\.salesforce\.com|\/s\/)/g;
 
 export default class Content {
     buckets = new Buckets();
@@ -33,7 +33,7 @@ export default class Content {
                 }
 
                 if (
-                    WHITELIST.test(window.location.pathname) ||
+                    ALLOWLIST.test(window.location.pathname) ||
                     /forceGatherers/.test(window.location.search)
                 ) {
                     if (!this.syncStorage.default.disablePlugin) {

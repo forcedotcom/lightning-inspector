@@ -11839,7 +11839,7 @@
                 module.exports = exports = Socket;
 
                 /**
-                 * Internal events (blacklisted).
+                 * Internal events (blocklisted).
                  * These events can't be emitted by the user.
                  *
                  * @api private
