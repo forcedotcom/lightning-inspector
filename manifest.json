@@ -24,7 +24,9 @@
     "devtools_page": "viewerLoader.html",
     "permissions": [
         "contextMenus",
+        "http://*.force.com/*",
         "https://*.force.com/*",
+        "http://*.salesforce.com/*",
         "https://*.salesforce.com/*"
     ],
     "default_locale": "en",
