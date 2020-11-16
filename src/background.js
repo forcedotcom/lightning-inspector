@@ -35,14 +35,11 @@ function AuraInspectorBackgroundPage() {
         // Consider tying this into the injected set, so we add the context to injected tabs.
         // Might just need to change the documentUrlPatterns in that case.
         chrome.contextMenus.create({
+            id: 'inspect_cmp_menu',
             title: 'Inspect Lightning Component',
-            contexts: ['all'],
-            onclick: BackgroundPage_OnContextClick.bind(this)
-
-            // Commented out the filter since most pages don't have .app in them anymore.
-            // Consider moving this into onConnect, and using the href of the page as the documentUrlPattern
-            // ,documentUrlPatterns: ["*://*/*cmp*", "*://*/*app*"]
+            contexts: ['all']
         });
+        chrome.contextMenus.onClicked.addListener(BackgroundPage_OnContextClick.bind(this));
 
         // Add the external panels to the tabInfo collection.
         this.subscribe(
