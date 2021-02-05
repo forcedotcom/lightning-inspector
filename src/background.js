@@ -103,7 +103,29 @@ function AuraInspectorBackgroundPage() {
 
     function BackgroundPage_OnInjectContentScript(tabId, sender) {
         chrome.tabs.executeScript(tabId, { file: 'dist/contentScript.js' });
+
+        // This is the method that is called once when user switches tab to "Lightning".
+        // Hence telemetry calls are made here. This is a standard set of calls Google recommends.
+        ga('create', 'UA-189016129-1', 'auto');
+        ga('set', 'checkProtocolTask', function() {});
+        ga('require', 'displayfeatures');
+        ga('send', 'pageview', '/viewerLoader.html');
     }
+
+    // Standard Google Universal Analytics code
+    (function(i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        (i[r] =
+            i[r] ||
+            function() {
+                (i[r].q = i[r].q || []).push(arguments);
+            }),
+            (i[r].l = 1 * new Date());
+        (a = s.createElement(o)), (m = s.getElementsByTagName(o)[0]);
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m);
+    })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
 
     function BackgroundPage_OnConnect(port) {
         // It is possible for some reason to not have a tab object from devToolPanels connecting.
