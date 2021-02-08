@@ -106,7 +106,7 @@ function AuraInspectorBackgroundPage() {
 
         // This is the method that is called once when user switches tab to "Lightning".
         // Hence telemetry calls are made here. This is a standard set of calls Google recommends.
-        ga('create', 'UA-189016129-1', 'auto');
+        ga('create', 'UA-134722592-2', 'auto');
         ga('set', 'checkProtocolTask', function() {});
         ga('require', 'displayfeatures');
         ga('send', 'pageview', '/viewerLoader.html');
