@@ -1,9 +1,6 @@
 ---
 version: 2.1
 
-orbs:
-    codecov: codecov/codecov@1.0.4
-
 # Predefined Commands to be run during the Jobs:build config.
 run_format: &run_format
     run:
@@ -29,9 +26,6 @@ jobs:
             - run: yarn test:ci
             # Not implemented yet
             # - run: yarn test:integration:ci
-            - codecov/upload:
-                  file: logs/jest-coverage/*.json
-                  flags: frontend
             - store_test_results:
                   path: logs/jest-report
             - save_cache:

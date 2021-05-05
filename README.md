@@ -1,5 +1,4 @@
 [![CircleCI](https://circleci.com/gh/forcedotcom/lightning-inspector.svg?style=svg)](https://circleci.com/gh/forcedotcom/lightning-inspector)
-[![codecov](https://codecov.io/gh/forcedotcom/lightning-inspector/branch/master/graph/badge.svg)](https://codecov.io/gh/forcedotcom/lightning-inspector)
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
