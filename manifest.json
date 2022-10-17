@@ -9,7 +9,7 @@
         "128": "images/icon128.png"
     },
     "background": {
-        "scripts": ["dist/background.js"],
+        "scripts": ["src/background.js"],
         "persistent": false
     },
     "browser_action": {
